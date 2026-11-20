@@ -63,3 +63,30 @@ test('Screenshots: Ermahnung und leerer Tag 4', async ({ page }) => {
   await key(page, 'advance').click();
   await page.screenshot({ path: shot('11-ende'), fullPage: true });
 });
+
+test('Screenshots: gezogene Papiere, Stempelabdruck, Zoom, Einstellungen', async ({ page }) => {
+  await freshStart(page);
+  await key(page, 'new-game').click();
+  await key(page, 'begin').click();
+  await key(page, 'stack').click();
+  const drag = async (k: string, dx: number, dy: number) => {
+    const b = (await key(page, k).boundingBox())!;
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height - 12);
+    await page.mouse.down();
+    await page.mouse.move(b.x + b.width / 2 + dx, b.y + b.height - 12 + dy, { steps: 8 });
+    await page.mouse.up();
+  };
+  await drag('paper-2', -260, -40);
+  await drag('paper-0', 40, 140);
+  await key(page, 'pos-p1-anerkennen').click();
+  await key(page, 'pos-p2-streichen').click();
+  await key(page, 'stamp-bescheid').click();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: shot('12-gezogen-gestempelt'), fullPage: true });
+  await key(page, 'paper-1').dblclick();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: shot('13-zoom') });
+  await page.keyboard.press('Escape');
+  await page.locator('.settings summary').click();
+  await page.screenshot({ path: shot('14-einstellungen') });
+});

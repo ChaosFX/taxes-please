@@ -55,7 +55,7 @@ function errorLine(c: Content, akte: Akte, e: CaseError): HTMLElement {
 export function startView(content: Content, canContinue: boolean, a: Actions): HTMLElement {
   return h(
     'main',
-    { class: 'screen start' },
+    { class: 'screen start sheet' },
     h('h1', {}, 'Taxes Please'),
     h('p', { class: 'subtitle' }, `Veranlagungsjahr ${content.meta.veranlagungsjahr}`),
     h('div', { class: 'disclaimer', role: 'note' }, h('p', {}, content.meta.hinweis)),
@@ -77,7 +77,7 @@ export function introView(content: Content, state: GameState, a: Actions): HTMLE
     { class: 'screen intro' },
     h(
       'section',
-      { class: 'day-card' },
+      { class: 'day-card sheet' },
       h('h1', {}, `Tag ${d.day}`),
       h('p', {}, d.intro),
       d.storyEvents.map((e) =>
@@ -92,10 +92,19 @@ export function introView(content: Content, state: GameState, a: Actions): HTMLE
 
 // ---------- Desk ----------
 
-function paper(doc: Document): HTMLElement {
-  return h(
+/** Called for each document paper after creation, e.g. to make it draggable. */
+export type PaperHook = (el: HTMLElement, key: string, rotationSeed: string) => void;
+
+function paper(doc: Document, key: string, seed: string, hook: PaperHook): HTMLElement {
+  const el = h(
     'article',
-    { class: `paper ${doc.kind}` },
+    {
+      class: `paper doc ${doc.kind}${doc.stamp ? ' has-stamp' : ''}`,
+      tabindex: 0,
+      'data-key': key,
+      'aria-label': doc.title,
+      'aria-roledescription': 'Papier',
+    },
     h('h3', {}, doc.title),
     h(
       'table',
@@ -108,6 +117,8 @@ function paper(doc: Document): HTMLElement {
     ),
     doc.stamp ? h('div', { class: 'office-stamp', 'aria-label': `Kanzleistempel ${doc.stamp}` }, doc.stamp) : null,
   );
+  hook(el, key, seed);
+  return el;
 }
 
 function pruefvermerk(content: Content, akte: Akte, state: GameState, a: Actions): HTMLElement {
@@ -184,7 +195,7 @@ function pruefvermerk(content: Content, akte: Akte, state: GameState, a: Actions
   );
 }
 
-export function deskView(content: Content, state: GameState, codexUi: CodexUiState, a: Actions): HTMLElement {
+export function deskView(content: Content, state: GameState, codexUi: CodexUiState, a: Actions, hook: PaperHook): HTMLElement {
   const d = dayInfo(content, state.day);
   const akte = state.current ? getAkte(content, state.current.akteId) : null;
   const stamped = state.current?.answer.stamp !== undefined;
@@ -209,7 +220,10 @@ export function deskView(content: Content, state: GameState, codexUi: CodexUiSta
     'section',
     { class: 'worksurface', 'aria-label': 'Arbeitsfläche' },
     akte
-      ? [pruefvermerk(content, akte, state, a), h('div', { class: 'papers' }, akte.documents.map(paper))]
+      ? [
+          pruefvermerk(content, akte, state, a),
+          h('div', { class: 'papers' }, akte.documents.map((doc, i) => paper(doc, `paper-${i}`, `${akte.id}#${i}`, hook))),
+        ]
       : h('p', { class: 'empty-desk' }, 'Der Tisch ist leer. Nehmen Sie die nächste Akte vom Stapel.'),
   );
 
@@ -289,7 +303,7 @@ export function summaryView(content: Content, state: GameState, a: Actions): HTM
   const total = errorsOfDay(state, state.day);
   return h(
     'main',
-    { class: 'screen summary' },
+    { class: 'screen summary sheet' },
     h('h1', {}, `Tagesauswertung – Tag ${state.day}`),
     h('p', { class: 'total', 'data-testid': 'errors-total' }, total === 0 ? 'Keine Fehler.' : `Fehler heute: ${total}`),
     needsReprimand(content, state, state.day)
@@ -327,7 +341,7 @@ export function finishedView(content: Content, state: GameState, a: Actions): HT
   const perDay = errorsPerDay(content, state);
   return h(
     'main',
-    { class: 'screen finished' },
+    { class: 'screen finished sheet' },
     h('h1', {}, 'Ende des Prototyps'),
     h(
       'table',
