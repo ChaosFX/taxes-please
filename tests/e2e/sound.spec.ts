@@ -41,6 +41,10 @@ test('Stempel und Papier sind zu hören, Ambiente startet nach dem ersten Klick'
   await key(page, 'stamp-bescheid').click();
   // Stamp hit (< 0.7 s).
   await expect.poll(async () => (await played(page)).some((d) => d > 0 && d < 0.7)).toBe(true);
+  // Filing into the out tray (≈ 0.49 s).
+  const before = (await played(page)).length;
+  await key(page, 'outbox').click();
+  await expect.poll(async () => (await played(page)).slice(before).some((d) => d > 0.45 && d < 0.52)).toBe(true);
 });
 
 test('Lautstärke 0 schaltet den Ton ab und wird gespeichert', async ({ page }) => {

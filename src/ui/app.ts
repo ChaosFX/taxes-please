@@ -85,7 +85,12 @@ export function startApp(root: HTMLElement, content: Content): void {
       stampFx = next !== state;
       update(next);
     },
-    file: () => state && update(core.fileCurrent(content, state)),
+    file: () => {
+      if (!state) return;
+      const next = core.fileCurrent(content, state);
+      if (next !== state) sound.play('file');
+      update(next);
+    },
     advanceDay: () => {
       if (!state) return;
       codexUi.query = '';

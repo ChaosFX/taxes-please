@@ -7,17 +7,18 @@
  * memory as a whole. Everything fails silently: the game never depends on sound.
  */
 
-export type SoundName = 'stamp' | 'paper';
+export type SoundName = 'stamp' | 'paper' | 'file';
 
 export const SOUND_FILES: Record<SoundName, readonly string[]> = {
   stamp: ['stempel-1.mp3', 'stempel-2.mp3', 'stempel-3.mp3'],
   paper: ['papier-1.mp3', 'papier-2.mp3'],
+  file: ['ablage.mp3'],
 };
 export const AMBIENT_FILE = 'buero.mp3';
 
 /** Ambience sits under the effects. */
 const AMBIENT_LEVEL = 0.5;
-const EFFECT_LEVEL: Record<SoundName, number> = { stamp: 1, paper: 0.6 };
+const EFFECT_LEVEL: Record<SoundName, number> = { stamp: 1, paper: 0.6, file: 0.7 };
 /** Paper rustle is not repeated faster than this (ms). */
 const PAPER_COOLDOWN = 250;
 
@@ -47,7 +48,7 @@ export function createSound(volume: number, base = `${import.meta.env.BASE_URL}a
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
   const buffers = new Map<string, Promise<AudioBuffer | null>>();
-  const last: Record<SoundName, number> = { stamp: -1, paper: -1 };
+  const last: Record<SoundName, number> = { stamp: -1, paper: -1, file: -1 };
   let lastPaper = -Infinity;
   let ambient: HTMLAudioElement | null = null;
 
