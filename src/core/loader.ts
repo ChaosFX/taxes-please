@@ -87,6 +87,10 @@ function crossCheck(c: Content): string[] {
       problems.push(`Akte ${k.id}: richtiger Stempel „${k.correctStamp}“ ist an Tag ${day.day} nicht verfügbar`);
     }
   }
+  const usedOptions = new Set(c.cases.flatMap((k) => (k.type === 'steuerpflicht' ? k.decision.options : [])));
+  for (const key of Object.keys(c.texts.optionLabels)) {
+    if (!usedOptions.has(key)) problems.push(`texts.optionLabels: Schlüssel „${key}“ kommt in keiner Entscheidung vor`);
+  }
   return problems;
 }
 

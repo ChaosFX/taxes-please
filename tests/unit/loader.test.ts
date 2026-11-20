@@ -67,6 +67,21 @@ describe('loadContent', () => {
     expect(problems(() => loadContent(c))).toContain('Akte 3-1: Option „beschraenkt“ fehlt in texts.optionLabels');
   });
 
+  it('meldet Anzeigenamen ohne passende Option', () => {
+    const c = raw();
+    c.texts.optionLabels.unbeschränkt = 'Tippfehler im Schlüssel';
+    expect(problems(() => loadContent(c))).toContain('texts.optionLabels: Schlüssel „unbeschränkt“ kommt in keiner Entscheidung vor');
+  });
+
+  it('meldet unbekannten oder fehlenden Stempelnamen', () => {
+    const c = raw();
+    c.texts.stampLabels.vorhalt = 'Vorhalt';
+    expect(problems(() => loadContent(c)).some((x) => x.startsWith('texts.stampLabels'))).toBe(true);
+    const d = raw();
+    delete d.texts.stampLabels.ergaenzung;
+    expect(problems(() => loadContent(d)).some((x) => x.startsWith('texts.stampLabels.ergaenzung'))).toBe(true);
+  });
+
   it('meldet fehlenden texts-Block', () => {
     const c = raw();
     delete c.texts;

@@ -96,7 +96,7 @@ export const CaseSchema = z.discriminatedUnion('type', [WerbungskostenCaseSchema
 
 export const TextsSchema = z.object({
   optionLabels: z.record(z.string(), z.string().min(1)),
-  stampLabels: z.object({ bescheid: z.string().min(1), ergaenzung: z.string().min(1) }),
+  stampLabels: z.strictObject({ bescheid: z.string().min(1), ergaenzung: z.string().min(1) }),
   unnecessaryDelay: z.string().min(1),
   warning: z.object({
     minErrors: z.number().int().positive(),
