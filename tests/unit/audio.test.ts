@@ -34,12 +34,44 @@ describe('audio', () => {
   });
 });
 
-describe('Einstellungen mit Musik', () => {
-  it('alte Spielstände ohne `music` bekommen den Standardwert', async () => {
+describe('Einstellungen und alte Spielstände (SPEC 9)', () => {
+  const full = { effects: 'reduziert', volume: 0.3, music: 0.2 } as const;
+
+  it('fehlende oder ungültige Felder bekommen einzeln den Standardwert', async () => {
     const { withDefaults } = await import('../../src/ui/settings');
-    expect(withDefaults({ effects: 'reduziert', volume: 0.3 })).toEqual({ effects: 'reduziert', volume: 0.3, music: 0.5 });
-    expect(withDefaults({ effects: 'voll', volume: 1, music: 0 })?.music).toBe(0);
+    const { DEFAULT_SETTINGS } = await import('../../src/core');
+    for (const field of ['effects', 'volume', 'music'] as const) {
+      const { [field]: _omit, ...rest } = full;
+      expect(withDefaults(rest), `ohne ${field}`).toEqual({ ...full, [field]: DEFAULT_SETTINGS[field] });
+      expect(withDefaults({ ...full, [field]: 'kaputt' as never }), `${field} ungültig`).toEqual({ ...full, [field]: DEFAULT_SETTINGS[field] });
+    }
+    expect(DEFAULT_SETTINGS.music).toBe(0.5);
+    expect(withDefaults({ ...full, music: 0 })?.music).toBe(0);
+    expect(withDefaults({ ...full, volume: 2 })?.volume).toBe(DEFAULT_SETTINGS.volume);
     expect(withDefaults(null)).toBeNull();
-    expect(withDefaults({ effects: 'kaputt' as never, volume: 1 })).toBeNull();
+  });
+
+  it('ein Spielstand ohne einzelne Einstellungsfelder lädt, der Rest bleibt unverändert', async () => {
+    const { loadSavedGame } = await import('../../src/ui/settings');
+    const core = await import('../../src/core');
+    const { MemoryStore, realContent } = await import('./helpers');
+    // A game in progress: day 1, first Akte drawn and partly decided.
+    let state = core.beginWork(core.newGame(realContent(), { ...full }));
+    state = core.drawNext(state);
+    const pid = Object.keys(state.current?.answer.positions ?? {})[0];
+    if (pid) state = core.decidePosition(state, pid, 'anerkennen');
+
+    for (const field of ['music', 'effects', 'volume'] as const) {
+      const store = new MemoryStore();
+      const { [field]: _omit, ...oldSettings } = full;
+      store.setItem(core.SAVE_KEY, JSON.stringify({ ...state, settings: oldSettings }));
+      const loaded = loadSavedGame(store);
+      expect(loaded, `ohne ${field}`).not.toBeNull();
+      expect(loaded!.settings[field]).toBe(core.DEFAULT_SETTINGS[field]);
+      const { settings: s1, ...rest1 } = loaded!;
+      const { settings: s0, ...rest0 } = state;
+      expect(rest1).toEqual(rest0);
+      expect({ ...s1, [field]: full[field] }).toEqual(s0);
+    }
   });
 });

@@ -5,6 +5,7 @@ import { getAkte } from '../core/loader';
 import type { Akte, CaseError, Content, Document, PlayerVerdict, PositionVerdict, Rule, Stamp } from '../core/types';
 import { renderCodex, type CodexUiState } from './codex';
 import { h } from './dom';
+import { t, textsReady, type UiKey } from './text';
 
 export interface Actions {
   newGame(): void;
@@ -20,12 +21,17 @@ export interface Actions {
   toStart(): void;
 }
 
-// ---------- Labels: every game text comes from content.texts ----------
+// ---------- Labels: game texts come from content.texts, interface texts from ui.json ----------
 
 const stampLabel = (c: Content, s: Stamp) => c.texts.stampLabels[s];
 const optionLabel = (c: Content, o: string) => c.texts.optionLabels[o] ?? o;
+const VERDICT_KEYS = { anerkennen: 'verdict.anerkennen', streichen: 'verdict.streichen' } as const satisfies Record<PlayerVerdict, UiKey>;
+const playerVerdictLabel = (v: string) => (v in VERDICT_KEYS ? t(VERDICT_KEYS[v as PlayerVerdict]) : v);
 /** `offen` is shown together with the stamp it calls for. */
-const verdictLabel = (c: Content, v: PositionVerdict) => (v === 'offen' ? `offen · ${stampLabel(c, 'ergaenzung')}` : v);
+const verdictLabel = (c: Content, v: PositionVerdict) =>
+  v === 'offen' ? t('verdict.offen', { stamp: stampLabel(c, 'ergaenzung') }) : playerVerdictLabel(v);
+/** Follow-up Akten carry `/folge` in their id; shown as „(Nachreichung)“. */
+const akteLabel = (akte: Akte) => (akte.isFollowUp ? t('desk.followUpId', { id: akte.sourceCaseId }) : akte.id);
 
 /** One line per error, built from data only: what was given and what is correct. */
 function errorLine(c: Content, akte: Akte, e: CaseError): HTMLElement {
@@ -34,7 +40,7 @@ function errorLine(c: Content, akte: Akte, e: CaseError): HTMLElement {
   let given: string | undefined;
   let expected: string;
   if (e.kind === 'stempel-falsch') {
-    subject = 'Stempel';
+    subject = t('evaluation.errorStamp');
     given = e.given ? stampLabel(c, e.given as Stamp) : undefined;
     expected = stampLabel(c, e.expected as Stamp);
   } else if (e.kind === 'option-falsch' || e.kind === 'option-fehlt') {
@@ -44,10 +50,10 @@ function errorLine(c: Content, akte: Akte, e: CaseError): HTMLElement {
   } else {
     const pos = akte.kind.type === 'werbungskosten' ? akte.kind.positions.find((p) => p.id === e.positionId) : undefined;
     subject = pos?.label ?? e.positionId ?? '';
-    given = e.given;
+    given = e.given ? playerVerdictLabel(e.given) : undefined;
     expected = verdictLabel(c, e.expected as PositionVerdict);
   }
-  return h('li', {}, h('strong', {}, subject), `: ${given ?? '–'} → ${expected}`);
+  return h('li', {}, h('strong', {}, subject), t('evaluation.errorDetail', { given: given ?? t('evaluation.notGiven'), expected }));
 }
 
 // ---------- Start ----------
@@ -56,14 +62,14 @@ export function startView(content: Content, canContinue: boolean, a: Actions): H
   return h(
     'main',
     { class: 'screen start sheet' },
-    h('h1', {}, 'Taxes Please'),
-    h('p', { class: 'subtitle' }, `Veranlagungsjahr ${content.meta.veranlagungsjahr}`),
+    h('h1', {}, t('title.heading')),
+    h('p', { class: 'subtitle' }, t('title.year', { year: content.meta.veranlagungsjahr })),
     h('div', { class: 'disclaimer', role: 'note' }, h('p', {}, content.meta.hinweis)),
     h(
       'div',
       { class: 'buttons' },
-      h('button', { class: 'primary', 'data-key': 'new-game', onclick: a.newGame }, 'Neues Spiel'),
-      h('button', { 'data-key': 'continue', disabled: !canContinue, onclick: a.continueGame }, 'Fortsetzen'),
+      h('button', { class: 'primary', 'data-key': 'new-game', onclick: a.newGame }, t('title.newGame')),
+      h('button', { 'data-key': 'continue', disabled: !canContinue, onclick: a.continueGame }, t('title.continue')),
     ),
   );
 }
@@ -78,14 +84,14 @@ export function introView(content: Content, state: GameState, a: Actions): HTMLE
     h(
       'section',
       { class: 'day-card sheet' },
-      h('h1', {}, `Tag ${d.day}`),
+      h('h1', {}, t('intro.day', { day: d.day })),
       h('p', {}, d.intro),
       d.storyEvents.map((e) =>
         e.type === 'note'
-          ? h('figure', { class: 'note' }, h('blockquote', {}, e.text), h('figcaption', {}, `– ${e.from}`))
-          : h('figure', { class: 'dialog' }, h('figcaption', {}, `${e.from}:`), h('blockquote', {}, e.text)),
+          ? h('figure', { class: 'note' }, h('blockquote', {}, e.text), h('figcaption', {}, t('intro.noteFrom', { from: e.from })))
+          : h('figure', { class: 'dialog' }, h('figcaption', {}, t('intro.speaker', { from: e.from })), h('blockquote', {}, e.text)),
       ),
-      h('button', { class: 'primary', 'data-key': 'begin', onclick: a.beginWork }, 'An den Schreibtisch'),
+      h('button', { class: 'primary', 'data-key': 'begin', onclick: a.beginWork }, t('intro.begin')),
     ),
   );
 }
@@ -103,7 +109,7 @@ function paper(doc: Document, key: string, seed: string, hook: PaperHook): HTMLE
       tabindex: 0,
       'data-key': key,
       'aria-label': doc.title,
-      'aria-roledescription': 'Papier',
+      'aria-roledescription': t('aria.paper'),
     },
     h('h3', {}, doc.title),
     h(
@@ -115,7 +121,7 @@ function paper(doc: Document, key: string, seed: string, hook: PaperHook): HTMLE
         doc.lines.map(([label, value]) => h('tr', {}, h('th', { scope: 'row' }, label), h('td', {}, value))),
       ),
     ),
-    doc.stamp ? h('div', { class: 'office-stamp', 'aria-label': `Kanzleistempel ${doc.stamp}` }, doc.stamp) : null,
+    doc.stamp ? h('div', { class: 'office-stamp', 'aria-label': t('aria.officeStamp', { stamp: doc.stamp }) }, doc.stamp) : null,
   );
   hook(el, key, seed);
   return el;
@@ -127,8 +133,8 @@ function pruefvermerk(content: Content, akte: Akte, state: GameState, a: Actions
   const header = h(
     'header',
     {},
-    h('h2', {}, 'Prüfvermerk'),
-    h('p', {}, `Akte ${akte.id.replace('/folge', ' (Nachreichung)')} · ${akte.taxpayer.name}, ${akte.taxpayer.job}`),
+    h('h2', {}, t('desk.pruefvermerk')),
+    h('p', {}, t('desk.akte', { id: akteLabel(akte), name: akte.taxpayer.name, job: akte.taxpayer.job })),
   );
 
   let body: HTMLElement;
@@ -136,7 +142,7 @@ function pruefvermerk(content: Content, akte: Akte, state: GameState, a: Actions
     body = h(
       'table',
       { class: 'positions' },
-      h('thead', {}, h('tr', {}, h('th', {}, 'Position'), h('th', {}, 'Betrag'), h('th', {}, 'Entscheidung'))),
+      h('thead', {}, h('tr', {}, h('th', {}, t('desk.colPosition')), h('th', {}, t('desk.colAmount')), h('th', {}, t('desk.colDecision')))),
       h(
         'tbody',
         {},
@@ -152,7 +158,7 @@ function pruefvermerk(content: Content, akte: Akte, state: GameState, a: Actions
                 disabled: locked,
                 onclick: () => a.decide(p.id, given === v ? undefined : v),
               },
-              v,
+              playerVerdictLabel(v),
             );
           return h(
             'tr',
@@ -188,7 +194,7 @@ function pruefvermerk(content: Content, akte: Akte, state: GameState, a: Actions
 
   return h(
     'section',
-    { class: 'paper pruefvermerk', 'aria-label': 'Prüfvermerk', 'data-akte': akte.id },
+    { class: 'paper pruefvermerk', 'aria-label': t('aria.pruefvermerk'), 'data-akte': akte.id },
     header,
     body,
     answer.stamp ? h('div', { class: `stamp-imprint ${answer.stamp}`, role: 'status' }, stampLabel(content, answer.stamp)) : null,
@@ -203,7 +209,7 @@ export function deskView(content: Content, state: GameState, codexUi: CodexUiSta
   const stack = h(
     'div',
     { class: 'stack-bar' },
-    h('span', { class: 'day-label' }, `Tag ${state.day}`),
+    h('span', { class: 'day-label' }, t('desk.day', { day: state.day })),
     h(
       'button',
       {
@@ -212,25 +218,25 @@ export function deskView(content: Content, state: GameState, codexUi: CodexUiSta
         disabled: !!state.current || state.queue.length === 0,
         onclick: a.drawNext,
       },
-      `Aktenstapel (${state.queue.length})`,
+      t('desk.stack', { count: state.queue.length }),
     ),
   );
 
   const work = h(
     'section',
-    { class: 'worksurface', 'aria-label': 'Arbeitsfläche' },
+    { class: 'worksurface', 'aria-label': t('aria.worksurface') },
     akte
       ? [
           pruefvermerk(content, akte, state, a),
           h('div', { class: 'papers' }, akte.documents.map((doc, i) => paper(doc, `paper-${i}`, `${akte.id}#${i}`, hook))),
         ]
-      : h('p', { class: 'empty-desk' }, 'Der Tisch ist leer. Nehmen Sie die nächste Akte vom Stapel.'),
+      : h('p', { class: 'empty-desk' }, t('desk.emptyDesk')),
   );
 
   const tools = h(
     'aside',
-    { class: 'tools', 'aria-label': 'Stempel und Ausgangskorb' },
-    h('h2', {}, 'Stempel'),
+    { class: 'tools', 'aria-label': t('aria.tools') },
+    h('h2', {}, t('desk.stamps')),
     d.stamps.map((s) =>
       h(
         'button',
@@ -238,9 +244,9 @@ export function deskView(content: Content, state: GameState, codexUi: CodexUiSta
         stampLabel(content, s),
       ),
     ),
-    h('h2', {}, 'Ausgangskorb'),
-    h('button', { class: 'outbox', 'data-key': 'outbox', disabled: !stamped, onclick: a.file }, 'In den Ausgangskorb'),
-    akte && !stamped ? h('p', { class: 'hint' }, 'Erst stempeln, dann ablegen.') : null,
+    h('h2', {}, t('desk.outbox')),
+    h('button', { class: 'outbox', 'data-key': 'outbox', disabled: !stamped, onclick: a.file }, t('desk.outboxButton')),
+    akte && !stamped ? h('p', { class: 'hint' }, t('desk.stampFirst')) : null,
   );
 
   return h(
@@ -258,7 +264,7 @@ function ruleRef(rule: Rule): HTMLElement {
     'li',
     {},
     h('strong', {}, rule.title),
-    ' – ',
+    t('evaluation.ruleSeparator'),
     h('a', { href: rule.sourceUrl, target: '_blank', rel: 'noopener noreferrer' }, rule.source),
   );
 }
@@ -266,7 +272,7 @@ function ruleRef(rule: Rule): HTMLElement {
 function solution(content: Content, akte: Akte): HTMLElement {
   const rules = (ids: string[]) =>
     h('ul', { class: 'rule-refs' }, ids.map((id) => ruleRef(content.rules.find((r) => r.id === id)!)));
-  const stamp = h('p', {}, h('strong', {}, 'Richtiger Stempel: '), stampLabel(content, correctAnswer(akte).stamp!));
+  const stamp = h('p', {}, h('strong', {}, t('evaluation.correctStamp')), stampLabel(content, correctAnswer(akte).stamp!));
   if (akte.kind.type === 'werbungskosten') {
     return h(
       'div',
@@ -275,7 +281,7 @@ function solution(content: Content, akte: Akte): HTMLElement {
         h(
           'div',
           { class: 'solution-item' },
-          h('p', {}, h('strong', {}, `${p.label} (${formatEuro(p.amount)}): `), verdictLabel(content, p.correct)),
+          h('p', {}, h('strong', {}, t('evaluation.positionHeading', { label: p.label, amount: formatEuro(p.amount) })), verdictLabel(content, p.correct)),
           h('p', { class: 'explanation' }, p.explanation),
           rules(p.rules),
         ),
@@ -290,7 +296,7 @@ function solution(content: Content, akte: Akte): HTMLElement {
     h(
       'div',
       { class: 'solution-item' },
-      h('p', {}, h('strong', {}, `${d.question}: `), optionLabel(content, d.correct)),
+      h('p', {}, h('strong', {}, t('evaluation.questionHeading', { question: d.question })), optionLabel(content, d.correct)),
       h('p', { class: 'explanation' }, d.explanation),
       rules(d.rules),
     ),
@@ -304,13 +310,13 @@ export function summaryView(content: Content, state: GameState, a: Actions): HTM
   return h(
     'main',
     { class: 'screen summary sheet' },
-    h('h1', {}, `Tagesauswertung – Tag ${state.day}`),
-    h('p', { class: 'total', 'data-testid': 'errors-total' }, total === 0 ? 'Keine Fehler.' : `Fehler heute: ${total}`),
+    h('h1', {}, t('evaluation.heading', { day: state.day })),
+    h('p', { class: 'total', 'data-testid': 'errors-total' }, total === 0 ? t('evaluation.noErrors') : t('evaluation.errorsToday', { count: total })),
     needsReprimand(content, state, state.day)
       ? h(
           'figure',
           { class: 'dialog reprimand' },
-          h('figcaption', {}, `${content.texts.warning.from}:`),
+          h('figcaption', {}, t('evaluation.speaker', { from: content.texts.warning.from })),
           h('blockquote', {}, content.texts.warning.text),
         )
       : null,
@@ -324,14 +330,18 @@ export function summaryView(content: Content, state: GameState, a: Actions): HTM
         h(
           'h2',
           {},
-          h('span', { class: 'mark', 'aria-hidden': 'true' }, ok ? '✓' : '✗'),
-          ` ${akte.taxpayer.name}${akte.isFollowUp ? ' (Nachreichung)' : ''} – ${ok ? 'richtig' : 'falsch'}`,
+          h('span', { class: 'mark', 'aria-hidden': 'true' }, ok ? t('evaluation.markOk') : t('evaluation.markWrong')),
+          ' ' +
+            t('evaluation.result', {
+              name: akte.isFollowUp ? t('evaluation.followUpName', { name: akte.taxpayer.name }) : akte.taxpayer.name,
+              verdict: ok ? t('evaluation.correct') : t('evaluation.wrong'),
+            }),
         ),
         ok ? null : h('ul', { class: 'errors' }, r.errors.map((e) => errorLine(content, akte, e))),
-        h('details', { open: !ok }, h('summary', {}, 'Lösung und Begründung'), solution(content, akte)),
+        h('details', { open: !ok }, h('summary', {}, t('evaluation.solution')), solution(content, akte)),
       );
     }),
-    h('button', { class: 'primary', 'data-key': 'advance', onclick: a.advanceDay }, 'Feierabend'),
+    h('button', { class: 'primary', 'data-key': 'advance', onclick: a.advanceDay }, t('evaluation.closeDay')),
   );
 }
 
@@ -342,22 +352,23 @@ export function finishedView(content: Content, state: GameState, a: Actions): HT
   return h(
     'main',
     { class: 'screen finished sheet' },
-    h('h1', {}, 'Ende des Prototyps'),
+    h('h1', {}, t('end.heading')),
     h(
       'table',
       { class: 'overview' },
-      h('thead', {}, h('tr', {}, h('th', {}, 'Tag'), h('th', {}, 'Fehler'))),
+      h('thead', {}, h('tr', {}, h('th', {}, t('end.colDay')), h('th', {}, t('end.colErrors')))),
       h(
         'tbody',
         {},
         Object.entries(perDay).map(([d, n]) => h('tr', {}, h('td', {}, d), h('td', {}, n))),
       ),
     ),
-    h('button', { class: 'primary', 'data-key': 'to-start', onclick: a.toStart }, 'Zum Startbildschirm'),
+    h('button', { class: 'primary', 'data-key': 'to-start', onclick: a.toStart }, t('end.toStart')),
   );
 }
 
+/** Shown when content or ui.json is broken; without valid ui.json there is no heading, only the diagnosis. */
 export function errorView(message: string): HTMLElement {
-  return h('main', { class: 'screen error' }, h('h1', {}, 'Inhalte konnten nicht geladen werden'), h('pre', {}, message));
+  return h('main', { class: 'screen error' }, textsReady() ? h('h1', {}, t('error.heading')) : null, h('pre', {}, message));
 }
 

@@ -1,6 +1,7 @@
 import { codexDays, codexEntries, searchCodex } from '../core/codex';
 import type { Content, Rule } from '../core/types';
 import { h } from './dom';
+import { t } from './text';
 
 export interface CodexUiState {
   open: boolean;
@@ -11,13 +12,13 @@ function ruleCard(rule: Rule, isNew: boolean): HTMLElement {
   return h(
     'article',
     { class: 'rule', id: `regel-${rule.id}`, 'data-rule': rule.id },
-    h('header', {}, h('h3', {}, rule.title), isNew ? h('span', { class: 'badge-new' }, 'neu') : null),
+    h('header', {}, h('h3', {}, rule.title), isNew ? h('span', { class: 'badge-new' }, t('codex.new')) : null),
     h('p', {}, rule.text),
     h(
       'footer',
       {},
-      h('span', { class: 'simplified' }, 'vereinfacht'),
-      ' · ',
+      h('span', { class: 'simplified' }, t('codex.simplified')),
+      t('codex.sourceSeparator'),
       h('a', { href: rule.sourceUrl, target: '_blank', rel: 'noopener noreferrer' }, rule.source),
     ),
   );
@@ -33,9 +34,9 @@ export function renderCodex(
   const toggle = h(
     'button',
     { class: 'codex-toggle', 'data-key': 'codex-toggle', 'aria-expanded': String(ui.open), onclick: onToggle },
-    ui.open ? 'Kodex schließen' : 'Kodex öffnen',
+    ui.open ? t('codex.close') : t('codex.open'),
   );
-  if (!ui.open) return h('aside', { class: 'codex closed', 'aria-label': 'Kodex' }, toggle);
+  if (!ui.open) return h('aside', { class: 'codex closed', 'aria-label': t('aria.codex') }, toggle);
 
   const list = h('div', { class: 'codex-list' });
   const fill = () => {
@@ -43,18 +44,18 @@ export function renderCodex(
     if (ui.query.trim()) {
       const hits = searchCodex(content, day, ui.query);
       list.append(
-        h('p', { class: 'hint', role: 'status' }, `${hits.length} Treffer`),
+        h('p', { class: 'hint', role: 'status' }, t('codex.hits', { count: hits.length })),
         ...hits.map((r) => ruleCard(r, r.day === day)),
       );
       return;
     }
     const entries = codexEntries(content, day);
     for (const d of codexDays(content)) {
-      list.append(h('h2', { class: 'codex-day', id: `kodex-tag-${d}` }, `Tag ${d}`));
+      list.append(h('h2', { class: 'codex-day', id: `kodex-tag-${d}` }, t('codex.day', { day: d })));
       for (const e of entries.filter((x) => x.day === d)) {
         list.append(
           e.locked
-            ? h('article', { class: 'rule locked', 'data-rule': e.id, 'aria-label': 'gesperrte Seite' }, `Gesperrt – ab Tag ${e.day}`)
+            ? h('article', { class: 'rule locked', 'data-rule': e.id, 'aria-label': t('aria.lockedPage') }, t('codex.locked', { day: e.day }))
             : ruleCard(e.rule, e.isNew),
         );
       }
@@ -66,8 +67,8 @@ export function renderCodex(
     type: 'search',
     class: 'codex-search',
     'data-key': 'codex-search',
-    placeholder: 'Kodex durchsuchen …',
-    'aria-label': 'Kodex durchsuchen',
+    placeholder: t('codex.searchPlaceholder'),
+    'aria-label': t('aria.codexSearch'),
     value: ui.query,
   });
   search.addEventListener('input', () => {
@@ -77,7 +78,7 @@ export function renderCodex(
 
   const bookmarks = h(
     'nav',
-    { class: 'bookmarks', 'aria-label': 'Lesezeichen' },
+    { class: 'bookmarks', 'aria-label': t('aria.bookmarks') },
     codexDays(content).map((d) =>
       h(
         'button',
@@ -91,10 +92,10 @@ export function renderCodex(
             list.querySelector(`#kodex-tag-${d}`)?.scrollIntoView({ block: 'start' });
           },
         },
-        `Tag ${d}`,
+        t('codex.day', { day: d }),
       ),
     ),
   );
 
-  return h('aside', { class: 'codex open', 'aria-label': 'Kodex' }, toggle, bookmarks, search, list);
+  return h('aside', { class: 'codex open', 'aria-label': t('aria.codex') }, toggle, bookmarks, search, list);
 }

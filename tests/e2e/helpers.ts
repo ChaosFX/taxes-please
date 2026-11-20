@@ -21,7 +21,8 @@ export function solutionFor(akteId: string): Solution {
 }
 
 export async function freshStart(page: Page) {
-  await page.goto('/');
+  // Relative: stays under the Pages sub-path of baseURL.
+  await page.goto('./');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
 }

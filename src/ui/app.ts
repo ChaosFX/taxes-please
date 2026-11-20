@@ -5,17 +5,24 @@ import * as atmosphere from './atmosphere';
 import type { CodexUiState } from './codex';
 import { h } from './dom';
 import { DeskLayout, makeDraggable, openZoom, paperRotation } from './paper-interaction';
-import { EFFECT_LEVELS, applyEffects, defaultSettings, loadSettings, saveSettings, withDefaults } from './settings';
+import { EFFECT_LEVELS, applyEffects, defaultSettings, loadSavedGame, loadSettings, saveSettings } from './settings';
+import { t, type UiKey } from './text';
 import { deskView, finishedView, introView, startView, summaryView, type Actions, type PaperHook } from './views';
 
 type Screen = 'start' | 'game';
+
+const EFFECT_LABELS = {
+  aus: 'settings.effectsAus',
+  reduziert: 'settings.effectsReduziert',
+  voll: 'settings.effectsVoll',
+} as const satisfies Record<EffectsLevel, UiKey>;
 
 /** Holds the core state, wires DOM events to core actions and re-renders. */
 export function startApp(root: HTMLElement, content: Content): void {
   const store = core.browserStorage();
   let screen: Screen = 'start';
   let state: GameState | null = null;
-  let settings: Settings = loadSettings(store) ?? withDefaults(core.loadGame(store)?.settings) ?? defaultSettings();
+  let settings: Settings = loadSettings(store) ?? loadSavedGame(store)?.settings ?? defaultSettings();
   let settingsOpen = false;
   let stampFx = false;
   const codexUi: CodexUiState = { open: true, query: '' };
@@ -54,12 +61,12 @@ export function startApp(root: HTMLElement, content: Content): void {
     if (state) update({ ...state, settings });
   }
 
-  function levelSlider(which: Level, label: string): HTMLElement {
+  function levelSlider(which: Level, label: UiKey): HTMLElement {
     const pct = Math.round(settings[which] * 100);
     return h(
       'label',
       { class: 'volume' },
-      `${label} `,
+      `${t(label)} `,
       h('input', {
         type: 'range',
         min: 0,
@@ -67,10 +74,10 @@ export function startApp(root: HTMLElement, content: Content): void {
         step: 5,
         value: pct,
         'data-key': which,
-        'aria-valuetext': `${pct} %`,
+        'aria-valuetext': t('settings.percent', { value: pct }),
         oninput: (e: Event) => {
           const input = e.target as HTMLInputElement;
-          input.setAttribute('aria-valuetext', `${input.value} %`);
+          input.setAttribute('aria-valuetext', t('settings.percent', { value: input.value }));
           applyLevel(which, Number(input.value) / 100);
         },
         onchange: (e: Event) => setLevel(which, Number((e.target as HTMLInputElement).value) / 100),
@@ -80,7 +87,7 @@ export function startApp(root: HTMLElement, content: Content): void {
 
   const actions: Actions = {
     newGame() {
-      if (core.hasSave(store) && !window.confirm('Es gibt einen Spielstand. Neues Spiel beginnen und den alten überschreiben?')) {
+      if (core.hasSave(store) && !window.confirm(t('title.confirmOverwrite'))) {
         return;
       }
       screen = 'game';
@@ -88,7 +95,7 @@ export function startApp(root: HTMLElement, content: Content): void {
       update(core.newGame(content, settings));
     },
     continueGame() {
-      const saved = core.loadGame(store);
+      const saved = loadSavedGame(store);
       if (!saved) return;
       screen = 'game';
       update({ ...saved, settings });
@@ -144,11 +151,11 @@ export function startApp(root: HTMLElement, content: Content): void {
     const details = h(
       'details',
       { class: 'settings', open: settingsOpen },
-      h('summary', { 'data-key': 'settings' }, 'Einstellungen'),
+      h('summary', { 'data-key': 'settings' }, t('settings.heading')),
       h(
         'fieldset',
         {},
-        h('legend', {}, 'Effekte'),
+        h('legend', {}, t('settings.effects')),
         EFFECT_LEVELS.map((level) =>
           h(
             'label',
@@ -161,16 +168,16 @@ export function startApp(root: HTMLElement, content: Content): void {
               checked: settings.effects === level,
               onchange: () => setEffects(level),
             }),
-            ` ${level}`,
+            ` ${t(EFFECT_LABELS[level])}`,
           ),
         ),
       ),
       h(
         'fieldset',
         {},
-        h('legend', {}, 'Ton'),
-        levelSlider('volume', 'Lautstärke'),
-        levelSlider('music', 'Musik'),
+        h('legend', {}, t('settings.sound')),
+        levelSlider('volume', 'settings.volume'),
+        levelSlider('music', 'settings.music'),
       ),
     );
     details.addEventListener('toggle', () => (settingsOpen = details.open));

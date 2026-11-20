@@ -7,7 +7,7 @@ const CONTENT_DIR = join(__dirname, '..', '..', 'content');
 
 export function rawContentFiles(): unknown[] {
   return readdirSync(CONTENT_DIR)
-    .filter((f) => f.endsWith('.json'))
+    .filter((f) => f.endsWith('.json') && f !== 'ui.json')
     .sort()
     .map((f) => JSON.parse(readFileSync(join(CONTENT_DIR, f), 'utf8')) as unknown);
 }

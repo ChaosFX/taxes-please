@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, type EffectsLevel, type KeyValueStore, type Settings } from '../core';
+import { DEFAULT_SETTINGS, loadGame, type EffectsLevel, type GameState, type KeyValueStore, type Settings } from '../core';
 
 /**
  * Settings live in the save game (SPEC 9). This extra key keeps them before a
@@ -21,17 +21,26 @@ export function defaultSettings(): Settings {
   return { ...DEFAULT_SETTINGS, effects: prefersReducedMotion() ? 'reduziert' : DEFAULT_SETTINGS.effects };
 }
 
-function isSettings(v: unknown): v is Settings {
-  const s = v as Partial<Settings> | null;
-  return !!s && EFFECT_LEVELS.includes(s.effects as EffectsLevel) && typeof s.volume === 'number';
+const isLevel = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1;
+
+/**
+ * Fills fields that are missing or invalid with `DEFAULT_SETTINGS` (SPEC 9),
+ * field by field, so an older save keeps everything it already has.
+ */
+export function withDefaults(s: Partial<Settings> | null | undefined): Settings | null {
+  if (!s || typeof s !== 'object') return null;
+  return {
+    effects: EFFECT_LEVELS.includes(s.effects as EffectsLevel) ? (s.effects as EffectsLevel) : DEFAULT_SETTINGS.effects,
+    volume: isLevel(s.volume) ? s.volume : DEFAULT_SETTINGS.volume,
+    music: isLevel(s.music) ? s.music : DEFAULT_SETTINGS.music,
+  };
 }
 
-/** Fills fields added after a settings object was saved (e.g. `music`). */
-export function withDefaults(s: Partial<Settings> | null | undefined): Settings | null {
-  if (!s) return null;
-  const merged = { ...DEFAULT_SETTINGS, ...s };
-  if (typeof merged.music !== 'number') merged.music = DEFAULT_SETTINGS.music;
-  return isSettings(merged) ? merged : null;
+/** The saved game with its settings completed; null if there is none. */
+export function loadSavedGame(store: KeyValueStore | null): GameState | null {
+  const saved = loadGame(store);
+  if (!saved) return null;
+  return { ...saved, settings: withDefaults(saved.settings) ?? { ...DEFAULT_SETTINGS } };
 }
 
 export function loadSettings(store: KeyValueStore | null): Settings | null {

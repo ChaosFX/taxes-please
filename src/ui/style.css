@@ -178,6 +178,8 @@ button[aria-pressed='true']:hover:not(:disabled) { background: #3a362f; }
   border: 6px solid var(--pad-edge); border-radius: 6px;
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08), 0 6px 16px rgba(0, 0, 0, 0.4);
   padding: 1.2rem; min-height: 72vh; display: grid; gap: 1.4rem; align-content: start;
+  /* minmax(0, …): papers never grow wider than the pad, whatever their content. */
+  grid-template-columns: minmax(0, 1fr);
 }
 .empty-desk {
   justify-self: center; margin-top: 4rem; color: #fff; font-size: 1.05rem;
@@ -358,12 +360,15 @@ html[data-effects='reduziert'] dialog.zoom[open] .paper { animation: zoom-in 80m
   .tools { order: 2; position: static; }
   .codex { order: 3; position: static; max-height: none; }
   .codex-list { max-height: 50vh; }
-  .papers { grid-template-columns: 1fr; }
+  .papers { grid-template-columns: minmax(0, 1fr); }
   /* Touch: the page scrolls vertically over papers; dragging starts on the paper's title. */
   .paper.doc { touch-action: pan-y; }
   .paper.doc h3 { touch-action: none; }
   .positions td:last-child { white-space: normal; }
   .verdicts { flex-wrap: wrap; }
+  .verdicts button { padding: 0.4rem 0.55rem; }
+  .pruefvermerk { padding-right: 1.1rem; }
+  .positions td { padding-right: 0.3rem; }
   .start, .summary, .finished { padding: 1.2rem; }
 }
 

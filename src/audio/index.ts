@@ -23,6 +23,8 @@ const AMBIENT_LEVEL = 0.5;
 /** Music sits under everything else. */
 const MUSIC_LEVEL = 0.35;
 const EFFECT_LEVEL: Record<SoundName, number> = { stamp: 1, paper: 0.6, file: 0.6 };
+/** Fade for switching music on and off (s); avoids clicks. */
+const FADE_SECONDS = 0.08;
 /** Paper rustle is not repeated faster than this (ms). */
 const PAPER_COOLDOWN = 250;
 
@@ -51,7 +53,6 @@ export function createSound(volume: number, music: number, base = `${import.meta
   let gain = gainFor(volume);
   let musicGain = gainFor(music) * MUSIC_LEVEL;
   let musicNode: GainNode | null = null;
-  let musicStarted = false;
   let unlocked = false;
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
@@ -107,22 +108,57 @@ export function createSound(volume: number, music: number, base = `${import.meta
     else ambient.pause();
   };
 
-  /** Loads the loop once and starts it; volume 0 only mutes, so it keeps its place. */
+  /**
+   * Music: decoded only once it is wanted (slider above 0 after the first user
+   * action). Slider 0 fades out and stops the loop; above 0 it resumes where it
+   * stopped. Gain changes ramp so switching never clicks.
+   */
+  let musicSource: AudioBufferSourceNode | null = null;
+  let musicOffset = 0;
+  let musicStartedAt = 0;
+  let musicRequest = 0;
+
+  const ramp = (node: GainNode, value: number) => {
+    const c = node.context;
+    node.gain.cancelScheduledValues(c.currentTime);
+    node.gain.setValueAtTime(node.gain.value, c.currentTime);
+    node.gain.linearRampToValueAtTime(value, c.currentTime + FADE_SECONDS);
+  };
+
   const startMusic = () => {
-    if (musicStarted || musicGain === 0) return;
-    musicStarted = true;
+    if (musicSource || musicGain === 0 || !unlocked) return;
+    const request = ++musicRequest;
     void load(MUSIC_FILE).then((buf) => {
-      if (!buf || !ctx || !musicNode) return;
+      // The slider may have gone back to 0 while the file was loading.
+      if (!buf || !ctx || !musicNode || request !== musicRequest || musicSource || musicGain === 0) return;
       try {
         const src = ctx.createBufferSource();
         src.buffer = buf;
         src.loop = true;
         src.connect(musicNode);
-        src.start();
+        musicNode.gain.setValueAtTime(0, ctx.currentTime);
+        src.start(0, musicOffset % buf.duration);
+        musicStartedAt = ctx.currentTime - musicOffset;
+        musicSource = src;
+        ramp(musicNode, musicGain);
       } catch {
         /* no music */
       }
     });
+  };
+
+  const stopMusic = () => {
+    musicRequest++;
+    const src = musicSource;
+    if (!src || !ctx || !musicNode) return;
+    musicSource = null;
+    musicOffset = ctx.currentTime - musicStartedAt;
+    ramp(musicNode, 0);
+    try {
+      src.stop(ctx.currentTime + FADE_SECONDS);
+    } catch {
+      /* already stopped */
+    }
   };
 
   document.addEventListener('visibilitychange', () => {
@@ -145,8 +181,9 @@ export function createSound(volume: number, music: number, base = `${import.meta
     },
     setMusic(v) {
       musicGain = gainFor(v) * MUSIC_LEVEL;
-      if (musicNode) musicNode.gain.value = musicGain;
-      if (unlocked) startMusic();
+      if (musicGain === 0) stopMusic();
+      else if (musicSource && musicNode) ramp(musicNode, musicGain);
+      else startMusic();
     },
     setVolume(v) {
       gain = gainFor(v);

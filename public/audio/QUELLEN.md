@@ -22,3 +22,5 @@ Lizenz jeweils am 20.11.2026 auf der Freesound-Seite geprüft.
 | Datei | Quelle | Bearbeitung |
 | --- | --- | --- |
 | `musik-akt1.mp3` | Eigenes 16-Bit-Arrangement von Walzer Nr. 1 aus „G'schichten aus dem Wienerwald“, op. 325, von Johann Strauß (Sohn), 1868, gemeinfrei. Melodie nach dem gemeinfreien [Klavierauszug auf Cantorion](https://cantorion.org/music/3404/), einzelne Takte ergänzt. | Komplett synthetisch erzeugt mit `tools/music/wienerwald16-loop.mjs` (`node tools/music/wienerwald16-loop.mjs out.wav`, dann `ffmpeg -i out.wav -b:a 128k musik-akt1.mp3`). Nahtlose Schleife, 48 Takte, 32 kHz. |
+
+**Herkunft der Noten:** Die Melodie ist von Hand in eigene Notation übertragen (Tonhöhen und Dauern als Zahlen in `tools/music/wienerwald16-loop.mjs`), Begleitung, Harmonisierung, Klangfarben und Form sind eigenes Arrangement. Vorlage war der Klavierauszug auf Cantorion, laut Seite die Ausgabe A. Cranz, Hamburg, um 1895 (Platte 23356), dort als „Public domain“ gekennzeichnet. Es wurde keine Aufnahme und keine neuere Notenausgabe verwendet.

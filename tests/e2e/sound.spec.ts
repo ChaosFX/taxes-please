@@ -91,6 +91,9 @@ test('Musik läuft als Schleife nach dem ersten Klick, eigener Regler wird gespe
     };
   });
   await page.reload();
+  // Nothing plays before the first user action.
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => (window as unknown as { __loops: number[] }).__loops)).toEqual([]);
   await key(page, 'new-game').click();
   // Loop length: 48 bars at 156 bpm ≈ 55.38 s.
   await expect
@@ -108,4 +111,54 @@ test('Musik läuft als Schleife nach dem ersten Klick, eigener Regler wird gespe
   await page.reload();
   await page.locator('.settings summary').click();
   await expect(key(page, 'music')).toHaveValue('20');
+});
+
+test('Musik-Regler 0: Musik wird weder geladen noch abgespielt; Umschalten blendet und setzt fort', async ({ page }) => {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __music: { fetched: number; starts: number[]; stops: number } };
+    w.__music = { fetched: 0, starts: [], stops: 0 };
+    const fetch0 = window.fetch;
+    window.fetch = (input, init) => {
+      if (String(input).includes('musik-akt1')) w.__music.fetched++;
+      return fetch0(input, init);
+    };
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (...args: Parameters<typeof start>) {
+      if (this.loop) w.__music.starts.push(Number(args[1] ?? 0));
+      return start.apply(this, args);
+    };
+    const stop = AudioBufferSourceNode.prototype.stop;
+    AudioBufferSourceNode.prototype.stop = function (...args: Parameters<typeof stop>) {
+      if (this.loop) w.__music.stops++;
+      return stop.apply(this, args);
+    };
+  });
+  // Settings saved earlier with music at 0.
+  await page.evaluate(() => localStorage.setItem('taxes-please/settings/v1', JSON.stringify({ effects: 'voll', volume: 0.7, music: 0 })));
+  await page.reload();
+  const music = () => page.evaluate(() => (window as unknown as { __music: { fetched: number; starts: number[]; stops: number } }).__music);
+
+  await key(page, 'new-game').click();
+  await key(page, 'begin').click();
+  await page.waitForTimeout(500);
+  expect(await music()).toEqual({ fetched: 0, starts: [], stops: 0 });
+
+  const setMusic = (v: number) =>
+    key(page, 'music').evaluate((el: HTMLInputElement, v) => {
+      el.value = String(v);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }, v);
+  await page.locator('.settings summary').click();
+  await setMusic(50);
+  await expect.poll(async () => (await music()).starts).toEqual([0]);
+  expect((await music()).fetched).toBe(1);
+  await page.waitForTimeout(700);
+  await setMusic(0);
+  await expect.poll(async () => (await music()).stops).toBe(1);
+  await setMusic(40);
+  // Resumes where it stopped (not from the start), file not loaded again.
+  await expect.poll(async () => (await music()).starts.length).toBe(2);
+  expect((await music()).starts[1]).toBeGreaterThan(0.3);
+  expect((await music()).fetched).toBe(1);
 });

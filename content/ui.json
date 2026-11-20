@@ -1,0 +1,99 @@
+{
+  "version": "0.1.0",
+  "title": {
+    "heading": "Taxes Please",
+    "year": "Veranlagungsjahr {year}",
+    "newGame": "Neues Spiel",
+    "continue": "Fortsetzen",
+    "confirmOverwrite": "Es gibt einen Spielstand. Neues Spiel beginnen und den alten überschreiben?"
+  },
+  "intro": {
+    "day": "Tag {day}",
+    "noteFrom": "– {from}",
+    "speaker": "{from}:",
+    "begin": "An den Schreibtisch"
+  },
+  "desk": {
+    "day": "Tag {day}",
+    "stack": "Aktenstapel ({count})",
+    "pruefvermerk": "Prüfvermerk",
+    "akte": "Akte {id} · {name}, {job}",
+    "followUpId": "{id} (Nachreichung)",
+    "colPosition": "Position",
+    "colAmount": "Betrag",
+    "colDecision": "Entscheidung",
+    "emptyDesk": "Der Tisch ist leer. Nehmen Sie die nächste Akte vom Stapel.",
+    "stamps": "Stempel",
+    "outbox": "Ausgangskorb",
+    "outboxButton": "In den Ausgangskorb",
+    "stampFirst": "Erst stempeln, dann ablegen."
+  },
+  "verdict": {
+    "anerkennen": "anerkennen",
+    "streichen": "streichen",
+    "offen": "offen · {stamp}"
+  },
+  "codex": {
+    "open": "Kodex öffnen",
+    "close": "Kodex schließen",
+    "day": "Tag {day}",
+    "locked": "Gesperrt – ab Tag {day}",
+    "new": "neu",
+    "simplified": "vereinfacht",
+    "sourceSeparator": " · ",
+    "searchPlaceholder": "Kodex durchsuchen …",
+    "hits": "{count} Treffer"
+  },
+  "evaluation": {
+    "heading": "Tagesauswertung – Tag {day}",
+    "noErrors": "Keine Fehler.",
+    "errorsToday": "Fehler heute: {count}",
+    "speaker": "{from}:",
+    "markOk": "✓",
+    "markWrong": "✗",
+    "result": "{name} – {verdict}",
+    "followUpName": "{name} (Nachreichung)",
+    "correct": "richtig",
+    "wrong": "falsch",
+    "errorStamp": "Stempel",
+    "errorDetail": ": {given} → {expected}",
+    "notGiven": "–",
+    "solution": "Lösung und Begründung",
+    "positionHeading": "{label} ({amount}): ",
+    "questionHeading": "{question}: ",
+    "correctStamp": "Richtiger Stempel: ",
+    "ruleSeparator": " – ",
+    "closeDay": "Feierabend"
+  },
+  "end": {
+    "heading": "Ende des Prototyps",
+    "colDay": "Tag",
+    "colErrors": "Fehler",
+    "toStart": "Zum Startbildschirm"
+  },
+  "settings": {
+    "heading": "Einstellungen",
+    "effects": "Effekte",
+    "effectsAus": "aus",
+    "effectsReduziert": "reduziert",
+    "effectsVoll": "voll",
+    "sound": "Ton",
+    "volume": "Lautstärke",
+    "music": "Musik",
+    "percent": "{value} %"
+  },
+  "error": {
+    "heading": "Inhalte konnten nicht geladen werden"
+  },
+  "aria": {
+    "codex": "Kodex",
+    "codexSearch": "Kodex durchsuchen",
+    "bookmarks": "Lesezeichen",
+    "lockedPage": "gesperrte Seite",
+    "paper": "Papier",
+    "officeStamp": "Kanzleistempel {stamp}",
+    "pruefvermerk": "Prüfvermerk",
+    "worksurface": "Arbeitsfläche",
+    "tools": "Stempel und Ausgangskorb"
+  }
+}
