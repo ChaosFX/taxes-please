@@ -1,10 +1,12 @@
 # Taxes Please – Spezifikation Prototyp (Tag 1 bis 4)
 
-Stand: 20.11.2026 · Version 0.2.1 · passt zu `content/akt1-tag1-3.json` Version 0.1.1 und `content/ui.json` Version 0.1.0
+Stand: 20.11.2026 · Version 0.2.2 · passt zu `content/akt1-tag1-3.json` Version 0.1.1 und `content/ui.json` Version 0.1.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
 Dieser Prototyp umfasst drei Spieltage mit 11 Akten und 7 Kodexregeln sowie einen kurzen Tag 4 für die Folgeakte. Inhalt und Lösungen stehen in `content/akt1-tag1-3.json`. Die Rahmenhandlung liegt in einem separaten Dokument und ist für den Prototyp nur in Form der Story-Ereignisse im JSON relevant.
+
+Änderungen gegenüber 0.2.1: Loader- und Fehlermeldungen für Inhaltsautoren sind von der Textregel ausgenommen (Abschnitt 1 und 3). Es gibt keinen eigenen Ton-Schalter, Lautstärke 0 bedeutet aus (Abschnitt 7 und 9).
 
 Änderungen gegenüber 0.2: Oberflächentexte liegen in `content/ui.json` (Abschnitt 3), Musik, Pfeiltasten und Escape-Zoom sind aufgenommen (Abschnitt 7), `Settings.music` ist Teil des Spielstands (Abschnitt 9), die Abnahmekriterien sind um Texte, Rand und GitHub Pages erweitert (Abschnitt 11).
 
@@ -13,7 +15,7 @@ Dieser Prototyp umfasst drei Spieltage mit 11 Akten und 7 Kodexregeln sowie eine
 1. **Rechtliche Korrektheit vor Optik.** Die Spiellogik entscheidet ausschließlich anhand der Daten im JSON. Keine Steuerregel wird im Code nachgebaut oder geraten.
 2. **Alles, was gelesen oder angeklickt wird, ist HTML/CSS.** Akten, Kodex, Stempel und Auswertung sind DOM-Elemente. Kein Text in Canvas oder WebGL.
 3. **Logik und Darstellung sind getrennt.** `src/core` ist reines TypeScript ohne DOM-Zugriff und vollständig getestet. `src/ui` liest nur den Zustand aus `core` und ruft dessen Aktionen auf.
-4. **Inhalte sind Daten.** Neue Tage und Fälle entstehen durch neue JSON-Dateien, nicht durch Code. Das gilt für alle Texte, die ein Spieler liest oder die ein Screenreader vorliest: Spieltexte (Ermahnung, Anzeigenamen) stehen in `texts` der Inhaltsdatei, Oberflächentexte (Beschriftungen, Hinweise, aria-Labels) in `content/ui.json`. Im Code stehen nur Schlüssel.
+4. **Inhalte sind Daten.** Neue Tage und Fälle entstehen durch neue JSON-Dateien, nicht durch Code. Das gilt für alle Texte, die ein Spieler liest oder die ein Screenreader vorliest: Spieltexte (Ermahnung, Anzeigenamen) stehen in `texts` der Inhaltsdatei, Oberflächentexte (Beschriftungen, Hinweise, aria-Labels) in `content/ui.json`. Im Code stehen nur Schlüssel. **Ausnahme:** Meldungen des Loaders und andere Fehlermeldungen, die sich an Autoren der JSON-Dateien richten, bleiben im Code, weil sie auch lesbar sein müssen, wenn `ui.json` selbst fehlerhaft ist. Die Überschrift des Fehlerbildschirms kommt aus `ui.json`. Die Ausnahmen stehen in der begründeten Liste des Textliteral-Tests (Abschnitt 11).
 5. **Fiktion.** Alle Personen und Firmen sind erfunden. Ein Startbildschirm weist darauf hin, dass Kodextexte vereinfacht sind und keine Rechtsauskunft darstellen.
 
 ## 2. Technischer Rahmen
@@ -68,8 +70,10 @@ Ein Loader prüft das JSON beim Start mit einem Schema (zum Beispiel zod) und br
 - Eigene Datei mit eigener Versionsnummer, unabhängig von den Akt-Dateien, weil die Texte an keinem Spieltag hängen.
 - Aufbau: ein flaches, nach Bereichen gegliedertes Objekt, zum Beispiel `settings`, `desk`, `codex`, `evaluation`, `title`, `end`, `aria`. Jeder Eintrag ist ein String. Platzhalter stehen als `{name}`, zum Beispiel `„Tag {day}“`.
 - Der Code greift über eine typisierte Funktion `t("bereich.schluessel", { name: wert })` zu. Der Schlüsselraum ist als Typ abgeleitet, ein unbekannter Schlüssel ist ein Kompilierfehler.
-- Der Loader prüft `ui.json` mit einem Schema. Fehlt ein Schlüssel, den der Code verwendet, bricht der Start mit einer klaren Fehlermeldung ab.
+- Der Loader prüft `ui.json` mit einem Schema. Fehlt ein Schlüssel oder ist einer zu viel, bricht der Start mit einer klaren Fehlermeldung ab.
+- Leerzeichen am Anfang oder Ende eines Textes (zum Beispiel in Satzteilen der Auswertung) gehören zur Darstellung und bleiben erhalten.
 - `ui.json` enthält keine Rechtsaussagen. Kodextexte, Regeln und Erklärungen bleiben in den Inhaltsdateien.
+- Das Betragsformat (`1.200,00 €`) bleibt im Code.
 
 ## 4. Spielablauf
 
@@ -114,8 +118,8 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - **Kanzleistempel:** Dokumente mit `stamp` zeigen unten links einen blassen Kanzleistempel. Das ist der Story-Hinweis von Tag 2.
 - **Lesbarkeit:** Doppelklick auf ein Papier oder Enter beziehungsweise Leertaste bei Fokus zoomt es lesbar heran. Erneuter Doppelklick oder Escape legt es zurück.
 - **Sound:** Stempel (3 Varianten), Papierrascheln (2), Ablage (2, auch beim Ausgangskorb) und leises Büro-Ambiente. Alle Klangdateien sind CC0 (Freesound), Quellen und Bearbeitungen stehen in `public/audio/QUELLEN.md`. Ton startet erst nach der ersten Nutzeraktion. Fällt der Ton aus, läuft das Spiel unverändert weiter.
-- **Musik (Akt 1):** Ein eigenes, synthetisch erzeugtes 16-Bit-Arrangement des Walzers Nr. 1 aus „G'schichten aus dem Wienerwald“ von Johann Strauß (Sohn, gemeinfrei) als nahtlose Schleife. Das Arrangement entsteht aus eigener Notation mit `tools/music/wienerwald16-loop.mjs`, nicht aus einer Aufnahme oder einer geschützten Notenausgabe. Die Musik hat einen eigenen Lautstärkeregler (Standard 0,5, 0 ist aus), getrennt vom Regler für die Effekte. Für spätere Akte ist ein eigenes Stück je Akt vorgesehen. Jede Musikquelle steht in `QUELLEN.md`.
-- **Einstellungen:** Effekte aus, reduziert oder voll. `prefers-reduced-motion` setzt automatisch „reduziert“. Dazu Ton an/aus, Lautstärke und Musiklautstärke.
+- **Musik (Akt 1):** Ein eigenes, synthetisch erzeugtes 16-Bit-Arrangement des Walzers Nr. 1 aus „G'schichten aus dem Wienerwald“ von Johann Strauß (Sohn, gemeinfrei) als nahtlose Schleife. Das Arrangement entsteht aus eigener Notation mit `tools/music/wienerwald16-loop.mjs`, nicht aus einer Aufnahme oder einer geschützten Notenausgabe. Die Musik hat einen eigenen Lautstärkeregler (Standard 0,5, 0 ist aus), getrennt vom Regler für die Effekte. Bei 0 wird sie weder geladen noch dekodiert; wird sie dabei abgeschaltet, blendet sie in 80 ms aus, und beim Wiedereinschalten setzt sie an derselben Stelle fort. Für spätere Akte ist ein eigenes Stück je Akt vorgesehen. Jede Musikquelle steht in `QUELLEN.md`.
+- **Einstellungen:** Effekte aus, reduziert oder voll. `prefers-reduced-motion` setzt automatisch „reduziert“. Dazu Lautstärke (Soundeffekte) und Musiklautstärke. Einen eigenen Ton-an/aus-Schalter gibt es nicht: Lautstärke 0 und Musik 0 bedeuten aus.
 - **Bedienbarkeit ohne Maus:** Alle Entscheidungen und Stempel sind per Tastatur erreichbar. Fokus ist sichtbar.
 
 ## 8. Atmosphäre (vorbereitet, nicht im Prototyp)
@@ -126,7 +130,7 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 
 - Automatisches Speichern nach jeder gestempelten Akte und am Tagesende.
 - Gespeichert werden: aktueller Tag, Ergebnisse je Akte, Fehler je Tag, offene Folgeakten, Einstellungen.
-- Die Einstellungen sind `effects` (aus, reduziert, voll), Ton an/aus, Lautstärke und `music` (Musiklautstärke, Standard 0,5). Ein älterer Spielstand ohne einzelne Felder bekommt für diese die Standardwerte aus `DEFAULT_SETTINGS`, ohne dass der übrige Spielstand verloren geht. Ein Test deckt das ab.
+- Die Einstellungen sind `effects` (aus, reduziert, voll), Lautstärke (0 = aus) und `music` (Musiklautstärke, Standard 0,5, 0 = aus). Ein älterer Spielstand ohne einzelne Felder bekommt für diese die Standardwerte aus `DEFAULT_SETTINGS`, ohne dass der übrige Spielstand verloren geht. Ein Test deckt das ab.
 - „Neues Spiel“ fragt vor dem Überschreiben nach.
 
 ## 10. Arbeitsweise für Claude Code
@@ -145,8 +149,10 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - [ ] Ein Test prüft für jede Akte, dass alle referenzierten Regeln spätestens am Tag der Akte freigeschaltet sind.
 - [ ] Ein Test prüft, dass jede Position und jede Entscheidung eine `explanation` und mindestens eine Regel hat.
 - [ ] Die Folgeakte von 3-4 erscheint an Tag 4 nur nach einem Ergänzungsersuchen. Tag 4 kommt aus dem JSON. Ohne Folgeakte erscheint `texts.emptyDay`.
-- [ ] Im Code steht kein Text, den ein Spieler liest oder ein Screenreader vorliest. Ein Test findet deutsche Textliterale in `src/` (Ausnahmen nur in einer kurzen, begründeten Liste) und schlägt bei jedem neuen fehl.
-- [ ] Jeder Schlüssel in `ui.json` wird im Code verwendet, jeder im Code verwendete Schlüssel steht in `ui.json`.
+- [ ] Im Code steht kein Text, den ein Spieler liest oder ein Screenreader vorliest. Ein Test findet deutsche Textliterale in `src/` (Ausnahmen nur in einer kurzen, begründeten Liste: Loader- und Fehlermeldungen, Betragsformat) und schlägt bei jedem neuen fehl. Ein e2e-Test prüft zusätzlich, dass jeder sichtbare oder vorgelesene Text aus einer JSON-Datei stammt.
+- [ ] Jeder Schlüssel in `ui.json` wird im Code verwendet, jeder im Code verwendete Schlüssel steht in `ui.json`, und die Platzhalter im Aufruf passen zu denen im Text.
+- [ ] Der Startbildschirm zeigt den Hinweis auf Fiktion, Vereinfachung und fehlende Rechtsauskunft (Text aus einer JSON-Datei).
+- [ ] Jedes Bedienelement hat eine zugängliche Beschriftung, auch ein reiner Icon-Knopf wie der für die Einstellungen.
 - [ ] Gesperrte Kodexseiten zeigen keinen Inhalt.
 - [ ] Papiere lassen sich mit Maus und Touch ziehen, bei „Effekte aus“ ohne Animation.
 - [ ] Ein gezogenes Papier wird an keinem Rand der Unterlage abgeschnitten.
