@@ -366,3 +366,7 @@ html[data-effects='reduziert'] dialog.zoom[open] .paper { animation: zoom-in 80m
   .verdicts { flex-wrap: wrap; }
   .start, .summary, .finished { padding: 1.2rem; }
 }
+
+/* ---------- Sound ---------- */
+.settings .volume { display: flex; align-items: center; gap: 0.5rem; }
+.settings .volume input { width: 9rem; accent-color: #4a6b3a; }

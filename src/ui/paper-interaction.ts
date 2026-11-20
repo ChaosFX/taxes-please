@@ -57,6 +57,8 @@ export interface DraggableOptions {
   surface: () => HTMLElement | null;
   effects: () => EffectsLevel;
   onZoom: (el: HTMLElement) => void;
+  /** Called when the paper is picked up (e.g. paper rustle). */
+  onLift?: () => void;
 }
 
 /**
@@ -136,6 +138,7 @@ export function makeDraggable(el: HTMLElement, o: DraggableOptions): void {
       /* synthetic events in tests have no capturable pointer */
     }
     front();
+    o.onLift?.();
     el.classList.remove('dropping');
     el.classList.add('lifted');
     const fx = o.effects();

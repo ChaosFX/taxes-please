@@ -1,3 +1,4 @@
+import { createSound } from '../audio';
 import * as core from '../core';
 import type { Content, EffectsLevel, GameState, Settings } from '../core';
 import * as atmosphere from './atmosphere';
@@ -21,6 +22,11 @@ export function startApp(root: HTMLElement, content: Content): void {
   const layout = new DeskLayout();
 
   applyEffects(settings.effects);
+  const sound = createSound(settings.volume);
+  // Browsers only allow audio after a user gesture.
+  const unlock = () => sound.unlock();
+  window.addEventListener('pointerdown', unlock, { once: true, capture: true });
+  window.addEventListener('keydown', unlock, { once: true, capture: true });
 
   const update = (next: GameState) => {
     const changed = next !== state;
@@ -35,6 +41,18 @@ export function startApp(root: HTMLElement, content: Content): void {
     saveSettings(store, settings);
     if (state) update({ ...state, settings });
     else render();
+  }
+
+  /** While the slider moves only the sound follows; saving happens on `change`. */
+  function previewVolume(volume: number) {
+    sound.setVolume(volume);
+  }
+
+  function setVolume(volume: number) {
+    settings = { ...settings, volume };
+    sound.setVolume(volume);
+    saveSettings(store, settings);
+    if (state) update({ ...state, settings });
   }
 
   const actions: Actions = {
@@ -53,7 +71,12 @@ export function startApp(root: HTMLElement, content: Content): void {
       update({ ...saved, settings });
     },
     beginWork: () => state && update(core.beginWork(state)),
-    drawNext: () => state && update(core.drawNext(state)),
+    drawNext: () => {
+      if (!state) return;
+      const next = core.drawNext(state);
+      if (next !== state) sound.play('paper');
+      update(next);
+    },
     decide: (pid, v) => state && update(core.decidePosition(state, pid, v)),
     choose: (o) => state && update(core.chooseOption(state, o)),
     stamp: (s) => {
@@ -86,6 +109,7 @@ export function startApp(root: HTMLElement, content: Content): void {
       surface: () => root.querySelector('.worksurface'),
       effects: () => settings.effects,
       onZoom: openZoom,
+      onLift: () => sound.play('paper'),
     });
 
   function settingsPanel(): HTMLElement {
@@ -113,6 +137,31 @@ export function startApp(root: HTMLElement, content: Content): void {
           ),
         ),
       ),
+      h(
+        'fieldset',
+        {},
+        h('legend', {}, 'Ton'),
+        h(
+          'label',
+          { class: 'volume' },
+          'Lautstärke ',
+          h('input', {
+            type: 'range',
+            min: 0,
+            max: 100,
+            step: 5,
+            value: Math.round(settings.volume * 100),
+            'data-key': 'volume',
+            'aria-valuetext': `${Math.round(settings.volume * 100)} %`,
+            oninput: (e: Event) => {
+              const input = e.target as HTMLInputElement;
+              input.setAttribute('aria-valuetext', `${input.value} %`);
+              previewVolume(Number(input.value) / 100);
+            },
+            onchange: (e: Event) => setVolume(Number((e.target as HTMLInputElement).value) / 100),
+          }),
+        ),
+      ),
     );
     details.addEventListener('toggle', () => (settingsOpen = details.open));
     return details;
@@ -137,6 +186,7 @@ export function startApp(root: HTMLElement, content: Content): void {
   function playStampFx(): void {
     if (!stampFx) return;
     stampFx = false;
+    sound.play('stamp');
     if (settings.effects === 'aus') return;
     root.querySelector('.stamp-imprint')?.classList.add('hit');
     if (settings.effects === 'voll') {
