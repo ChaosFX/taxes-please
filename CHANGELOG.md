@@ -4,6 +4,8 @@ Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in
 
 ## 20.11.2026
 
+- `SPEC.md` 0.2.1: Oberflächentexte in neuer `content/ui.json` (0.1.0), Musik (Akt 1), Pfeiltasten und Escape-Zoom aufgenommen, `Settings.music` im Spielstand, Rand-Abnahmekriterium, GitHub Pages im Unterpfad. `auftraege/02-texte-und-veroeffentlichung.md` angelegt.
+
 - `content/akt1-tag1-3.json` 0.1.1: neuer Block `texts` (Anzeigenamen, Ermahnung, „unnötige Verzögerung“, Leertag), Tag 4 als eigener Eintrag mit `cases: []`, Akte 2-2 Position „Tageszeitung“ verweist auf R3 und R5.
 - `SPEC.md` 0.2: kein Datum im Spiel, nur „Tag N“. Tag 4 aus dem JSON mit Leertag-Text und Schlussbildschirm. Spieltexte nur aus dem JSON. Nicht entschiedene Position zählt als Fehler (außer `offen`), Stempel ist endgültig. Neue Abnahmekriterien für Tag 4 und Spieltexte.
 
