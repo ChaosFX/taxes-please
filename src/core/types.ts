@@ -93,4 +93,6 @@ export type EffectsLevel = 'aus' | 'reduziert' | 'voll';
 export interface Settings {
   effects: EffectsLevel;
   volume: number;
+  /** Background music, 0..1, independent of `volume`. */
+  music: number;
 }

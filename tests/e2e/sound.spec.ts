@@ -37,14 +37,14 @@ test('Stempel und Papier sind zu hören, Ambiente startet nach dem ersten Klick'
   await key(page, 'begin').click();
   await key(page, 'stack').click();
   // Paper rustle (> 1 s) when the Akte is drawn.
-  await expect.poll(async () => (await played(page)).some((d) => d > 1)).toBe(true);
+  await expect.poll(async () => (await played(page)).some((d) => d > 1 && d < 2)).toBe(true);
   await key(page, 'stamp-bescheid').click();
   // Stamp hit (< 0.7 s).
   await expect.poll(async () => (await played(page)).some((d) => d > 0 && d < 0.7)).toBe(true);
-  // Filing into the out tray (≈ 0.49 s).
+  // Filing into the out tray (≈ 1.45–1.55 s).
   const before = (await played(page)).length;
   await key(page, 'outbox').click();
-  await expect.poll(async () => (await played(page)).slice(before).some((d) => d > 0.45 && d < 0.52)).toBe(true);
+  await expect.poll(async () => (await played(page)).slice(before).some((d) => d > 1.4 && d < 1.6)).toBe(true);
 });
 
 test('Lautstärke 0 schaltet den Ton ab und wird gespeichert', async ({ page }) => {
@@ -68,7 +68,8 @@ test('Lautstärke 0 schaltet den Ton ab und wird gespeichert', async ({ page }) 
   await key(page, 'stamp-bescheid').click();
   await expect(page.locator('.stamp-imprint')).toBeVisible();
   await page.waitForTimeout(300);
-  expect(await played(page)).toEqual([]);
+  // Effects are silent; only the music loop (≈ 55 s) may run, it has its own slider.
+  expect((await played(page)).filter((d) => d < 10)).toEqual([]);
 });
 
 test('Lautstärke per Tastatur einstellbar', async ({ page }) => {
@@ -78,4 +79,33 @@ test('Lautstärke per Tastatur einstellbar', async ({ page }) => {
   await page.keyboard.press('ArrowLeft');
   await expect(slider).toHaveValue('65');
   await expect(slider).toBeFocused();
+});
+
+test('Musik läuft als Schleife nach dem ersten Klick, eigener Regler wird gespeichert', async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as unknown as { __loops: number[] }).__loops = [];
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (...args: Parameters<typeof start>) {
+      if (this.loop) (window as unknown as { __loops: number[] }).__loops.push(this.buffer?.duration ?? 0);
+      return start.apply(this, args);
+    };
+  });
+  await page.reload();
+  await key(page, 'new-game').click();
+  // Loop length: 48 bars at 156 bpm ≈ 55.38 s.
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __loops: number[] }).__loops))
+    .toEqual([expect.closeTo(55.38, 1)]);
+
+  await page.locator('.settings summary').click();
+  const slider = key(page, 'music');
+  await expect(slider).toHaveValue('50');
+  await slider.evaluate((el: HTMLInputElement) => {
+    el.value = '20';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await page.reload();
+  await page.locator('.settings summary').click();
+  await expect(key(page, 'music')).toHaveValue('20');
 });

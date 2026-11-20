@@ -12,13 +12,17 @@ export type SoundName = 'stamp' | 'paper' | 'file';
 export const SOUND_FILES: Record<SoundName, readonly string[]> = {
   stamp: ['stempel-1.mp3', 'stempel-2.mp3', 'stempel-3.mp3'],
   paper: ['papier-1.mp3', 'papier-2.mp3'],
-  file: ['ablage.mp3'],
+  file: ['ablage-1.mp3', 'ablage-2.mp3'],
 };
 export const AMBIENT_FILE = 'buero.mp3';
+/** Seamless loop (rendered so the tail wraps into the start); plays via Web Audio `loop`. */
+export const MUSIC_FILE = 'musik-akt1.mp3';
 
 /** Ambience sits under the effects. */
 const AMBIENT_LEVEL = 0.5;
-const EFFECT_LEVEL: Record<SoundName, number> = { stamp: 1, paper: 0.6, file: 0.7 };
+/** Music sits under everything else. */
+const MUSIC_LEVEL = 0.35;
+const EFFECT_LEVEL: Record<SoundName, number> = { stamp: 1, paper: 0.6, file: 0.6 };
 /** Paper rustle is not repeated faster than this (ms). */
 const PAPER_COOLDOWN = 250;
 
@@ -39,11 +43,15 @@ export interface Sound {
   /** Call from a user gesture; browsers only allow audio after one. Starts the ambience. */
   unlock(): void;
   setVolume(volume: number): void;
+  setMusic(volume: number): void;
   play(name: SoundName): void;
 }
 
-export function createSound(volume: number, base = `${import.meta.env.BASE_URL}audio/`): Sound {
+export function createSound(volume: number, music: number, base = `${import.meta.env.BASE_URL}audio/`): Sound {
   let gain = gainFor(volume);
+  let musicGain = gainFor(music) * MUSIC_LEVEL;
+  let musicNode: GainNode | null = null;
+  let musicStarted = false;
   let unlocked = false;
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
@@ -59,6 +67,9 @@ export function createSound(volume: number, base = `${import.meta.env.BASE_URL}a
       master = ctx.createGain();
       master.gain.value = gain;
       master.connect(ctx.destination);
+      musicNode = ctx.createGain();
+      musicNode.gain.value = musicGain;
+      musicNode.connect(ctx.destination);
     } catch {
       ctx = null;
     }
@@ -96,7 +107,31 @@ export function createSound(volume: number, base = `${import.meta.env.BASE_URL}a
     else ambient.pause();
   };
 
-  document.addEventListener('visibilitychange', syncAmbient);
+  /** Loads the loop once and starts it; volume 0 only mutes, so it keeps its place. */
+  const startMusic = () => {
+    if (musicStarted || musicGain === 0) return;
+    musicStarted = true;
+    void load(MUSIC_FILE).then((buf) => {
+      if (!buf || !ctx || !musicNode) return;
+      try {
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.loop = true;
+        src.connect(musicNode);
+        src.start();
+      } catch {
+        /* no music */
+      }
+    });
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    syncAmbient();
+    // Music runs in the AudioContext; pause it together with the tab.
+    if (!unlocked || !ctx) return;
+    if (document.visibilityState === 'hidden') ctx.suspend().catch(() => undefined);
+    else ctx.resume().catch(() => undefined);
+  });
 
   return {
     unlock() {
@@ -106,6 +141,12 @@ export function createSound(volume: number, base = `${import.meta.env.BASE_URL}a
       c?.resume().catch(() => undefined);
       Object.values(SOUND_FILES).flat().forEach((f) => void load(f));
       syncAmbient();
+      startMusic();
+    },
+    setMusic(v) {
+      musicGain = gainFor(v) * MUSIC_LEVEL;
+      if (musicNode) musicNode.gain.value = musicGain;
+      if (unlocked) startMusic();
     },
     setVolume(v) {
       gain = gainFor(v);

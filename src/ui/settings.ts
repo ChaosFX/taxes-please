@@ -26,11 +26,19 @@ function isSettings(v: unknown): v is Settings {
   return !!s && EFFECT_LEVELS.includes(s.effects as EffectsLevel) && typeof s.volume === 'number';
 }
 
+/** Fills fields added after a settings object was saved (e.g. `music`). */
+export function withDefaults(s: Partial<Settings> | null | undefined): Settings | null {
+  if (!s) return null;
+  const merged = { ...DEFAULT_SETTINGS, ...s };
+  if (typeof merged.music !== 'number') merged.music = DEFAULT_SETTINGS.music;
+  return isSettings(merged) ? merged : null;
+}
+
 export function loadSettings(store: KeyValueStore | null): Settings | null {
   try {
     const raw = store?.getItem(SETTINGS_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : null;
-    return isSettings(parsed) ? parsed : null;
+    return withDefaults(parsed as Partial<Settings> | null);
   } catch {
     return null;
   }

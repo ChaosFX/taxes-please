@@ -5,7 +5,7 @@ import * as atmosphere from './atmosphere';
 import type { CodexUiState } from './codex';
 import { h } from './dom';
 import { DeskLayout, makeDraggable, openZoom, paperRotation } from './paper-interaction';
-import { EFFECT_LEVELS, applyEffects, defaultSettings, loadSettings, saveSettings } from './settings';
+import { EFFECT_LEVELS, applyEffects, defaultSettings, loadSettings, saveSettings, withDefaults } from './settings';
 import { deskView, finishedView, introView, startView, summaryView, type Actions, type PaperHook } from './views';
 
 type Screen = 'start' | 'game';
@@ -15,14 +15,14 @@ export function startApp(root: HTMLElement, content: Content): void {
   const store = core.browserStorage();
   let screen: Screen = 'start';
   let state: GameState | null = null;
-  let settings: Settings = loadSettings(store) ?? core.loadGame(store)?.settings ?? defaultSettings();
+  let settings: Settings = loadSettings(store) ?? withDefaults(core.loadGame(store)?.settings) ?? defaultSettings();
   let settingsOpen = false;
   let stampFx = false;
   const codexUi: CodexUiState = { open: true, query: '' };
   const layout = new DeskLayout();
 
   applyEffects(settings.effects);
-  const sound = createSound(settings.volume);
+  const sound = createSound(settings.volume, settings.music);
   // Browsers only allow audio after a user gesture.
   const unlock = () => sound.unlock();
   window.addEventListener('pointerdown', unlock, { once: true, capture: true });
@@ -43,16 +43,39 @@ export function startApp(root: HTMLElement, content: Content): void {
     else render();
   }
 
-  /** While the slider moves only the sound follows; saving happens on `change`. */
-  function previewVolume(volume: number) {
-    sound.setVolume(volume);
-  }
+  type Level = 'volume' | 'music';
+  const applyLevel = (which: Level, v: number) => (which === 'volume' ? sound.setVolume(v) : sound.setMusic(v));
 
-  function setVolume(volume: number) {
-    settings = { ...settings, volume };
-    sound.setVolume(volume);
+  /** While the slider moves only the sound follows; saving happens on `change`. */
+  function setLevel(which: Level, v: number) {
+    settings = { ...settings, [which]: v };
+    applyLevel(which, v);
     saveSettings(store, settings);
     if (state) update({ ...state, settings });
+  }
+
+  function levelSlider(which: Level, label: string): HTMLElement {
+    const pct = Math.round(settings[which] * 100);
+    return h(
+      'label',
+      { class: 'volume' },
+      `${label} `,
+      h('input', {
+        type: 'range',
+        min: 0,
+        max: 100,
+        step: 5,
+        value: pct,
+        'data-key': which,
+        'aria-valuetext': `${pct} %`,
+        oninput: (e: Event) => {
+          const input = e.target as HTMLInputElement;
+          input.setAttribute('aria-valuetext', `${input.value} %`);
+          applyLevel(which, Number(input.value) / 100);
+        },
+        onchange: (e: Event) => setLevel(which, Number((e.target as HTMLInputElement).value) / 100),
+      }),
+    );
   }
 
   const actions: Actions = {
@@ -146,26 +169,8 @@ export function startApp(root: HTMLElement, content: Content): void {
         'fieldset',
         {},
         h('legend', {}, 'Ton'),
-        h(
-          'label',
-          { class: 'volume' },
-          'Lautstärke ',
-          h('input', {
-            type: 'range',
-            min: 0,
-            max: 100,
-            step: 5,
-            value: Math.round(settings.volume * 100),
-            'data-key': 'volume',
-            'aria-valuetext': `${Math.round(settings.volume * 100)} %`,
-            oninput: (e: Event) => {
-              const input = e.target as HTMLInputElement;
-              input.setAttribute('aria-valuetext', `${input.value} %`);
-              previewVolume(Number(input.value) / 100);
-            },
-            onchange: (e: Event) => setVolume(Number((e.target as HTMLInputElement).value) / 100),
-          }),
-        ),
+        levelSlider('volume', 'Lautstärke'),
+        levelSlider('music', 'Musik'),
       ),
     );
     details.addEventListener('toggle', () => (settingsOpen = details.open));

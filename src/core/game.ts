@@ -22,7 +22,7 @@ export interface GameState {
   settings: Settings;
 }
 
-export const DEFAULT_SETTINGS: Settings = { effects: 'voll', volume: 0.7 };
+export const DEFAULT_SETTINGS: Settings = { effects: 'voll', volume: 0.7, music: 0.5 };
 
 /** The day as defined in the content. Every playable day is in the content. */
 export function dayInfo(content: Content, day: number): Day {
