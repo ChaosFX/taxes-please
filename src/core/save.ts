@@ -1,4 +1,5 @@
-import type { GameState } from './game';
+import { STATE_VERSION, startDay, toolsUntil, type GameState } from './game';
+import type { Content } from './types';
 
 export const SAVE_KEY = 'taxes-please/save/v1';
 
@@ -29,35 +30,84 @@ export function saveGame(store: KeyValueStore | null, state: GameState): boolean
   }
 }
 
-function isGameState(v: unknown): v is GameState {
+/** Shape shared by both save versions. */
+interface StoredState extends Omit<GameState, 'version' | 'phase' | 'tools'> {
+  version: 1 | typeof STATE_VERSION;
+  phase: string;
+  tools?: GameState['tools'];
+}
+
+function isStoredState(v: unknown): v is StoredState {
   if (typeof v !== 'object' || v === null) return false;
-  const s = v as Partial<GameState>;
+  const s = v as Partial<StoredState>;
   return (
-    s.version === 1 &&
+    (s.version === 1 || s.version === STATE_VERSION) &&
     typeof s.day === 'number' &&
     typeof s.phase === 'string' &&
     Array.isArray(s.queue) &&
     Array.isArray(s.results) &&
     Array.isArray(s.pendingFollowUps) &&
+    (s.version === 1 || Array.isArray(s.tools)) &&
     typeof s.settings === 'object' &&
     s.settings !== null
   );
 }
 
-export function loadGame(store: KeyValueStore | null): GameState | null {
+/** Last day of the prototype 0.2. Its saves stop there („Ende des Prototyps“). */
+export const PROTOTYPE_LAST_DAY = 4;
+
+/**
+ * Takes over a save from 0.2 (SPEC 9). Days 1 to 3 are unchanged in Akt I, so
+ * a save before day 4 plays on as it is. A save on day 4 or later restarts
+ * day 4 under the new content: results of days 1 to 3 stay, results of the old
+ * day 4 are dropped, and follow-ups earned by an Ergänzungsersuchen before
+ * day 4 (3-4) come again.
+ */
+export function migrateV1(content: Content, old: StoredState): GameState {
+  const base: GameState = {
+    ...old,
+    version: STATE_VERSION,
+    phase: old.phase as GameState['phase'],
+    tools: toolsUntil(content, old.day),
+  };
+  if (old.day < PROTOTYPE_LAST_DAY && old.phase !== 'finished') return base;
+
+  const results = old.results.filter((r) => r.day < PROTOTYPE_LAST_DAY);
+  const pending = results.flatMap((r) => {
+    const k = content.cases.find((c) => c.id === r.akteId);
+    return k?.followUp && r.answer.stamp === 'ergaenzung' && k.followUp.arrivesOnDay >= PROTOTYPE_LAST_DAY
+      ? [{ akteId: `${k.id}/folge`, day: k.followUp.arrivesOnDay }]
+      : [];
+  });
+  return startDay(content, { ...base, results, pendingFollowUps: pending, current: null, queue: [], tools: toolsUntil(content, PROTOTYPE_LAST_DAY - 1) }, PROTOTYPE_LAST_DAY);
+}
+
+/** The raw save if it has a known shape; does not need the content. */
+function readSave(store: KeyValueStore | null): StoredState | null {
   if (!store) return null;
   try {
     const raw = store.getItem(SAVE_KEY);
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
-    return isGameState(parsed) ? parsed : null;
+    return isStoredState(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Loads the save, taking over saves from 0.2. Returns null if there is none or it is broken. */
+export function loadGame(store: KeyValueStore | null, content: Content): GameState | null {
+  const saved = readSave(store);
+  if (!saved) return null;
+  try {
+    return saved.version === 1 ? migrateV1(content, saved) : (saved as GameState);
   } catch {
     return null;
   }
 }
 
 export function hasSave(store: KeyValueStore | null): boolean {
-  return loadGame(store) !== null;
+  return readSave(store) !== null;
 }
 
 export function clearSave(store: KeyValueStore | null): void {

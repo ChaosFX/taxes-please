@@ -1,15 +1,15 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { loadContentFiles } from '../../src/core/loader';
+import { loadContentFiles, type ContentFile } from '../../src/core/loader';
 import type { Content } from '../../src/core/types';
 
 const CONTENT_DIR = join(__dirname, '..', '..', 'content');
 
-export function rawContentFiles(): unknown[] {
+export function rawContentFiles(): ContentFile[] {
   return readdirSync(CONTENT_DIR)
     .filter((f) => f.endsWith('.json') && f !== 'ui.json')
     .sort()
-    .map((f) => JSON.parse(readFileSync(join(CONTENT_DIR, f), 'utf8')) as unknown);
+    .map((name) => ({ name, data: JSON.parse(readFileSync(join(CONTENT_DIR, name), 'utf8')) as unknown }));
 }
 
 export function realContent(): Content {

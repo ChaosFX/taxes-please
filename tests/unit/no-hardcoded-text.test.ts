@@ -17,11 +17,11 @@ import { literalsIn, looksLikeText, sourceFiles, type Literal } from './source-t
 const EXCEPTIONS: { reason: string; applies: (l: Literal) => boolean }[] = [
   {
     reason:
-      'Fehlermeldungen beim Laden kaputter Inhaltsdateien (Error-Klassen, throw, Problemlisten des Loaders). Sie richten ' +
-      'sich an die Autoren der JSON-Dateien, erscheinen in einem geprüften Build nie und müssen auch ohne gültige ui.json lesbar sein.',
-    applies: (l) =>
-      l.within.some((w) => /^(new \w*Error|throw|class extends Error)$/.test(w)) ||
-      (/^src\/core\/(loader|schema)\.ts$/.test(l.file) && l.within.includes('push')),
+      'Fehlermeldungen beim Laden kaputter Inhaltsdateien (Error-Klassen, throw, Problemlisten des Loaders samt ' +
+      'Ortsangaben wie „Akte 5-3, Widerspruch w1“). Sie richten sich an die Autoren der JSON-Dateien, erscheinen in ' +
+      'einem geprüften Build nie und müssen auch ohne gültige ui.json lesbar sein (SPEC 1.4). loader.ts und schema.ts ' +
+      'erzeugen sonst keinen Text.',
+    applies: (l) => l.within.some((w) => /^(new \w*Error|throw|class extends Error)$/.test(w)) || /^src\/core\/(loader|schema)\.ts$/.test(l.file),
   },
   {
     reason: 'Betragsformat 1.200,00 € ist Formatierung, keine Beschriftung (Auftrag 02, Aufgabe 1).',
