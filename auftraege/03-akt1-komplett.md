@@ -1,6 +1,6 @@
 # Auftrag 03: Akt I komplett (Tag 4 bis 10)
 
-Stand: 21.11.2026 · Grundlage: `SPEC.md` 0.3.0 · Inhalte: `content/akt1-tag1-3.json` 0.2.0, `content/akt1-tag4-10.json` 0.1.0, `content/ui.json` 0.2.0
+Stand: 21.11.2026 · Grundlage: `SPEC.md` 0.3.1 · Inhalte: `content/akt1.json` 0.3.0, `content/ui.json` 0.2.0
 
 ## Ziel
 
@@ -8,14 +8,15 @@ Akt I ist von Tag 1 bis Tag 10 spielbar. Dafür kommen der neue Akten-Typ `entsc
 
 ## Wichtig: Branch
 
-Die neuen Inhalte liegen auf dem Branch `inhalt/akt1-tag4-10`, nicht auf `main`. Grund: Der jetzige Loader liest alle `content/*.json`. Mit den neuen Dateien auf `main` würden Tests und Pages-Deploy brechen, bis dieser Auftrag umgesetzt ist.
+Die neuen Inhalte liegen auf dem Branch `inhalt/akt1-tag4-10`, nicht auf `main`. Dort ersetzt `content/akt1.json` die bisherige `akt1-tag1-3.json` (ganzer Akt I in einer Datei). Grund für den Branch: Der jetzige Loader liest alle `content/*.json`. Mit der neuen Datei auf `main` würden Tests und Pages-Deploy brechen, bis dieser Auftrag umgesetzt ist.
 
 1. `git fetch`, dann auf `inhalt/akt1-tag4-10` arbeiten (oder einen eigenen Branch davon abzweigen).
 2. Erst wenn alle Abnahmekriterien grün sind, nach `main` mergen. Dann läuft der Deploy mit Akt I.
 
 ## Betroffene Dateien
 
-- Lesen, nicht ändern: `SPEC.md`, `content/akt1-tag1-3.json`, `content/akt1-tag4-10.json`.
+- Lesen, nicht ändern: `SPEC.md`, `content/akt1.json`.
+- Tests, die den Dateinamen `akt1-tag1-3.json` verwenden, auf `akt1.json` umstellen.
 - `content/ui.json`: nur nach der Ausnahme unten.
 - Ändern: `src/core` (Schema, Loader, Bewertung, Spielablauf, Rechner, Spielstand), `src/ui`, `src/audio`, `tests/`, `public/audio/QUELLEN.md`, gegebenenfalls Schriftdateien und deren Lizenz.
 - `CHANGELOG.md`: Eintrag zur Umsetzung, und je ein Eintrag, falls du `ui.json` nach der Ausnahme ergänzt.
@@ -64,7 +65,7 @@ Pinnwand und Spuren (Darstellung), Lade und Notizbuch, Ereigniskarte und Merker 
 
 ## Abnahmekriterien
 
-- [ ] Alle Abnahmekriterien aus `SPEC.md` 0.3.0, Abschnitt 11, sind erfüllt.
+- [ ] Alle Abnahmekriterien aus `SPEC.md` 0.3.1, Abschnitt 11, sind erfüllt.
 - [ ] Der Loader lädt die drei Dateien ohne Fehler und meldet bei jedem Testfehler die betroffene Stelle.
 - [ ] Unit-Tests und e2e-Tests sind grün, der Build läuft, der Pages-Deploy nach dem Merge auf `main` ist erfolgreich.
 - [ ] Die Screenshots aus SPEC Abschnitt 10 liegen im Bericht oder im Artefakt-Ordner des Workflows.

@@ -1,10 +1,12 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 21.11.2026 · Version 0.3.0 · passt zu `content/akt1-tag1-3.json` Version 0.2.0, `content/akt1-tag4-10.json` Version 0.1.0 und `content/ui.json` Version 0.2.0
+Stand: 21.11.2026 · Version 0.3.1 · passt zu `content/akt1.json` Version 0.3.0 und `content/ui.json` Version 0.2.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
-Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakten und 54 Kodexregeln (davon 5 Hinweise ohne eigenen Fall). Inhalt und Lösungen stehen in `content/akt1-tag1-3.json` (Tag 1 bis 3) und `content/akt1-tag4-10.json` (Tag 4 bis 10).
+Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakten und 54 Kodexregeln (davon 5 Hinweise ohne eigenen Fall). Inhalt und Lösungen stehen in `content/akt1.json`, einer Datei für den ganzen Akt. Spätere Akte bekommen je eine eigene Datei (`akt2.json` usw.).
+
+Änderungen gegenüber 0.3.0: Die beiden Inhaltsdateien von Akt I sind zu `content/akt1.json` zusammengeführt. `meta` hat zusätzlich `akt` (Nummer des Akts). Am Datenmodell und an den Abnahmekriterien ändert sich sonst nichts.
 
 Änderungen gegenüber 0.2.2:
 - Neuer Akten-Typ `entscheidungen` mit Auswahl- und Betragsentscheidungen, Widersprüchen, Nachfragen und Varianten (Abschnitt 3).
@@ -54,6 +56,7 @@ Die Typen folgen exakt dem JSON in `content/`. Alles, was hier nicht als optiona
 ### Zusammenführen der Inhaltsdateien
 
 - Der Loader liest alle `content/*.json` außer `ui.json`, sortiert nach Dateinamen, und führt sie zu einem Inhalt zusammen.
+- Je Akt gibt es eine Datei (`akt1.json`, später `akt2.json` usw.). `meta` hat `version`, `akt`, `veranlagungsjahr` und `hinweis`.
 - `meta` kommt aus der ersten Datei. Jede Datei hat ein eigenes `meta.version`, die Versionen aller Dateien werden im Fehlerfall mit ausgegeben.
 - `rules`, `days` und `cases` werden aneinandergehängt. Doppelte Regel-IDs, Akten-IDs oder Tagesnummern sind ein Fehler.
 - `texts` wird schlüsselweise zusammengeführt. `texts.optionLabels` ist die Vereinigung aller Dateien. Kommt ein Schlüssel (auch in `optionLabels`) in zwei Dateien mit verschiedenem Wert vor, ist das ein Fehler. Pflichtschlüssel (`stampLabels`, `unnecessaryDelay`, `warning`, `emptyDay`) müssen nach dem Zusammenführen vorhanden sein, egal in welcher Datei.

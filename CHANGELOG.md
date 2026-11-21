@@ -4,6 +4,7 @@ Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in
 
 ## 21.11.2026
 
+- `content/akt1.json` 0.3.0: `akt1-tag1-3.json` und `akt1-tag4-10.json` zu einer Datei für den ganzen Akt I zusammengeführt (54 Regeln, 48 Akten), `meta.akt` ergänzt. Die beiden alten Dateien sind entfernt. `SPEC.md` 0.3.1 und Auftrag 03 verweisen auf die neue Datei.
 - `SPEC.md` 0.3.0: ganzer Akt I (Tag 1 bis 10). Neuer Akten-Typ `entscheidungen` (Auswahl, Betrag, `offen`), Widersprüche markieren, Nachfrage mit Auswahl, Varianten, Hinweisregeln, Story-Ereignisse `newspaper`, `call`, `unlock`, `actSummary`, dazu `traces` und `event` (nur geprüft). `texts` wird über alle Dateien zusammengeführt. Tischrechner, Schlussbildschirm „Ende von Akt I“, Übernahme alter Spielstände.
 - `content/akt1-tag4-10.json` 0.1.0 angelegt: Tag 4 bis 10, 47 Regeln (R8 bis R54), 37 Akten, 5 Folgeakten.
 - `content/akt1-tag1-3.json` 0.2.0: Leertag 4 entfernt, Tag 4 steht jetzt in `akt1-tag4-10.json`.

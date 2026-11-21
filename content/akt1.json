@@ -1,11 +1,14 @@
 {
   "meta": {
-    "version": "0.1.0",
+    "version": "0.3.0",
+    "akt": 1,
     "veranlagungsjahr": 2025,
     "hinweis": "Alle Personen und Firmen sind erfunden. Kodextexte sind vereinfacht und keine Rechtsauskunft."
   },
   "texts": {
     "optionLabels": {
+      "unbeschraenkt": "unbeschränkt steuerpflichtig",
+      "beschraenkt": "beschränkt steuerpflichtig",
       "nichtselbstaendig": "nichtselbständige Arbeit",
       "selbstaendig": "selbständige Arbeit",
       "gewerbe": "Gewerbebetrieb",
@@ -54,11 +57,78 @@
       "zurueckgenommen": "gilt als zurückgenommen",
       "zurueckweisen": "zurückweisen"
     },
+    "stampLabels": {
+      "bescheid": "Bescheid",
+      "ergaenzung": "Ergänzungsersuchen"
+    },
+    "unnecessaryDelay": "unnötige Verzögerung",
+    "warning": {
+      "minErrors": 3,
+      "from": "Dr. Wallner",
+      "text": "Drei Fehler an einem Tag. Der Kodex liegt links neben Ihnen, er beißt nicht. Morgen bitte lesen, bevor Sie stempeln."
+    },
+    "emptyDay": "Heute ist keine Post gekommen. Ein ruhiger Tag.",
     "wrongInquiry": "Diese Frage klärt den offenen Punkt nicht.",
     "missedDiscrepancy": "Widerspruch nicht benannt",
     "falseDiscrepancy": "kein Widerspruch"
   },
   "rules": [
+    {
+      "id": "R1",
+      "day": 1,
+      "title": "Werbungskosten",
+      "text": "Werbungskosten sind Aufwendungen zur Erwerbung, Sicherung oder Erhaltung der Einnahmen. Fehlt der Zusammenhang mit dem Beruf, gibt es keinen Abzug.",
+      "source": "§ 16 Abs. 1 erster Satz EStG",
+      "sourceUrl": "https://www.ris.bka.gv.at/Dokumente/Bundesnormen/NOR40274823/NOR40274823.html"
+    },
+    {
+      "id": "R2",
+      "day": 1,
+      "title": "Arbeitsmittel",
+      "text": "Ausgaben für Arbeitsmittel wie Werkzeug und Berufskleidung sind Werbungskosten.",
+      "source": "§ 16 Abs. 1 Z 7 EStG",
+      "sourceUrl": "https://www.ris.bka.gv.at/Dokumente/Bundesnormen/NOR40274823/NOR40274823.html"
+    },
+    {
+      "id": "R3",
+      "day": 2,
+      "title": "Kosten der Lebensführung",
+      "text": "Aufwendungen für die Lebensführung sind nicht abzugsfähig, auch wenn sie den Beruf fördern.",
+      "source": "§ 20 Abs. 1 Z 2 lit. a EStG",
+      "sourceUrl": "https://ris.bka.gv.at/eli/bgbl/1988/400/P20/NOR40248368"
+    },
+    {
+      "id": "R4",
+      "day": 2,
+      "title": "Kleidung",
+      "text": "Bürgerliche Kleidung ist nicht abzugsfähig, auch wenn sie nur im Beruf getragen wird. Typische Berufskleidung ist abzugsfähig.",
+      "source": "LStR Rz 322",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76545_5___9___2/"
+    },
+    {
+      "id": "R5",
+      "day": 2,
+      "title": "Fachliteratur",
+      "text": "Fachliteratur mit beruflichem Bezug ist absetzbar. Allgemein bildende Werke, Lexika und Tageszeitungen sind es nicht.",
+      "source": "LStR Rz 383e, Rz 394",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76545_5___9___21___5/"
+    },
+    {
+      "id": "R6",
+      "day": 3,
+      "title": "Persönliche Steuerpflicht",
+      "text": "Wer im Inland einen Wohnsitz oder den gewöhnlichen Aufenthalt hat, ist unbeschränkt steuerpflichtig, und zwar mit allen in- und ausländischen Einkünften. Wer beides nicht hat, ist beschränkt steuerpflichtig. Einen Wohnsitz hat, wer eine Wohnung so innehat, dass er sie beibehalten und benutzen wird. Ein Aufenthalt im Inland von mehr als sechs Monaten führt jedenfalls zum gewöhnlichen Aufenthalt.",
+      "source": "§ 1 Abs. 2 und 3 EStG, § 26 BAO",
+      "sourceUrl": "https://www.ris.bka.gv.at/eli/bgbl/1988/400/P1/NOR40274820"
+    },
+    {
+      "id": "R7",
+      "day": 3,
+      "title": "Ergänzungsersuchen",
+      "text": "Das Finanzamt prüft die Erklärungen. Sind Angaben unvollständig oder bestehen Zweifel, fordert es den Abgabepflichtigen schriftlich zur Ergänzung auf.",
+      "source": "§ 161 Abs. 1 BAO",
+      "sourceUrl": "https://www.jusline.at/gesetz/bao/paragraf/161.pdf"
+    },
     {
       "id": "R8",
       "day": 4,
@@ -443,6 +513,39 @@
   ],
   "days": [
     {
+      "day": 1,
+      "intro": "Ihr erster Tag. Der Schreibtisch hat bis letzte Woche Amtsrat Sedlak gehört. Die Lade klemmt.",
+      "stamps": ["bescheid"],
+      "cases": ["1-1", "1-2", "1-3"],
+      "storyEvents": []
+    },
+    {
+      "day": 2,
+      "intro": "In der Lade ist ein Spalt aufgegangen. Ein Zettel ist herausgerutscht.",
+      "stamps": ["bescheid"],
+      "cases": ["2-1", "2-2", "2-3", "2-4"],
+      "storyEvents": [
+        {
+          "type": "note",
+          "from": "Sedlak",
+          "text": "Achte auf den Stempel unten links."
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "intro": "Ab heute dürfen Sie Ergänzungsersuchen verschicken. Gerri bringt Kaffee.",
+      "stamps": ["bescheid", "ergaenzung"],
+      "cases": ["3-1", "3-2", "3-3", "3-4"],
+      "storyEvents": [
+        {
+          "type": "dialog",
+          "from": "Gerri",
+          "text": "Der Edlinger? Den kennt jeder. Der wohnt doch eh in Monaco, oder?"
+        }
+      ]
+    },
+    {
       "day": 4,
       "intro": "Die Post ist da. Obenauf liegt, falls Sie gestern richtig entschieden haben, die Kursbestätigung von Frau Lang. Daneben liegt zum ersten Mal die Morgenzeitung.",
       "stamps": ["bescheid", "ergaenzung"],
@@ -680,6 +783,454 @@
     }
   ],
   "cases": [
+    {
+      "id": "1-1",
+      "type": "werbungskosten",
+      "taxpayer": {
+        "name": "Anna Huber",
+        "job": "Buchhalterin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Anna Huber"], ["Beruf", "Buchhalterin"], ["Fachliteratur", "89,00 €"], ["Kurskosten", "140,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Buchhandlung",
+          "lines": [["Bilanzierung kompakt, 4. Auflage", "89,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Kochschule",
+          "lines": [["Thai-Kochkurs, 3 Abende", "140,00 €"]]
+        }
+      ],
+      "positions": [
+        {
+          "id": "p1",
+          "label": "Fachbuch Bilanzierung",
+          "amount": 89,
+          "correct": "anerkennen",
+          "rules": ["R1"],
+          "explanation": "Fachbuch zum ausgeübten Beruf, dient der Erhaltung der Einnahmen."
+        },
+        {
+          "id": "p2",
+          "label": "Thai-Kochkurs",
+          "amount": 140,
+          "correct": "streichen",
+          "rules": ["R1"],
+          "explanation": "Kein Zusammenhang mit der Tätigkeit als Buchhalterin."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "1-2",
+      "type": "werbungskosten",
+      "taxpayer": {
+        "name": "Markus Pichler",
+        "job": "Elektriker"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Markus Pichler"], ["Beruf", "Elektriker"], ["Arbeitsmittel", "210,00 €"], ["Sonstiges", "480,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Baumarkt",
+          "lines": [["Werkzeugkoffer Elektro, 32-teilig", "210,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Vertrag Fitnessstudio",
+          "lines": [["Jahresabo 2025", "480,00 €"], ["Vermerk des Pflichtigen", "für den Rücken, wegen schwerer Arbeit"]]
+        }
+      ],
+      "positions": [
+        {
+          "id": "p1",
+          "label": "Werkzeugkoffer",
+          "amount": 210,
+          "correct": "anerkennen",
+          "rules": ["R1", "R2"],
+          "explanation": "Werkzeug ist ein Arbeitsmittel."
+        },
+        {
+          "id": "p2",
+          "label": "Fitnessstudio",
+          "amount": 480,
+          "correct": "streichen",
+          "rules": ["R1"],
+          "explanation": "Allgemeine Gesundheitsvorsorge hat keinen unmittelbaren Zusammenhang mit den Einnahmen."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "1-3",
+      "type": "werbungskosten",
+      "taxpayer": {
+        "name": "Sabine Koller",
+        "job": "Volksschullehrerin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Sabine Koller"], ["Beruf", "Volksschullehrerin"], ["Arbeitsmittel", "385,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Papierfachhandel",
+          "lines": [["Bastelmaterial für Unterricht 2b", "65,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Möbelhaus",
+          "lines": [["Gartengarnitur Teak, 4 Sessel", "320,00 €"]]
+        }
+      ],
+      "positions": [
+        {
+          "id": "p1",
+          "label": "Bastelmaterial",
+          "amount": 65,
+          "correct": "anerkennen",
+          "rules": ["R1"],
+          "explanation": "Wird im Unterricht verbraucht, direkt beruflich veranlasst."
+        },
+        {
+          "id": "p2",
+          "label": "Gartenmöbel",
+          "amount": 320,
+          "correct": "streichen",
+          "rules": ["R1"],
+          "explanation": "Private Wohnungsausstattung ohne Zusammenhang mit dem Beruf."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "2-1",
+      "type": "werbungskosten",
+      "taxpayer": {
+        "name": "Thomas Berger",
+        "job": "Bankberater"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Thomas Berger"], ["Beruf", "Bankberater"], ["Arbeitskleidung", "450,00 €"], ["Fachliteratur", "75,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Herrenausstatter",
+          "lines": [["Anzug dunkelblau, Schurwolle", "450,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Fachbuchhandlung",
+          "lines": [["Handbuch Wertpapierrecht", "75,00 €"]]
+        }
+      ],
+      "positions": [
+        {
+          "id": "p1",
+          "label": "Anzug",
+          "amount": 450,
+          "correct": "streichen",
+          "rules": ["R3", "R4"],
+          "explanation": "Ein Anzug ist bürgerliche Kleidung, auch wenn die Bank ihn verlangt."
+        },
+        {
+          "id": "p2",
+          "label": "Fachbuch Wertpapierrecht",
+          "amount": 75,
+          "correct": "anerkennen",
+          "rules": ["R5"],
+          "explanation": "Fachliteratur mit direktem Bezug zur Beratungstätigkeit."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "2-2",
+      "type": "werbungskosten",
+      "taxpayer": {
+        "name": "Elif Yilmaz",
+        "job": "Köchin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Elif Yilmaz"], ["Beruf", "Köchin"], ["Arbeitskleidung", "120,00 €"], ["Fachliteratur", "360,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Gastro-Ausstatter",
+          "lines": [["Kochjacke weiß, 3 Stück", "84,00 €"], ["Kochhose Pepita, 2 Stück", "36,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Abo-Bestätigung",
+          "lines": [["Tageszeitung, Jahresabo", "360,00 €"], ["Vermerk der Pflichtigen", "wegen der Restaurantkritiken"]]
+        }
+      ],
+      "positions": [
+        {
+          "id": "p1",
+          "label": "Kochjacken und Kochhosen",
+          "amount": 120,
+          "correct": "anerkennen",
+          "rules": ["R2", "R4"],
+          "explanation": "Typische Berufskleidung, die privat nicht üblich ist."
+        },
+        {
+          "id": "p2",
+          "label": "Tageszeitung",
+          "amount": 360,
+          "correct": "streichen",
+          "rules": ["R3", "R5"],
+          "explanation": "Eine Tageszeitung bleibt Lebensführung, auch wenn sie manchmal berufliche Informationen bietet."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "2-3",
+      "type": "werbungskosten",
+      "taxpayer": {
+        "name": "Johann Steiner",
+        "job": "Gymnasiallehrer für Geschichte"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Johann Steiner"], ["Beruf", "Lehrer, Geschichte"], ["Fachliteratur", "295,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Buchhandlung",
+          "lines": [["Großes Universallexikon, 12 Bände", "250,00 €"], ["Didaktik des Geschichtsunterrichts", "45,00 €"]]
+        }
+      ],
+      "positions": [
+        {
+          "id": "p1",
+          "label": "Universallexikon",
+          "amount": 250,
+          "correct": "streichen",
+          "rules": ["R5"],
+          "explanation": "Ein allgemeines Lexikon ist keine Fachliteratur."
+        },
+        {
+          "id": "p2",
+          "label": "Fachbuch Didaktik",
+          "amount": 45,
+          "correct": "anerkennen",
+          "rules": ["R5"],
+          "explanation": "Fachliteratur zum unterrichteten Fach."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "2-4",
+      "type": "werbungskosten",
+      "story": true,
+      "taxpayer": {
+        "name": "Martina Wolf",
+        "job": "Eventmanagerin",
+        "employer": "Eventservice GmbH"
+      },
+      "representative": {
+        "name": "Pernold & Partner Steuerberatung",
+        "stampVisible": true
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Martina Wolf"], ["Arbeitgeber", "Eventservice GmbH"], ["Arbeitskleidung", "890,00 €"], ["Fachliteratur", "60,00 €"]],
+          "stamp": "Pernold & Partner"
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Modehaus",
+          "lines": [["Abendkleid, schwarz", "890,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Fachverlag",
+          "lines": [["Veranstaltungsrecht in der Praxis", "60,00 €"]]
+        }
+      ],
+      "positions": [
+        {
+          "id": "p1",
+          "label": "Abendkleid",
+          "amount": 890,
+          "correct": "streichen",
+          "rules": ["R3", "R4"],
+          "explanation": "Ein Abendkleid ist bürgerliche Kleidung, auch wenn es nur bei Firmenevents getragen wird."
+        },
+        {
+          "id": "p2",
+          "label": "Fachbuch Veranstaltungsrecht",
+          "amount": 60,
+          "correct": "anerkennen",
+          "rules": ["R5"],
+          "explanation": "Fachliteratur zum Beruf."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "3-1",
+      "type": "steuerpflicht",
+      "story": true,
+      "taxpayer": {
+        "name": "Toni Edlinger",
+        "job": "Sänger"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Toni Edlinger"], ["Erklärter Wohnsitz", "Monaco"], ["Antrag", "nur inländische Auftrittshonorare erfassen"]],
+          "stamp": "Pernold & Partner"
+        },
+        {
+          "kind": "beleg",
+          "title": "Mietvertrag",
+          "lines": [["Wohnung", "Wien 7, 3 Zimmer"], ["Hauptmieter", "Anton Edlinger"], ["Dauer", "unbefristet"], ["Untervermietung", "keine"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Jahresabrechnung Strom 2025",
+          "lines": [["Anschrift", "Wien 7"], ["Verbrauch", "2.950 kWh, wie Vorjahr"]]
+        }
+      ],
+      "decision": {
+        "question": "Steuerpflicht",
+        "options": ["unbeschraenkt", "beschraenkt"],
+        "correct": "unbeschraenkt",
+        "rules": ["R6"],
+        "explanation": "Die Wiener Wohnung ist unbefristet gemietet, nicht untervermietet und wird laut Stromverbrauch genutzt. Damit besteht ein inländischer Wohnsitz. Ob es auch in Monaco einen gibt, ändert daran nichts."
+      },
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "3-2",
+      "type": "steuerpflicht",
+      "taxpayer": {
+        "name": "Lucia Moretti",
+        "job": "Servicekraft"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Lucia Moretti"], ["Heimatort", "Udine, Italien"], ["Wohnung in Österreich", "keine eigene"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Dienstvertrag",
+          "lines": [["Arbeitgeber", "Hotel Alpenblick, Tirol"], ["Beschäftigung", "1. Mai bis 30. November 2025"], ["Unterkunft", "Personalzimmer im Hotel"]]
+        }
+      ],
+      "decision": {
+        "question": "Steuerpflicht",
+        "options": ["unbeschraenkt", "beschraenkt"],
+        "correct": "unbeschraenkt",
+        "rules": ["R6"],
+        "explanation": "Sie hielt sich sieben Monate durchgehend in Österreich auf. Ein Aufenthalt von mehr als sechs Monaten begründet jedenfalls den gewöhnlichen Aufenthalt."
+      },
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "3-3",
+      "type": "steuerpflicht",
+      "taxpayer": {
+        "name": "Jan Novák",
+        "job": "Techniker"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Jan Novák"], ["Wohnort", "Brno, Tschechien"], ["Arbeitsort", "Wien"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Bestätigung des Arbeitgebers",
+          "lines": [["Arbeitszeit", "Mo bis Fr, 7 bis 15 Uhr"], ["Anreise", "täglich mit dem Zug aus Brno"], ["Unterkunft in Österreich", "keine"]]
+        }
+      ],
+      "decision": {
+        "question": "Steuerpflicht",
+        "options": ["unbeschraenkt", "beschraenkt"],
+        "correct": "beschraenkt",
+        "rules": ["R6"],
+        "explanation": "Er hat in Österreich weder eine Wohnung noch hält er sich hier gewöhnlich auf, er fährt täglich heim. Er ist daher nur beschränkt steuerpflichtig."
+      },
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "3-4",
+      "type": "werbungskosten",
+      "taxpayer": {
+        "name": "Petra Lang",
+        "job": "Diplomierte Pflegerin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Arbeitnehmerveranlagung 2025",
+          "lines": [["Name", "Petra Lang"], ["Beruf", "Pflegerin"], ["Fortbildungskosten", "1.200,00 €"], ["Beilagen", "keine"]]
+        }
+      ],
+      "positions": [
+        {
+          "id": "p1",
+          "label": "Fortbildung",
+          "amount": 1200,
+          "correct": "offen",
+          "rules": ["R7"],
+          "explanation": "Weder Beleg noch Kursinhalt sind bekannt. Ob ein beruflicher Zusammenhang besteht, lässt sich nicht beurteilen."
+        }
+      ],
+      "correctStamp": "ergaenzung",
+      "followUp": {
+        "arrivesOnDay": 4,
+        "documents": [
+          {
+            "kind": "beleg",
+            "title": "Kursbestätigung",
+            "lines": [["Kurs", "Wundmanagement für Pflegeberufe"], ["Dauer", "3 Tage"], ["Kosten", "1.200,00 €"]]
+          }
+        ],
+        "positions": [
+          {
+            "id": "p1",
+            "label": "Fortbildung Wundmanagement",
+            "amount": 1200,
+            "correct": "anerkennen",
+            "rules": ["R1"],
+            "explanation": "Fortbildung im ausgeübten Pflegeberuf."
+          }
+        ],
+        "correctStamp": "bescheid"
+      }
+    },
     {
       "id": "4-1",
       "type": "entscheidungen",
