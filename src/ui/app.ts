@@ -3,11 +3,12 @@ import * as core from '../core';
 import type { Content, EffectsLevel, GameState, Settings } from '../core';
 import * as atmosphere from './atmosphere';
 import type { CodexUiState } from './codex';
+import { deskView, type DeskActions, type DeskUi, type PaperHook } from './desk';
 import { h } from './dom';
 import { DeskLayout, makeDraggable, openZoom, paperRotation } from './paper-interaction';
 import { EFFECT_LEVELS, applyEffects, defaultSettings, loadSavedGame, loadSettings, saveSettings } from './settings';
 import { t, type UiKey } from './text';
-import { deskView, finishedView, introView, startView, summaryView, type Actions, type PaperHook } from './views';
+import { actEndView, introView, startView, summaryView, type ScreenActions } from './views';
 
 type Screen = 'start' | 'game';
 
@@ -22,10 +23,15 @@ export function startApp(root: HTMLElement, content: Content): void {
   const store = core.browserStorage();
   let screen: Screen = 'start';
   let state: GameState | null = null;
-  let settings: Settings = loadSettings(store) ?? loadSavedGame(store)?.settings ?? defaultSettings();
+  let settings: Settings = loadSettings(store) ?? loadSavedGame(store, content)?.settings ?? defaultSettings();
   let settingsOpen = false;
   let stampFx = false;
+  /** Element to focus after the next render instead of the previously focused one. */
+  let focusNext: string | null = null;
+  /** Day whose phone call has rung, so re-renders of the intro do not ring again. */
+  let rungFor: number | null = null;
   const codexUi: CodexUiState = { open: true, query: '' };
+  const deskUi: DeskUi = { akteId: null, markMode: false, pending: null, inquiryOpen: false, calc: core.CALC_INITIAL };
   const layout = new DeskLayout();
 
   applyEffects(settings.effects);
@@ -85,7 +91,7 @@ export function startApp(root: HTMLElement, content: Content): void {
     );
   }
 
-  const actions: Actions = {
+  const screenActions: ScreenActions = {
     newGame() {
       if (core.hasSave(store) && !window.confirm(t('title.confirmOverwrite'))) {
         return;
@@ -95,12 +101,24 @@ export function startApp(root: HTMLElement, content: Content): void {
       update(core.newGame(content, settings));
     },
     continueGame() {
-      const saved = loadSavedGame(store);
+      const saved = loadSavedGame(store, content);
       if (!saved) return;
       screen = 'game';
       update({ ...saved, settings });
     },
     beginWork: () => state && update(core.beginWork(state)),
+    advanceDay: () => {
+      if (!state) return;
+      codexUi.query = '';
+      update(core.advanceDay(content, state));
+    },
+    toStart() {
+      screen = 'start';
+      render();
+    },
+  };
+
+  const deskActions: DeskActions = {
     drawNext: () => {
       if (!state) return;
       const next = core.drawNext(state);
@@ -109,11 +127,64 @@ export function startApp(root: HTMLElement, content: Content): void {
     },
     decide: (pid, v) => state && update(core.decidePosition(state, pid, v)),
     choose: (o) => state && update(core.chooseOption(state, o)),
+    decideE: (id, v) => state && update(core.decide(state, id, v)),
+    amount: (id, raw) => {
+      if (!state) return;
+      state = core.enterAmount(state, id, raw);
+      core.saveGame(store, state);
+    },
     stamp: (s) => {
       if (!state) return;
+      // An Ergänzungsersuchen with inquiry first asks what to ask (SPEC 4.4); pressing it again closes the choice.
+      if (core.needsInquiry(content, state, s)) {
+        deskUi.inquiryOpen = !deskUi.inquiryOpen;
+        if (deskUi.inquiryOpen) {
+          const akte = core.getAkte(content, state.current!.akteId);
+          const first = akte.kind.type === 'entscheidungen' ? akte.kind.inquiry?.options[0]?.id : undefined;
+          focusNext = first ? `inq-${first}` : null;
+        }
+        render();
+        return;
+      }
+      deskUi.inquiryOpen = false;
       const next = core.applyStamp(content, state, s);
       stampFx = next !== state;
       update(next);
+    },
+    inquiry: (id) => {
+      if (!state) return;
+      const next = core.applyStamp(content, state, 'ergaenzung', id);
+      deskUi.inquiryOpen = false;
+      stampFx = next !== state;
+      focusNext = 'outbox';
+      update(next);
+    },
+    toggleMarkMode: () => {
+      deskUi.markMode = !deskUi.markMode;
+      deskUi.pending = null;
+      render();
+    },
+    markLine: (doc, line) => {
+      if (!state?.current) return;
+      const p = deskUi.pending;
+      if (!p || p.doc === doc) {
+        deskUi.pending = p && p.line === line ? null : { doc, line };
+        render();
+        return;
+      }
+      const akte = core.getAkte(content, state.current.akteId);
+      deskUi.pending = null;
+      update(core.toggleMark(content, state, { a: { document: akte.documents[p.doc]!.title, line: p.line }, b: { document: akte.documents[doc]!.title, line } }));
+    },
+    removeMark: (i) => state && update(core.removeMark(state, i)),
+    clearMarks: () => {
+      if (!state) return;
+      focusNext = 'mark-mode';
+      update(core.clearMarks(state));
+    },
+    calc: (key) => {
+      deskUi.calc = core.calcPress(deskUi.calc, key);
+      render();
     },
     file: () => {
       if (!state) return;
@@ -121,17 +192,8 @@ export function startApp(root: HTMLElement, content: Content): void {
       if (next !== state) sound.play('file');
       update(next);
     },
-    advanceDay: () => {
-      if (!state) return;
-      codexUi.query = '';
-      update(core.advanceDay(content, state));
-    },
     toggleCodex() {
       codexUi.open = !codexUi.open;
-      render();
-    },
-    toStart() {
-      screen = 'start';
       render();
     },
   };
@@ -184,18 +246,36 @@ export function startApp(root: HTMLElement, content: Content): void {
     return details;
   }
 
+  /** Mark mode, pending line and the question choice belong to one Akte; the calculator to one day. */
+  function syncDeskUi(s: GameState): void {
+    const akteId = s.current?.akteId ?? null;
+    if (akteId !== deskUi.akteId) {
+      deskUi.akteId = akteId;
+      deskUi.markMode = false;
+      deskUi.pending = null;
+      deskUi.inquiryOpen = false;
+    }
+    if (s.current?.answer.stamp !== undefined) {
+      deskUi.markMode = false;
+      deskUi.pending = null;
+      deskUi.inquiryOpen = false;
+    }
+    layout.forAkte(akteId, s.day);
+  }
+
   function view(): HTMLElement {
-    if (screen === 'start' || !state) return startView(content, core.hasSave(store), actions);
+    if (screen === 'start' || !state) return startView(content, core.hasSave(store), screenActions);
     switch (state.phase) {
       case 'intro':
-        return introView(content, state, actions);
+        deskUi.calc = core.CALC_INITIAL;
+        return introView(content, state, screenActions);
       case 'desk':
-        layout.forAkte(state.current?.akteId ?? null);
-        return deskView(content, state, codexUi, actions, paperHook);
+        syncDeskUi(state);
+        return deskView(content, state, codexUi, deskUi, deskActions, paperHook);
       case 'summary':
-        return summaryView(content, state, actions);
-      case 'finished':
-        return finishedView(content, state, actions);
+        return summaryView(content, state, screenActions);
+      case 'actEnd':
+        return actEndView(content, state, screenActions);
     }
   }
 
@@ -213,10 +293,19 @@ export function startApp(root: HTMLElement, content: Content): void {
     }
   }
 
+  /** A call rings once when its day begins (SPEC 7). */
+  function ringIfCalled(): void {
+    if (screen !== 'game' || state?.phase !== 'intro' || rungFor === state.day) return;
+    if (!core.dayInfo(content, state.day).storyEvents.some((e) => e.type === 'call')) return;
+    rungFor = state.day;
+    sound.play('phone');
+  }
+
   /** Full re-render. Focus is restored via `data-key` so keyboard play keeps its place. */
   function render(): void {
     const active = document.activeElement as HTMLElement | null;
-    const key = active?.dataset.key;
+    const key = focusNext ?? active?.dataset.key;
+    focusNext = null;
     const codexScroll = root.querySelector('.codex-list')?.scrollTop ?? 0;
     root.replaceChildren(settingsPanel(), view());
     const list = root.querySelector('.codex-list');
@@ -226,6 +315,7 @@ export function startApp(root: HTMLElement, content: Content): void {
     target ??= root.querySelector<HTMLElement>('main button.primary:not([disabled]), main h1');
     target?.focus({ preventScroll: true });
     playStampFx();
+    ringIfCalled();
   }
 
   atmosphere.mount(root);

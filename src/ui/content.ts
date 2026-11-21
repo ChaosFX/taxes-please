@@ -8,7 +8,7 @@ export function loadBundledContent(): Content {
   const modules = import.meta.glob<unknown>(['../../content/*.json', '!../../content/ui.json'], { eager: true, import: 'default' });
   const files = Object.keys(modules)
     .sort()
-    .map((k) => modules[k]);
+    .map((k) => ({ name: k.split('/').pop()!, data: modules[k] }));
   return loadContentFiles(files);
 }
 

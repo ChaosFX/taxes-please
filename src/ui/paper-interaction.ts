@@ -6,17 +6,29 @@ export interface PaperPos {
   z: number;
 }
 
-/** Positions of dragged papers, kept across re-renders. Cleared when a new Akte lands on the desk. */
+/**
+ * Positions of dragged papers, kept across re-renders. Papers of an Akte are
+ * cleared when a new Akte lands on the desk; papers that lie on the desk all
+ * day (the newspaper, keys starting with `newspaper`) only when the day changes.
+ */
 export class DeskLayout {
   private positions = new Map<string, PaperPos>();
   private akteId: string | null = null;
+  private day: number | null = null;
   private topZ = 1;
 
-  forAkte(akteId: string | null): void {
-    if (akteId !== this.akteId) {
+  forAkte(akteId: string | null, day: number | null = null): void {
+    if (day !== this.day) {
       this.positions.clear();
+      this.day = day;
       this.akteId = akteId;
       this.topZ = 1;
+      return;
+    }
+    if (akteId !== this.akteId) {
+      for (const k of [...this.positions.keys()]) if (!k.startsWith('newspaper')) this.positions.delete(k);
+      this.akteId = akteId;
+      this.topZ = Math.max(1, ...[...this.positions.values()].map((p) => p.z));
     }
   }
 
@@ -283,6 +295,11 @@ export function openZoom(paper: HTMLElement): void {
   copy.classList.remove('lifted', 'dropping');
   copy.classList.add('zoomed');
   copy.querySelectorAll('[data-key]').forEach((n) => n.removeAttribute('data-key'));
+  // The copy is for reading; its buttons (e.g. in mark mode) do nothing.
+  copy.querySelectorAll('button').forEach((b) => {
+    b.disabled = true;
+    b.tabIndex = -1;
+  });
 
   const dialog = document.createElement('dialog');
   dialog.className = 'zoom';

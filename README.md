@@ -11,4 +11,4 @@ npm run screenshots  # nur Screenshots nach screenshots/
 npm run build        # statischer Build nach dist/ (GitHub Pages via .github/workflows/deploy.yml)
 ```
 
-Stand: SPEC Abschnitt 10, Schritt 1 (core) und 2 (schlichte Oberfläche ohne Animationen).
+Stand: Akt I (Tag 1 bis 10), SPEC 0.3.1, Auftrag 03.

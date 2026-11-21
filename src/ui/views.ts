@@ -1,64 +1,77 @@
+import { fromCents } from '../core/amount';
 import { correctAnswer } from '../core/evaluate';
-import { formatEuro } from '../core/format';
+import { formatEuro, romanNumeral } from '../core/format';
 import { dayInfo, errorsOfDay, errorsPerDay, needsReprimand, resultsOfDay, type GameState } from '../core/game';
 import { getAkte } from '../core/loader';
-import type { Akte, CaseError, Content, Document, PlayerVerdict, PositionVerdict, Rule, Stamp } from '../core/types';
-import { renderCodex, type CodexUiState } from './codex';
+import { OFFEN } from '../core/schema';
+import { isAmountDecision, type Akte, type Answer, type CaseError, type Content, type EDecision, type PositionVerdict, type Rule, type Stamp } from '../core/types';
 import { h } from './dom';
-import { t, textsReady, type UiKey } from './text';
+import { amountText, choiceLabel, optionLabel, pairText, playerVerdictLabel, stampLabel, verdictLabel } from './labels';
+import { storyEvent } from './story';
+import { t, textsReady } from './text';
 
-export interface Actions {
+export interface ScreenActions {
   newGame(): void;
   continueGame(): void;
   beginWork(): void;
-  drawNext(): void;
-  decide(positionId: string, verdict: PlayerVerdict | undefined): void;
-  choose(option: string | undefined): void;
-  stamp(stamp: Stamp): void;
-  file(): void;
   advanceDay(): void;
-  toggleCodex(): void;
   toStart(): void;
 }
 
-// ---------- Labels: game texts come from content.texts, interface texts from ui.json ----------
+// ---------- Errors in the summary: built from data only ----------
 
-const stampLabel = (c: Content, s: Stamp) => c.texts.stampLabels[s];
-const optionLabel = (c: Content, o: string) => c.texts.optionLabels[o] ?? o;
-const VERDICT_KEYS = { anerkennen: 'verdict.anerkennen', streichen: 'verdict.streichen' } as const satisfies Record<PlayerVerdict, UiKey>;
-const playerVerdictLabel = (v: string) => (v in VERDICT_KEYS ? t(VERDICT_KEYS[v as PlayerVerdict]) : v);
-/** `offen` is shown together with the stamp it calls for. */
-const verdictLabel = (c: Content, v: PositionVerdict) =>
-  v === 'offen' ? t('verdict.offen', { stamp: stampLabel(c, 'ergaenzung') }) : playerVerdictLabel(v);
-/** Follow-up Akten carry `/folge` in their id; shown as „(Nachreichung)“. */
-const akteLabel = (akte: Akte) => (akte.isFollowUp ? t('desk.followUpId', { id: akte.sourceCaseId }) : akte.id);
+const decisionOf = (akte: Akte, id: string | undefined): EDecision | undefined =>
+  akte.kind.type === 'entscheidungen' ? akte.kind.decisions.find((d) => d.id === id) : undefined;
 
-/** One line per error, built from data only: what was given and what is correct. */
+/** „Subject: given → expected“ */
+const detailLine = (subject: string, given: string | undefined, expected: string) =>
+  h('li', {}, h('strong', {}, subject), t('evaluation.errorDetail', { given: given ?? t('evaluation.notGiven'), expected }));
+
+/** „Text: detail“, for errors with their own text from the content. */
+const noteLine = (text: string | undefined, detail: string) => h('li', {}, h('strong', {}, text ?? ''), t('evaluation.errorAbout', { detail }));
+
 function errorLine(c: Content, akte: Akte, e: CaseError): HTMLElement {
-  if (e.kind === 'unnoetige-verzoegerung') return h('li', {}, c.texts.unnecessaryDelay);
-  let subject: string;
-  let given: string | undefined;
-  let expected: string;
-  if (e.kind === 'stempel-falsch') {
-    subject = t('evaluation.errorStamp');
-    given = e.given ? stampLabel(c, e.given as Stamp) : undefined;
-    expected = stampLabel(c, e.expected as Stamp);
-  } else if (e.kind === 'option-falsch' || e.kind === 'option-fehlt') {
-    subject = akte.kind.type === 'steuerpflicht' ? akte.kind.decision.question : '';
-    given = e.given ? optionLabel(c, e.given) : undefined;
-    expected = optionLabel(c, e.expected!);
-  } else {
-    const pos = akte.kind.type === 'werbungskosten' ? akte.kind.positions.find((p) => p.id === e.positionId) : undefined;
-    subject = pos?.label ?? e.positionId ?? '';
-    given = e.given ? playerVerdictLabel(e.given) : undefined;
-    expected = verdictLabel(c, e.expected as PositionVerdict);
+  const kind = akte.kind;
+  switch (e.kind) {
+    case 'unnoetige-verzoegerung':
+      return h('li', {}, c.texts.unnecessaryDelay);
+    case 'stempel-falsch':
+      return detailLine(t('evaluation.errorStamp'), e.given ? stampLabel(c, e.given as Stamp) : undefined, stampLabel(c, e.expected as Stamp));
+    case 'option-falsch':
+    case 'option-fehlt':
+      return detailLine(kind.type === 'steuerpflicht' ? kind.decision.question : '', e.given ? optionLabel(c, e.given) : undefined, optionLabel(c, e.expected!));
+    case 'position-falsch':
+    case 'position-offen-entschieden':
+    case 'position-nicht-entschieden': {
+      const pos = kind.type === 'werbungskosten' ? kind.positions.find((p) => p.id === e.positionId) : undefined;
+      return detailLine(pos?.label ?? e.positionId ?? '', e.given ? playerVerdictLabel(e.given) : undefined, verdictLabel(c, e.expected as PositionVerdict));
+    }
+    case 'entscheidung-falsch':
+    case 'entscheidung-offen-entschieden':
+    case 'entscheidung-fehlt': {
+      const d = decisionOf(akte, e.decisionId);
+      if (!d || isAmountDecision(d)) return detailLine(e.decisionId ?? '', e.given, e.expected ?? '');
+      return detailLine(d.label, e.given ? choiceLabel(c, d, e.given) : undefined, choiceLabel(c, d, e.expected!));
+    }
+    case 'betrag-falsch':
+    case 'betrag-fehlt':
+      return detailLine(decisionOf(akte, e.decisionId)?.label ?? '', e.given !== undefined ? amountText(e.given) : undefined, formatEuro(fromCents(e.expectedCents!)));
+    case 'widerspruch-fehlt': {
+      const w = kind.type === 'entscheidungen' ? kind.discrepancies.find((x) => x.id === e.discrepancyId) : undefined;
+      return noteLine(c.texts.missedDiscrepancy, w ? pairText(w) : (e.discrepancyId ?? ''));
+    }
+    case 'widerspruch-falsch':
+      return noteLine(c.texts.falseDiscrepancy, pairText(e.mark!));
+    case 'nachfrage-falsch': {
+      const q = kind.type === 'entscheidungen' ? kind.inquiry?.options.find((o) => o.id === e.given) : undefined;
+      return noteLine(c.texts.wrongInquiry, q?.label ?? e.given ?? '');
+    }
   }
-  return h('li', {}, h('strong', {}, subject), t('evaluation.errorDetail', { given: given ?? t('evaluation.notGiven'), expected }));
 }
 
 // ---------- Start ----------
 
-export function startView(content: Content, canContinue: boolean, a: Actions): HTMLElement {
+export function startView(content: Content, canContinue: boolean, a: ScreenActions): HTMLElement {
   return h(
     'main',
     { class: 'screen start sheet' },
@@ -76,7 +89,7 @@ export function startView(content: Content, canContinue: boolean, a: Actions): H
 
 // ---------- Day intro ----------
 
-export function introView(content: Content, state: GameState, a: Actions): HTMLElement {
+export function introView(content: Content, state: GameState, a: ScreenActions): HTMLElement {
   const d = dayInfo(content, state.day);
   return h(
     'main',
@@ -86,174 +99,9 @@ export function introView(content: Content, state: GameState, a: Actions): HTMLE
       { class: 'day-card sheet' },
       h('h1', {}, t('intro.day', { day: d.day })),
       h('p', {}, d.intro),
-      d.storyEvents.map((e) =>
-        e.type === 'note'
-          ? h('figure', { class: 'note' }, h('blockquote', {}, e.text), h('figcaption', {}, t('intro.noteFrom', { from: e.from })))
-          : h('figure', { class: 'dialog' }, h('figcaption', {}, t('intro.speaker', { from: e.from })), h('blockquote', {}, e.text)),
-      ),
+      d.storyEvents.map(storyEvent),
       h('button', { class: 'primary', 'data-key': 'begin', onclick: a.beginWork }, t('intro.begin')),
     ),
-  );
-}
-
-// ---------- Desk ----------
-
-/** Called for each document paper after creation, e.g. to make it draggable. */
-export type PaperHook = (el: HTMLElement, key: string, rotationSeed: string) => void;
-
-function paper(doc: Document, key: string, seed: string, hook: PaperHook): HTMLElement {
-  const el = h(
-    'article',
-    {
-      class: `paper doc ${doc.kind}${doc.stamp ? ' has-stamp' : ''}`,
-      tabindex: 0,
-      'data-key': key,
-      'aria-label': doc.title,
-      'aria-roledescription': t('aria.paper'),
-    },
-    h('h3', {}, doc.title),
-    h(
-      'table',
-      {},
-      h(
-        'tbody',
-        {},
-        doc.lines.map(([label, value]) => h('tr', {}, h('th', { scope: 'row' }, label), h('td', {}, value))),
-      ),
-    ),
-    doc.stamp ? h('div', { class: 'office-stamp', 'aria-label': t('aria.officeStamp', { stamp: doc.stamp }) }, doc.stamp) : null,
-  );
-  hook(el, key, seed);
-  return el;
-}
-
-function pruefvermerk(content: Content, akte: Akte, state: GameState, a: Actions): HTMLElement {
-  const answer = state.current!.answer;
-  const locked = answer.stamp !== undefined;
-  const header = h(
-    'header',
-    {},
-    h('h2', {}, t('desk.pruefvermerk')),
-    h('p', {}, t('desk.akte', { id: akteLabel(akte), name: akte.taxpayer.name, job: akte.taxpayer.job })),
-  );
-
-  let body: HTMLElement;
-  if (akte.kind.type === 'werbungskosten') {
-    body = h(
-      'table',
-      { class: 'positions' },
-      h('thead', {}, h('tr', {}, h('th', {}, t('desk.colPosition')), h('th', {}, t('desk.colAmount')), h('th', {}, t('desk.colDecision')))),
-      h(
-        'tbody',
-        {},
-        akte.kind.positions.map((p) => {
-          const given = answer.positions[p.id];
-          const btn = (v: PlayerVerdict) =>
-            h(
-              'button',
-              {
-                class: `verdict ${v}`,
-                'data-key': `pos-${p.id}-${v}`,
-                'aria-pressed': String(given === v),
-                disabled: locked,
-                onclick: () => a.decide(p.id, given === v ? undefined : v),
-              },
-              playerVerdictLabel(v),
-            );
-          return h(
-            'tr',
-            { 'data-position': p.id },
-            h('td', {}, p.label),
-            h('td', { class: 'amount' }, formatEuro(p.amount)),
-            h('td', {}, h('div', { class: 'verdicts', role: 'group', 'aria-label': p.label }, btn('anerkennen'), btn('streichen'))),
-          );
-        }),
-      ),
-    );
-  } else {
-    const d = akte.kind.decision;
-    body = h(
-      'div',
-      { class: 'decision', role: 'group', 'aria-label': d.question },
-      h('h3', {}, d.question),
-      d.options.map((o) =>
-        h(
-          'button',
-          {
-            class: 'option',
-            'data-key': `opt-${o}`,
-            'aria-pressed': String(answer.option === o),
-            disabled: locked,
-            onclick: () => a.choose(answer.option === o ? undefined : o),
-          },
-          optionLabel(content, o),
-        ),
-      ),
-    );
-  }
-
-  return h(
-    'section',
-    { class: 'paper pruefvermerk', 'aria-label': t('aria.pruefvermerk'), 'data-akte': akte.id },
-    header,
-    body,
-    answer.stamp ? h('div', { class: `stamp-imprint ${answer.stamp}`, role: 'status' }, stampLabel(content, answer.stamp)) : null,
-  );
-}
-
-export function deskView(content: Content, state: GameState, codexUi: CodexUiState, a: Actions, hook: PaperHook): HTMLElement {
-  const d = dayInfo(content, state.day);
-  const akte = state.current ? getAkte(content, state.current.akteId) : null;
-  const stamped = state.current?.answer.stamp !== undefined;
-
-  const stack = h(
-    'div',
-    { class: 'stack-bar' },
-    h('span', { class: 'day-label' }, t('desk.day', { day: state.day })),
-    h(
-      'button',
-      {
-        class: 'stack',
-        'data-key': 'stack',
-        disabled: !!state.current || state.queue.length === 0,
-        onclick: a.drawNext,
-      },
-      t('desk.stack', { count: state.queue.length }),
-    ),
-  );
-
-  const work = h(
-    'section',
-    { class: 'worksurface', 'aria-label': t('aria.worksurface') },
-    akte
-      ? [
-          pruefvermerk(content, akte, state, a),
-          h('div', { class: 'papers' }, akte.documents.map((doc, i) => paper(doc, `paper-${i}`, `${akte.id}#${i}`, hook))),
-        ]
-      : h('p', { class: 'empty-desk' }, t('desk.emptyDesk')),
-  );
-
-  const tools = h(
-    'aside',
-    { class: 'tools', 'aria-label': t('aria.tools') },
-    h('h2', {}, t('desk.stamps')),
-    d.stamps.map((s) =>
-      h(
-        'button',
-        { class: `stamp-btn ${s}`, 'data-key': `stamp-${s}`, disabled: !akte || stamped, onclick: () => a.stamp(s) },
-        stampLabel(content, s),
-      ),
-    ),
-    h('h2', {}, t('desk.outbox')),
-    h('button', { class: 'outbox', 'data-key': 'outbox', disabled: !stamped, onclick: a.file }, t('desk.outboxButton')),
-    akte && !stamped ? h('p', { class: 'hint' }, t('desk.stampFirst')) : null,
-  );
-
-  return h(
-    'main',
-    { class: 'screen desk' },
-    stack,
-    h('div', { class: 'desk-grid' }, renderCodex(content, state.day, codexUi, a.toggleCodex), work, tools),
   );
 }
 
@@ -269,42 +117,62 @@ function ruleRef(rule: Rule): HTMLElement {
   );
 }
 
-function solution(content: Content, akte: Akte): HTMLElement {
-  const rules = (ids: string[]) =>
-    h('ul', { class: 'rule-refs' }, ids.map((id) => ruleRef(content.rules.find((r) => r.id === id)!)));
+function solution(content: Content, akte: Akte, answer: Answer): HTMLElement {
+  const rules = (ids: string[]) => h('ul', { class: 'rule-refs' }, ids.map((id) => ruleRef(content.rules.find((r) => r.id === id)!)));
   const stamp = h('p', {}, h('strong', {}, t('evaluation.correctStamp')), stampLabel(content, correctAnswer(akte).stamp!));
-  if (akte.kind.type === 'werbungskosten') {
+  const item = (heading: string, value: string, explanation: string, ruleIds: string[], ...extra: (HTMLElement | null)[]) =>
+    h('div', { class: 'solution-item' }, h('p', {}, h('strong', {}, heading), value), ...extra, h('p', { class: 'explanation' }, explanation), rules(ruleIds));
+  const kind = akte.kind;
+
+  if (kind.type === 'werbungskosten') {
     return h(
       'div',
       { class: 'solution' },
-      akte.kind.positions.map((p) =>
-        h(
-          'div',
-          { class: 'solution-item' },
-          h('p', {}, h('strong', {}, t('evaluation.positionHeading', { label: p.label, amount: formatEuro(p.amount) })), verdictLabel(content, p.correct)),
-          h('p', { class: 'explanation' }, p.explanation),
-          rules(p.rules),
-        ),
+      kind.positions.map((p) =>
+        item(t('evaluation.positionHeading', { label: p.label, amount: formatEuro(p.amount) }), verdictLabel(content, p.correct), p.explanation, p.rules),
       ),
       stamp,
     );
   }
-  const d = akte.kind.decision;
+  if (kind.type === 'steuerpflicht') {
+    const d = kind.decision;
+    return h('div', { class: 'solution' }, item(t('evaluation.questionHeading', { question: d.question }), optionLabel(content, d.correct), d.explanation, d.rules), stamp);
+  }
+
+  const q = kind.inquiry;
+  const chosen = q?.options.find((o) => o.id === answer.inquiry);
   return h(
     'div',
     { class: 'solution' },
-    h(
-      'div',
-      { class: 'solution-item' },
-      h('p', {}, h('strong', {}, t('evaluation.questionHeading', { question: d.question })), optionLabel(content, d.correct)),
-      h('p', { class: 'explanation' }, d.explanation),
-      rules(d.rules),
-    ),
+    kind.decisions.map((d) => {
+      const heading = d.amount !== undefined ? t('evaluation.positionHeading', { label: d.label, amount: formatEuro(d.amount) }) : t('evaluation.questionHeading', { question: d.label });
+      if (isAmountDecision(d)) {
+        return item(heading, formatEuro(d.correct), d.explanation, d.rules, h('p', { class: 'given' }, t('evaluation.amountGiven', { given: amountText(answer.amounts?.[d.id]) })));
+      }
+      return item(heading, d.correct === OFFEN ? verdictLabel(content, OFFEN) : choiceLabel(content, d, d.correct), d.explanation, d.rules);
+    }),
+    kind.discrepancies.length
+      ? h(
+          'div',
+          { class: 'solution-item discrepancies' },
+          h('p', {}, h('strong', {}, t('evaluation.discrepancyHeading'))),
+          h('ul', {}, kind.discrepancies.map((w) => h('li', {}, pairText(w), h('p', { class: 'explanation' }, w.explanation)))),
+        )
+      : null,
+    q
+      ? h(
+          'div',
+          { class: 'solution-item inquiry-solution' },
+          h('p', {}, t('evaluation.inquiryGiven', { given: chosen?.label ?? t('evaluation.notGiven') })),
+          chosen ? h('p', { class: 'explanation' }, t('evaluation.inquiryAnswer', { answer: chosen.answer })) : null,
+          h('p', {}, t('evaluation.inquiryCorrect', { correct: q.options.find((o) => o.id === q.correct)!.label })),
+        )
+      : null,
     stamp,
   );
 }
 
-export function summaryView(content: Content, state: GameState, a: Actions): HTMLElement {
+export function summaryView(content: Content, state: GameState, a: ScreenActions): HTMLElement {
   const results = resultsOfDay(state, state.day);
   const total = errorsOfDay(state, state.day);
   return h(
@@ -338,21 +206,21 @@ export function summaryView(content: Content, state: GameState, a: Actions): HTM
             }),
         ),
         ok ? null : h('ul', { class: 'errors' }, r.errors.map((e) => errorLine(content, akte, e))),
-        h('details', { open: !ok }, h('summary', {}, t('evaluation.solution')), solution(content, akte)),
+        h('details', { open: !ok }, h('summary', {}, t('evaluation.solution')), solution(content, akte, r.answer)),
       );
     }),
     h('button', { class: 'primary', 'data-key': 'advance', onclick: a.advanceDay }, t('evaluation.closeDay')),
   );
 }
 
-// ---------- End of prototype ----------
+// ---------- End of an act ----------
 
-export function finishedView(content: Content, state: GameState, a: Actions): HTMLElement {
+export function actEndView(content: Content, state: GameState, a: ScreenActions): HTMLElement {
   const perDay = errorsPerDay(content, state);
   return h(
     'main',
     { class: 'screen finished sheet' },
-    h('h1', {}, t('end.heading')),
+    h('h1', {}, t('end.heading', { act: romanNumeral(state.act ?? content.meta.akt) })),
     h(
       'table',
       { class: 'overview' },
@@ -371,4 +239,3 @@ export function finishedView(content: Content, state: GameState, a: Actions): HT
 export function errorView(message: string): HTMLElement {
   return h('main', { class: 'screen error' }, textsReady() ? h('h1', {}, t('error.heading')) : null, h('pre', {}, message));
 }
-

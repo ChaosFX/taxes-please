@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { codexDays, codexEntries, searchCodex } from '../../src/core/codex';
+import { correctAnswer } from '../../src/core/evaluate';
 import { formatEuro } from '../../src/core/format';
-import { newGame } from '../../src/core/game';
+import { advanceDay, beginWork, drawNext, fileCurrent, applyStamp, decidePosition, newGame, type GameState } from '../../src/core/game';
+import { getAkte } from '../../src/core/loader';
 import { clearSave, hasSave, loadGame, SAVE_KEY, saveGame } from '../../src/core/save';
 import { MemoryStore, realContent } from './helpers';
 
@@ -11,16 +13,18 @@ describe('Kodex', () => {
   it('gesperrte Regeln tragen keinen Inhalt', () => {
     const entries = codexEntries(content, 1);
     const locked = entries.filter((e) => e.locked);
-    expect(locked.map((e) => e.id)).toEqual(['R3', 'R4', 'R5', 'R6', 'R7']);
-    for (const e of locked) {
-      expect(Object.keys(e).sort()).toEqual(['day', 'id', 'locked']);
-    }
+    expect(locked).toHaveLength(52);
+    for (const e of locked) expect(Object.keys(e).sort()).toEqual(['day', 'id', 'locked']);
   });
 
   it('markiert Regeln des aktuellen Tages als neu', () => {
-    const entries = codexEntries(content, 2);
-    const isNew = entries.filter((e) => !e.locked && e.isNew).map((e) => e.id);
+    const isNew = codexEntries(content, 2).filter((e) => !e.locked && e.isNew).map((e) => e.id);
     expect(isNew).toEqual(['R3', 'R4', 'R5']);
+  });
+
+  it('Hinweisregeln sind erkennbar', () => {
+    const hints = codexEntries(content, 10).flatMap((e) => (!e.locked && e.rule.hint ? [e.id] : []));
+    expect(hints).toEqual(['R28', 'R36', 'R37', 'R44', 'R45']);
   });
 
   it('Suche findet nur freigeschaltete Regeln, ohne Groß/Klein und Umlaut-Probleme', () => {
@@ -32,8 +36,17 @@ describe('Kodex', () => {
     expect(searchCodex(content, 2, '')).toHaveLength(5);
   });
 
+  it('Suche findet Teilwörter, auch bei 54 Regeln', () => {
+    const all = searchCodex(content, 10, '');
+    expect(all).toHaveLength(54);
+    const part = searchCodex(content, 10, 'gewinnfrei');
+    expect(part.length).toBeGreaterThan(0);
+    for (const r of part) expect(`${r.title} ${r.text}`.toLowerCase()).toContain('gewinnfrei');
+    expect(searchCodex(content, 3, 'gewinnfrei')).toEqual([]);
+  });
+
   it('Lesezeichen nach Tagen', () => {
-    expect(codexDays(content)).toEqual([1, 2, 3]);
+    expect(codexDays(content)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 });
 
@@ -42,6 +55,7 @@ describe('formatEuro', () => {
     [1200, '1.200,00 €'],
     [89, '89,00 €'],
     [0.5, '0,50 €'],
+    [4236.7, '4.236,70 €'],
     [1234567.891, '1.234.567,89 €'],
   ])('%d → %s', (n, s) => expect(formatEuro(n)).toBe(s));
 });
@@ -52,7 +66,7 @@ describe('Speichern', () => {
     const s = newGame(content);
     expect(hasSave(store)).toBe(false);
     expect(saveGame(store, s)).toBe(true);
-    expect(loadGame(store)).toEqual(s);
+    expect(loadGame(store, content)).toEqual(s);
     clearSave(store);
     expect(hasSave(store)).toBe(false);
   });
@@ -60,9 +74,10 @@ describe('Speichern', () => {
   it('kaputter Spielstand ergibt null', () => {
     const store = new MemoryStore();
     store.setItem(SAVE_KEY, '{kaputt');
-    expect(loadGame(store)).toBeNull();
+    expect(loadGame(store, content)).toBeNull();
     store.setItem(SAVE_KEY, JSON.stringify({ version: 99 }));
-    expect(loadGame(store)).toBeNull();
+    expect(loadGame(store, content)).toBeNull();
+    expect(hasSave(store)).toBe(false);
   });
 
   it('werfender Speicher wird abgefangen', () => {
@@ -78,8 +93,91 @@ describe('Speichern', () => {
       },
     };
     expect(saveGame(throwing, newGame(content))).toBe(false);
-    expect(loadGame(throwing)).toBeNull();
+    expect(loadGame(throwing, content)).toBeNull();
     expect(() => clearSave(throwing)).not.toThrow();
     expect(saveGame(null, newGame(content))).toBe(false);
+  });
+});
+
+describe('Spielstände aus 0.2 (SPEC 9)', () => {
+  /** Plays days 1 to 3 correctly, but with `stamp34` on Akte 3-4. */
+  function throughDay3(stamp34: 'ergaenzung' | 'bescheid'): GameState {
+    let s = newGame(content);
+    for (let d = 1; d <= 3; d++) {
+      s = beginWork(s);
+      while (s.phase === 'desk') {
+        s = drawNext(s);
+        const a = correctAnswer(getAkte(content, s.current!.akteId));
+        for (const [pid, v] of Object.entries(a.positions)) s = decidePosition(s, pid, v);
+        if (a.option) s = { ...s, current: { ...s.current!, answer: { ...s.current!.answer, option: a.option } } };
+        s = applyStamp(content, s, s.current!.akteId === '3-4' ? stamp34 : a.stamp!);
+        s = fileCurrent(content, s);
+      }
+      if (d < 3) s = advanceDay(content, s);
+    }
+    return s;
+  }
+
+  /** A save as 0.2 wrote it: version 1, no tools, ended on the „Ende des Prototyps“ screen. */
+  function prototypeSave(stamp34: 'ergaenzung' | 'bescheid', extra: object = {}) {
+    const s = throughDay3(stamp34);
+    const { tools: _t, act: _a, ...rest } = s;
+    const followUp = stamp34 === 'ergaenzung';
+    const day4 = followUp
+      ? [{ akteId: '3-4/folge', day: 4, answer: { positions: {}, stamp: 'bescheid' }, errors: [] }]
+      : [];
+    return {
+      ...rest,
+      version: 1,
+      day: 4,
+      phase: 'finished',
+      queue: [],
+      current: null,
+      results: [...s.results, ...day4],
+      pendingFollowUps: [],
+      ...extra,
+    };
+  }
+
+  const load = (raw: unknown) => {
+    const store = new MemoryStore();
+    store.setItem(SAVE_KEY, JSON.stringify(raw));
+    return loadGame(store, content);
+  };
+
+  it('Ende des Prototyps: weiter mit Tag 4, Tag 1 bis 3 bleiben, Folgeakte 3-4 kommt wieder', () => {
+    const old = prototypeSave('ergaenzung');
+    const s = load(old)!;
+    expect(s.version).toBe(2);
+    expect(s.day).toBe(4);
+    expect(s.phase).toBe('intro');
+    expect(s.results.map((r) => r.akteId)).toEqual(old.results.filter((r: { day: number }) => r.day < 4).map((r: { akteId: string }) => r.akteId));
+    expect(s.results).toHaveLength(11);
+    expect(s.queue).toEqual(['3-4/folge', '4-1', '4-2', '4-3', '4-4', '4-5']);
+    expect(s.tools).toEqual([]);
+    expect(s.settings).toEqual(old.settings);
+  });
+
+  it('ohne Ergänzungsersuchen bei 3-4 kommt keine Folgeakte', () => {
+    const s = load(prototypeSave('bescheid'))!;
+    expect(s.queue).toEqual(['4-1', '4-2', '4-3', '4-4', '4-5']);
+    expect(s.results.find((r) => r.akteId === '3-4')!.errors).toHaveLength(1);
+  });
+
+  it('auch mitten in Tag 4 (Folgeakte auf dem Tisch) geht es mit Tag 4 neu los', () => {
+    const s = load(prototypeSave('ergaenzung', { phase: 'desk', current: { akteId: '3-4/folge', answer: { positions: {} } }, results: throughDay3('ergaenzung').results }))!;
+    expect(s.phase).toBe('intro');
+    expect(s.current).toBeNull();
+    expect(s.queue[0]).toBe('3-4/folge');
+  });
+
+  it('ein Spielstand vor Tag 4 spielt unverändert weiter', () => {
+    const s = throughDay3('ergaenzung');
+    const { tools: _t, ...rest } = s;
+    const loaded = load({ ...rest, version: 1 })!;
+    expect(loaded).toEqual({ ...s, version: 2, tools: [] });
+    const next = advanceDay(content, loaded);
+    expect(next.day).toBe(4);
+    expect(next.queue[0]).toBe('3-4/folge');
   });
 });

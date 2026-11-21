@@ -11,8 +11,13 @@ export interface CodexUiState {
 function ruleCard(rule: Rule, isNew: boolean): HTMLElement {
   return h(
     'article',
-    { class: 'rule', id: `regel-${rule.id}`, 'data-rule': rule.id },
-    h('header', {}, h('h3', {}, rule.title), isNew ? h('span', { class: 'badge-new' }, t('codex.new')) : null),
+    { class: `rule${rule.hint ? ' hint-rule' : ''}`, id: `regel-${rule.id}`, 'data-rule': rule.id },
+    h(
+      'header',
+      {},
+      h('h3', {}, rule.title),
+      h('span', { class: 'badges' }, isNew ? h('span', { class: 'badge-new' }, t('codex.new')) : null, rule.hint ? h('span', { class: 'badge-hint' }, t('codex.hint')) : null),
+    ),
     h('p', {}, rule.text),
     h(
       'footer',

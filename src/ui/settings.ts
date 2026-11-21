@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, loadGame, type EffectsLevel, type GameState, type KeyValueStore, type Settings } from '../core';
+import { DEFAULT_SETTINGS, loadGame, type Content, type EffectsLevel, type GameState, type KeyValueStore, type Settings } from '../core';
 
 /**
  * Settings live in the save game (SPEC 9). This extra key keeps them before a
@@ -37,8 +37,8 @@ export function withDefaults(s: Partial<Settings> | null | undefined): Settings 
 }
 
 /** The saved game with its settings completed; null if there is none. */
-export function loadSavedGame(store: KeyValueStore | null): GameState | null {
-  const saved = loadGame(store);
+export function loadSavedGame(store: KeyValueStore | null, content: Content): GameState | null {
+  const saved = loadGame(store, content);
   if (!saved) return null;
   return { ...saved, settings: withDefaults(saved.settings) ?? { ...DEFAULT_SETTINGS } };
 }

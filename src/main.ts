@@ -1,5 +1,7 @@
 import '@fontsource/courier-prime/latin-400.css';
 import '@fontsource/courier-prime/latin-700.css';
+import '@fontsource/old-standard-tt/latin-400.css';
+import '@fontsource/old-standard-tt/latin-700.css';
 import './ui/style.css';
 import { ContentError } from './core/loader';
 import { startApp } from './ui/app';

@@ -1,16 +1,20 @@
-import { evaluate } from './evaluate';
+import { samePair, evaluate } from './evaluate';
 import { getAkte } from './loader';
-import type { Answer, CaseResult, Content, Day, PlayerVerdict, Settings, Stamp } from './types';
+import type { Answer, CaseResult, Content, Day, Mark, PlayerVerdict, Settings, Stamp, Tool } from './types';
 
-export type Phase = 'intro' | 'desk' | 'summary' | 'finished';
+/** `actEnd`: the end screen of an act („Ende von Akt {act}“, SPEC 4.8). */
+export type Phase = 'intro' | 'desk' | 'summary' | 'actEnd';
 
 export interface PendingFollowUp {
   akteId: string;
   day: number;
 }
 
+/** Save format. 1 is the prototype (0.2, days 1 to 4); 2 adds tools and act ends. */
+export const STATE_VERSION = 2;
+
 export interface GameState {
-  version: 1;
+  version: typeof STATE_VERSION;
   day: number;
   phase: Phase;
   /** Akten still on the stack today, in order. */
@@ -19,6 +23,10 @@ export interface GameState {
   current: { akteId: string; answer: Answer } | null;
   results: CaseResult[];
   pendingFollowUps: PendingFollowUp[];
+  /** Tools unlocked so far (`unlock` events), in order. */
+  tools: Tool[];
+  /** Act shown on the end screen while `phase` is `actEnd`. */
+  act?: number;
   settings: Settings;
 }
 
@@ -31,9 +39,10 @@ export function dayInfo(content: Content, day: number): Day {
   return defined;
 }
 
+/** Stack of a day: follow-ups first, then the day's Akten in content order (SPEC 4.6). */
 export function planDay(content: Content, day: number, pending: PendingFollowUp[]): string[] {
   const regular = content.days.find((d) => d.day === day)?.cases ?? [];
-  return [...regular, ...pending.filter((p) => p.day === day).map((p) => p.akteId)];
+  return [...pending.filter((p) => p.day === day).map((p) => p.akteId), ...regular];
 }
 
 /** Next day in the content after `after`, or null at the end. Days with an empty stack are still played. */
@@ -42,27 +51,42 @@ export function nextPlayableDay(content: Content, after: number): number | null 
   return candidates.length ? Math.min(...candidates) : null;
 }
 
-function startDay(content: Content, state: GameState, day: number): GameState {
+/** Tools unlocked on the days up to and including `day`. */
+export function toolsUntil(content: Content, day: number): Tool[] {
+  const out: Tool[] = [];
+  for (const d of [...content.days].sort((a, b) => a.day - b.day)) {
+    if (d.day > day) break;
+    for (const e of d.storyEvents) if (e.type === 'unlock' && !out.includes(e.feature)) out.push(e.feature);
+  }
+  return out;
+}
+
+export function startDay(content: Content, state: GameState, day: number): GameState {
+  const tools = [...state.tools];
+  for (const e of dayInfo(content, day).storyEvents) if (e.type === 'unlock' && !tools.includes(e.feature)) tools.push(e.feature);
+  const { act: _act, ...rest } = state;
   return {
-    ...state,
+    ...rest,
     day,
     phase: 'intro',
     queue: planDay(content, day, state.pendingFollowUps),
     current: null,
     pendingFollowUps: state.pendingFollowUps.filter((p) => p.day !== day),
+    tools,
   };
 }
 
 export function newGame(content: Content, settings: Settings = DEFAULT_SETTINGS): GameState {
   const first = Math.min(...content.days.map((d) => d.day));
   const empty: GameState = {
-    version: 1,
+    version: STATE_VERSION,
     day: first,
     phase: 'intro',
     queue: [],
     current: null,
     results: [],
     pendingFollowUps: [],
+    tools: [],
     settings,
   };
   return startDay(content, empty, first);
@@ -81,8 +105,14 @@ export function drawNext(state: GameState): GameState {
   return { ...state, queue: rest, current: { akteId, answer: { positions: {} } } };
 }
 
-function editable(state: GameState): state is GameState & { current: NonNullable<GameState['current']> } {
+type Editable = GameState & { current: NonNullable<GameState['current']> };
+
+function editable(state: GameState): state is Editable {
   return state.phase === 'desk' && state.current !== null && state.current.answer.stamp === undefined;
+}
+
+function withAnswer(state: Editable, patch: Partial<Answer>): GameState {
+  return { ...state, current: { ...state.current, answer: { ...state.current.answer, ...patch } } };
 }
 
 /** Sets or clears (`undefined`) the verdict on a position. Locked once stamped. */
@@ -90,19 +120,79 @@ export function decidePosition(state: GameState, positionId: string, verdict: Pl
   if (!editable(state)) return state;
   const positions = { ...state.current.answer.positions, [positionId]: verdict };
   if (verdict === undefined) delete positions[positionId];
-  return { ...state, current: { ...state.current, answer: { ...state.current.answer, positions } } };
+  return withAnswer(state, { positions });
 }
 
 export function chooseOption(state: GameState, option: string | undefined): GameState {
   if (!editable(state)) return state;
-  return { ...state, current: { ...state.current, answer: { ...state.current.answer, option } } };
+  return withAnswer(state, { option });
 }
 
-/** Stamps the current Akte. A stamp is final. Only stamps available today are accepted. */
-export function applyStamp(content: Content, state: GameState, stamp: Stamp): GameState {
+/** Sets or clears (`undefined`) the chosen option of a decision in an `entscheidungen` Akte. */
+export function decide(state: GameState, decisionId: string, value: string | undefined): GameState {
+  if (!editable(state)) return state;
+  const decisions = { ...state.current.answer.decisions };
+  if (value === undefined) delete decisions[decisionId];
+  else decisions[decisionId] = value;
+  return withAnswer(state, { decisions });
+}
+
+/** Stores the amount as typed; an empty field removes it. Parsing happens in the evaluation. */
+export function enterAmount(state: GameState, decisionId: string, raw: string): GameState {
+  if (!editable(state)) return state;
+  const amounts = { ...state.current.answer.amounts };
+  if (raw.trim() === '') delete amounts[decisionId];
+  else amounts[decisionId] = raw;
+  return withAnswer(state, { amounts });
+}
+
+/**
+ * Marks two lines in two different papers of the Akte on the desk as a
+ * discrepancy. Marking the same pair again removes it.
+ */
+export function toggleMark(content: Content, state: GameState, mark: Mark): GameState {
+  if (!editable(state)) return state;
+  if (mark.a.document === mark.b.document) return state;
+  const akte = getAkte(content, state.current.akteId);
+  const exists = (r: Mark['a']) => akte.documents.some((d) => d.title === r.document && d.lines.some(([l]) => l === r.line));
+  if (!exists(mark.a) || !exists(mark.b)) return state;
+  const marks = state.current.answer.marks ?? [];
+  const i = marks.findIndex((m) => samePair(m, mark));
+  return withAnswer(state, { marks: i >= 0 ? marks.filter((_, j) => j !== i) : [...marks, mark] });
+}
+
+export function removeMark(state: GameState, index: number): GameState {
+  if (!editable(state)) return state;
+  return withAnswer(state, { marks: (state.current.answer.marks ?? []).filter((_, j) => j !== index) });
+}
+
+export function clearMarks(state: GameState): GameState {
+  if (!editable(state)) return state;
+  return withAnswer(state, { marks: [] });
+}
+
+/** True if stamping `stamp` on the Akte on the desk first needs the choice of a question (SPEC 4.4). */
+export function needsInquiry(content: Content, state: GameState, stamp: Stamp): boolean {
+  if (stamp !== 'ergaenzung' || !state.current) return false;
+  const akte = getAkte(content, state.current.akteId);
+  return akte.kind.type === 'entscheidungen' && akte.kind.inquiry !== undefined;
+}
+
+/**
+ * Stamps the current Akte. A stamp is final. Only stamps available today are
+ * accepted. An Ergänzungsersuchen on an Akte with `inquiry` needs the id of one
+ * of its questions; without it nothing happens.
+ */
+export function applyStamp(content: Content, state: GameState, stamp: Stamp, inquiry?: string): GameState {
   if (!editable(state)) return state;
   if (!dayInfo(content, state.day).stamps.includes(stamp)) return state;
-  return { ...state, current: { ...state.current, answer: { ...state.current.answer, stamp } } };
+  if (needsInquiry(content, state, stamp)) {
+    const akte = getAkte(content, state.current.akteId);
+    const options = akte.kind.type === 'entscheidungen' ? (akte.kind.inquiry?.options ?? []) : [];
+    if (!options.some((o) => o.id === inquiry)) return state;
+    return withAnswer(state, { stamp, inquiry });
+  }
+  return withAnswer(state, { stamp });
 }
 
 /** Puts the stamped Akte into the outbox, evaluates it and schedules a follow-up if earned. */
@@ -114,6 +204,7 @@ export function fileCurrent(content: Content, state: GameState): GameState {
 
   let pendingFollowUps = state.pendingFollowUps;
   const source = content.cases.find((k) => k.id === akte.sourceCaseId);
+  // The follow-up comes after every Ergänzungsersuchen, also after a wrong question (SPEC 4.6).
   if (!akte.isFollowUp && source?.followUp && cur.answer.stamp === 'ergaenzung') {
     pendingFollowUps = [...pendingFollowUps, { akteId: `${source.id}/folge`, day: source.followUp.arrivesOnDay }];
   }
@@ -127,12 +218,30 @@ export function fileCurrent(content: Content, state: GameState): GameState {
   };
 }
 
-/** From the day summary to the next day, or to the end of the prototype. */
+/** Act whose end screen follows the summary of `day`, if any. */
+export function actEndingOn(content: Content, day: number): number | null {
+  for (const e of dayInfo(content, day).storyEvents) if (e.type === 'actSummary') return e.act;
+  return null;
+}
+
+/**
+ * From the day summary to the next day. After a day with `actSummary` the end
+ * screen of the act comes first. Without a next day the game ends on an act
+ * screen (the act of the content when the day names none).
+ */
 export function advanceDay(content: Content, state: GameState): GameState {
   if (state.phase !== 'summary') return state;
+  const act = actEndingOn(content, state.day);
   const next = nextPlayableDay(content, state.day);
-  if (next === null) return { ...state, phase: 'finished' };
+  if (act !== null || next === null) return { ...state, phase: 'actEnd', act: act ?? content.meta.akt };
   return startDay(content, state, next);
+}
+
+/** From an act's end screen to the next day; stays there if there is none. */
+export function continueAfterAct(content: Content, state: GameState): GameState {
+  if (state.phase !== 'actEnd') return state;
+  const next = nextPlayableDay(content, state.day);
+  return next === null ? state : startDay(content, state, next);
 }
 
 export function resultsOfDay(state: GameState, day: number): CaseResult[] {

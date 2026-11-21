@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.2.1",
   "title": {
     "heading": "Taxes Please",
     "year": "Veranlagungsjahr {year}",
@@ -38,7 +38,10 @@
     "markHint": "Wählen Sie zwei Angaben in zwei Papieren, die nicht zusammenpassen.",
     "markCount": "Markierte Widersprüche: {count}",
     "markClear": "Markierungen aufheben",
-    "akteNoJob": "Akte {id} · {name}"
+    "akteNoJob": "Akte {id} · {name}",
+    "markPair": "{a} ↔ {b}",
+    "markSide": "{document}: {line}",
+    "markRemove": "aufheben"
   },
   "verdict": {
     "anerkennen": "anerkennen",
@@ -79,7 +82,10 @@
     "closeDay": "Feierabend",
     "amountGiven": "Ihr Betrag: {given}",
     "inquiryGiven": "Ihre Frage: {given}",
-    "discrepancyHeading": "Widersprüche: "
+    "discrepancyHeading": "Widersprüche: ",
+    "errorAbout": ": {detail}",
+    "inquiryCorrect": "Richtige Frage: {correct}",
+    "inquiryAnswer": "Antwort: {answer}"
   },
   "end": {
     "heading": "Ende von Akt {act}",
@@ -92,7 +98,11 @@
     "clear": "C",
     "equals": "=",
     "decimal": ",",
-    "error": "Fehler"
+    "error": "Fehler",
+    "add": "+",
+    "subtract": "−",
+    "multiply": "×",
+    "divide": "÷"
   },
   "settings": {
     "heading": "Einstellungen",
@@ -120,6 +130,15 @@
     "tools": "Stempel und Ausgangskorb",
     "calculator": "Tischrechner",
     "amountInput": "Betrag für {label}",
-    "markableLine": "Angabe {label} markieren"
+    "markableLine": "Angabe {label} markieren",
+    "calcDisplay": "Anzeige",
+    "calcAdd": "plus",
+    "calcSubtract": "minus",
+    "calcMultiply": "mal",
+    "calcDivide": "geteilt durch",
+    "calcDecimal": "Komma",
+    "calcClear": "Löschen",
+    "calcEquals": "ist gleich",
+    "markRemove": "Markierung {no} aufheben"
   }
 }

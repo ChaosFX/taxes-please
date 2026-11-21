@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "0.3.0",
+    "version": "0.3.1",
     "akt": 1,
     "veranlagungsjahr": 2025,
     "hinweis": "Alle Personen und Firmen sind erfunden. Kodextexte sind vereinfacht und keine Rechtsauskunft."
@@ -12,7 +12,6 @@
       "nichtselbstaendig": "nichtselbständige Arbeit",
       "selbstaendig": "selbständige Arbeit",
       "gewerbe": "Gewerbebetrieb",
-      "lf": "Land- und Forstwirtschaft",
       "kapital": "Kapitalvermögen",
       "vv": "Vermietung und Verpachtung",
       "sonstige": "sonstige Einkünfte",

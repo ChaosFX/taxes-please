@@ -1,5 +1,5 @@
 /**
- * Sound effects and office ambience (SPEC 7, optional).
+ * Sound effects, phone ring, office ambience and music (SPEC 7, optional).
  *
  * Files live in `public/audio/` (CC0, sources in `public/audio/QUELLEN.md`).
  * Short effects play through Web Audio (low latency, may overlap); the long
@@ -7,12 +7,13 @@
  * memory as a whole. Everything fails silently: the game never depends on sound.
  */
 
-export type SoundName = 'stamp' | 'paper' | 'file';
+export type SoundName = 'stamp' | 'paper' | 'file' | 'phone';
 
 export const SOUND_FILES: Record<SoundName, readonly string[]> = {
   stamp: ['stempel-1.mp3', 'stempel-2.mp3', 'stempel-3.mp3'],
   paper: ['papier-1.mp3', 'papier-2.mp3'],
   file: ['ablage-1.mp3', 'ablage-2.mp3'],
+  phone: ['telefon.mp3'],
 };
 export const AMBIENT_FILE = 'buero.mp3';
 /** Seamless loop (rendered so the tail wraps into the start); plays via Web Audio `loop`. */
@@ -22,7 +23,7 @@ export const MUSIC_FILE = 'musik-akt1.mp3';
 const AMBIENT_LEVEL = 0.5;
 /** Music sits under everything else. */
 const MUSIC_LEVEL = 0.35;
-const EFFECT_LEVEL: Record<SoundName, number> = { stamp: 1, paper: 0.6, file: 0.6 };
+const EFFECT_LEVEL: Record<SoundName, number> = { stamp: 1, paper: 0.6, file: 0.6, phone: 0.7 };
 /** Fade for switching music on and off (s); avoids clicks. */
 const FADE_SECONDS = 0.08;
 /** Paper rustle is not repeated faster than this (ms). */
@@ -57,7 +58,7 @@ export function createSound(volume: number, music: number, base = `${import.meta
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
   const buffers = new Map<string, Promise<AudioBuffer | null>>();
-  const last: Record<SoundName, number> = { stamp: -1, paper: -1, file: -1 };
+  const last: Record<SoundName, number> = { stamp: -1, paper: -1, file: -1, phone: -1 };
   let lastPaper = -Infinity;
   let ambient: HTMLAudioElement | null = null;
 

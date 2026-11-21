@@ -56,7 +56,8 @@ describe('Einstellungen und alte Spielstände (SPEC 9)', () => {
     const core = await import('../../src/core');
     const { MemoryStore, realContent } = await import('./helpers');
     // A game in progress: day 1, first Akte drawn and partly decided.
-    let state = core.beginWork(core.newGame(realContent(), { ...full }));
+    const content = realContent();
+    let state = core.beginWork(core.newGame(content, { ...full }));
     state = core.drawNext(state);
     const pid = Object.keys(state.current?.answer.positions ?? {})[0];
     if (pid) state = core.decidePosition(state, pid, 'anerkennen');
@@ -65,7 +66,7 @@ describe('Einstellungen und alte Spielstände (SPEC 9)', () => {
       const store = new MemoryStore();
       const { [field]: _omit, ...oldSettings } = full;
       store.setItem(core.SAVE_KEY, JSON.stringify({ ...state, settings: oldSettings }));
-      const loaded = loadSavedGame(store);
+      const loaded = loadSavedGame(store, content);
       expect(loaded, `ohne ${field}`).not.toBeNull();
       expect(loaded!.settings[field]).toBe(core.DEFAULT_SETTINGS[field]);
       const { settings: s1, ...rest1 } = loaded!;
