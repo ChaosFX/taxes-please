@@ -4,6 +4,8 @@ Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in
 
 ## 21.11.2026
 
+- `SPEC.md` 0.3.2: Kodex als Buch (Abschnitt 6), Entscheidungen aus Bericht 03 übernommen (Abschnitte 4, 5, 7), Spielstand um `codex.lastRuleId` und `codex.seenDay` erweitert, `aria.calcDisplay` künftig „Rechneranzeige“. `auftraege/04-kodex-als-buch.md` angelegt.
+
 - Auftrag 03 umgesetzt (Akt I komplett): Schema, Zusammenführen und Querprüfungen für `entscheidungen`, Widersprüche, Nachfrage, Story-Ereignisse und Spuren; Bewertung von Beträgen, Widersprüchen und Nachfragen; Tischrechner; Folgeakten vor den Akten des Tages; Schlussbildschirm „Ende von Akt I“; Übernahme von Spielständen aus 0.2.
 - `content/akt1.json` 0.3.1 (auf Anweisung im Auftrag 03): unbenutzten Schlüssel `texts.optionLabels.lf` („Land- und Forstwirtschaft“) entfernt. Keine Entscheidung verwendet ihn, laut SPEC 3 ist das ein Ladefehler.
 - `content/ui.json` 0.2.1 (Ausnahme in Auftrag 03): neue Schlüssel `desk.markPair`, `desk.markSide`, `desk.markRemove`, `evaluation.errorAbout`, `evaluation.inquiryCorrect`, `evaluation.inquiryAnswer`, `calculator.add`, `calculator.subtract`, `calculator.multiply`, `calculator.divide`, `aria.calcDisplay`, `aria.calcAdd`, `aria.calcSubtract`, `aria.calcMultiply`, `aria.calcDivide`, `aria.calcDecimal`, `aria.calcClear`, `aria.calcEquals`, `aria.markRemove`. Bitte im Chat prüfen.

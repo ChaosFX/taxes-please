@@ -1,10 +1,16 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 21.11.2026 · Version 0.3.1 · passt zu `content/akt1.json` Version 0.3.0 und `content/ui.json` Version 0.2.0
+Stand: 21.11.2026 · Version 0.3.2 · passt zu `content/akt1.json` Version 0.3.1 und `content/ui.json` ab Version 0.2.1 (Auftrag 04 hebt sie auf 0.3.0)
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
 Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakten und 54 Kodexregeln (davon 5 Hinweise ohne eigenen Fall). Inhalt und Lösungen stehen in `content/akt1.json`, einer Datei für den ganzen Akt. Spätere Akte bekommen je eine eigene Datei (`akt2.json` usw.).
+
+Änderungen gegenüber 0.3.1:
+- Der Kodex wird zu einem Buch: zugeklappt auf dem Tisch, aufgeschlagen als Doppelseite mit Inhaltsverzeichnis, Griffregister, Lesezeichenband, Blättern und Suche (Abschnitt 6, Auftrag 04). Neu im Spielstand: zuletzt gelesene Regel und gesehene Lieferung (Abschnitt 9).
+- Entscheidungen aus Bericht 03 aufgenommen (Abschnitte 4, 5 und 7): Markierungen, Betrag 0, Rechner in Eingabereihenfolge, Fächern der Papiere, Pflichttexte nur bei Bedarf, Antwort der Nachfrage in der Auswertung.
+- `aria.calcDisplay` heißt künftig „Rechneranzeige“ statt „Anzeige“.
+- Der Schlussbildschirm hat vorerst nur „Zum Startbildschirm“. Das Weiterspielen mit Akt II kommt mit Akt II.
 
 Änderungen gegenüber 0.3.0: Die beiden Inhaltsdateien von Akt I sind zu `content/akt1.json` zusammengeführt. `meta` hat zusätzlich `akt` (Nummer des Akts). Am Datenmodell und an den Abnahmekriterien ändert sich sonst nichts.
 
@@ -68,9 +74,9 @@ Die Typen folgen exakt dem JSON in `content/`. Alles, was hier nicht als optiona
 - `unnecessaryDelay`: Fehlertext „Ergänzungsersuchen bei vollständiger Akte“.
 - `warning`: `minErrors`, `from`, `text` der Ermahnung.
 - `emptyDay`: Text für einen Tag ohne Akten.
-- `wrongInquiry`: Fehlertext für eine Nachfrage, die den offenen Punkt nicht klärt.
-- `missedDiscrepancy`: Fehlertext für einen nicht markierten Widerspruch.
-- `falseDiscrepancy`: Fehlertext für eine Markierung, die kein Widerspruch ist.
+- `wrongInquiry`: Fehlertext für eine Nachfrage, die den offenen Punkt nicht klärt. Pflicht nur, wenn eine Akte eine `inquiry` hat.
+- `missedDiscrepancy`: Fehlertext für einen nicht markierten Widerspruch. Pflicht nur, wenn eine Akte `discrepancies` hat.
+- `falseDiscrepancy`: Fehlertext für eine Markierung, die kein Widerspruch ist. Pflicht nur, wenn eine Akte `discrepancies` hat.
 
 ### `Rule`
 
@@ -143,13 +149,13 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
 
 1. **Startbildschirm:** Titel, Hinweis auf Fiktion und Vereinfachung, Buttons „Neues Spiel“ und „Fortsetzen“.
 2. **Tagesbeginn:** Karte mit „Tag N“ und `intro`-Text. Ein Spieldatum gibt es nicht, der Tag heißt nur „Tag N“. Daten in Belegen und Fristfällen sind Inhalt der Papiere und haben keine Wirkung auf den Ablauf. Danach die Story-Ereignisse des Tages in ihrer Reihenfolge (Abschnitt 3).
-3. **Schreibtisch:** Links der Kodex, in der Mitte die Arbeitsfläche, rechts Stempel und Ausgangskorb. Oben ein Akten-Stapel mit Zähler. Ab dem Tag mit `unlock: calculator` steht neben dem Kodex der Tischrechner.
+3. **Schreibtisch:** Links liegt der Kodex als zugeklapptes Buch (Abschnitt 6), in der Mitte die Arbeitsfläche, rechts Stempel und Ausgangskorb. Oben ein Akten-Stapel mit Zähler. Ab dem Tag mit `unlock: calculator` steht neben dem Kodex der Tischrechner.
 4. **Akte bearbeiten:**
    - Klick auf den Stapel legt die nächste Akte auf den Tisch. Die Dokumente erscheinen als einzelne Papiere, die gezogen werden können.
    - Der Prüfvermerk listet je nach Typ die Positionen (anerkennen, streichen), die Frage mit Optionen oder die Entscheidungen. Bei `entscheidungen` hat jede Zeile entweder Schaltflächen für die Optionen oder ein Eingabefeld für den Betrag. Das Eingabefeld akzeptiert Eingaben wie `4236,7`, `4.236,70` und `4236.70` und zeigt den Betrag nach dem Verlassen des Felds im Format `4.236,70 €`.
    - Bei Entscheidungen oder Positionen mit `offen` ist keine Option richtig. Der Spieler lässt sie unentschieden und stempelt das Ergänzungsersuchen.
-   - **Widerspruch markieren:** Ein Schalter „Widerspruch markieren“ im Prüfvermerk schaltet einen Markiermodus ein. Darin wählt der Spieler eine Zeile in einem Papier und dann eine Zeile in einem anderen Papier derselben Akte. Das Paar erscheint als Markierung im Prüfvermerk und auf beiden Papieren. Markierungen lassen sich aufheben. Der Markiermodus ist bei jeder Akte verfügbar, auch ohne `discrepancies`, damit er nichts verrät. Auch per Tastatur bedienbar.
-   - **Nachfrage:** Hat die Akte eine `inquiry` und wählt der Spieler den Stempel „Ergänzungsersuchen“, erscheint vor dem Aufschlag die Auswahl der Fragen (`prompt`, `options[].label`). Erst nach der Wahl wird gestempelt. Akten ohne `inquiry` stempeln wie bisher.
+   - **Widerspruch markieren:** Ein Schalter „Widerspruch markieren“ im Prüfvermerk schaltet einen Markiermodus ein. Darin wählt der Spieler eine Zeile in einem Papier und dann eine Zeile in einem anderen Papier derselben Akte. Das Paar erscheint als Markierung im Prüfvermerk und auf beiden Papieren. Markierungen lassen sich aufheben. Der Markiermodus ist bei jeder Akte verfügbar, auch ohne `discrepancies`, damit er nichts verrät. Die Zeilen sind nur im Markiermodus anklickbar, damit das Ziehen der Papiere nicht gestört wird. Im Prüfvermerk steht eine Liste der Paare mit „aufheben“ je Paar und „Markierungen aufheben“ für alle. Auch per Tastatur bedienbar.
+   - **Nachfrage:** Hat die Akte eine `inquiry` und wählt der Spieler den Stempel „Ergänzungsersuchen“, erscheint vor dem Aufschlag die Auswahl der Fragen (`prompt`, `options[].label`). Erst nach der Wahl wird gestempelt. Ein zweiter Klick auf „Ergänzungsersuchen“ schließt die Auswahl wieder. Akten ohne `inquiry` stempeln wie bisher.
    - Der Spieler stempelt die Akte mit einem der verfügbaren Stempel und legt sie in den Ausgangskorb. Erst dann kommt die nächste Akte. Der Stempel ist endgültig, danach sind Prüfvermerk, Markierungen und Nachfrage gesperrt.
 5. **Tagesende:** Wenn der Stapel leer ist, erscheint die Auswertung.
 6. **Folgeakten:** Eine Akte mit `followUp` kommt am angegebenen Tag zusätzlich in den Stapel, aber nur wenn der Spieler das Ergänzungsersuchen gestempelt hat. Sie kommt immer mit den Unterlagen aus `followUp.documents`, auch wenn die Nachfrage falsch gewählt war (der Fehler ist dann schon gezählt). Hat der Spieler einen Bescheid erlassen, kommt sie nicht. Folgeakten liegen im Stapel vor den Akten des Tages.
@@ -159,25 +165,81 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
 ## 5. Bewertung und Auswertung
 
 - Jede falsch entschiedene Position, jede falsche Option, jeder falsche Betrag und jeder falsche Stempel zählt als ein Fehler.
-- Eine Position oder Entscheidung, die nicht entschieden wurde, obwohl sie laut Daten nicht `offen` ist, zählt als falsch. Ein leeres Betragsfeld zählt als falsch.
+- Eine Position oder Entscheidung, die nicht entschieden wurde, obwohl sie laut Daten nicht `offen` ist, zählt als falsch. Ein leeres Betragsfeld zählt als falsch. Ist der richtige Betrag 0, muss der Spieler 0 eintippen (zum Beispiel Akte 10-2, Entscheidung d3).
 - Ein Betrag ist richtig, wenn er auf den Cent mit `correct` übereinstimmt. Verglichen wird in ganzen Cent, nicht mit Gleitkommazahlen.
 - Eine Option bei einer Entscheidung mit `offen` zählt als falsch.
 - Ein Ergänzungsersuchen bei einer Akte ohne `offen` zählt als Fehler mit dem Text `texts.unnecessaryDelay`.
 - **Widersprüche** werden nur bewertet, wenn die Akte `discrepancies` hat und der Spieler das Ergänzungsersuchen stempelt. Jeder Widerspruch aus den Daten, der nicht als Paar markiert ist (Reihenfolge von `a` und `b` egal), zählt als ein Fehler mit `texts.missedDiscrepancy`. Jede markierte Paarung, die in den Daten nicht vorkommt, zählt als ein Fehler mit `texts.falseDiscrepancy`. Bei einem Bescheid werden Markierungen ignoriert (der falsche Stempel ist schon ein Fehler).
 - **Nachfragen:** Eine gewählte Frage, die nicht `inquiry.correct` ist, zählt als ein Fehler mit `texts.wrongInquiry`.
-- Die Tagesauswertung zeigt pro Akte: richtig oder falsch, die richtige Lösung (bei Beträgen den richtigen Betrag und den eingegebenen), die `explanation`, bei Widersprüchen deren `explanation`, bei Nachfragen die gewählte und die richtige Frage, und die verlinkten Kodexregeln mit Fundstelle.
+- Die Tagesauswertung zeigt pro Akte: richtig oder falsch, die richtige Lösung (bei Beträgen den richtigen Betrag und den eingegebenen), die `explanation`, bei Widersprüchen deren `explanation`, bei Nachfragen die gewählte und die richtige Frage samt `answer` der gewählten Frage, und die verlinkten Kodexregeln mit Fundstelle.
 - Ab `texts.warning.minErrors` Fehlern an einem Tag erscheint die Ermahnung (`from`, `text`). Das hat weiterhin keine Folgen.
 - Die Bewertung ist eine reine Funktion in `core` und vollständig getestet.
 
-## 6. Kodex
+## 6. Kodex als Buch
 
-- Ein Buch, das sich per Klick auf- und zuklappen lässt. Lesezeichen nach Tagen.
-- Nur Regeln mit `day` kleiner oder gleich dem aktuellen Tag sind lesbar. Spätere Seiten sind als gesperrt sichtbar („ab Tag 5“), aber ohne Inhalt.
-- Neue Regeln eines Tages sind als „neu“ markiert.
-- Regeln mit `hint: true` tragen zusätzlich die Kennzeichnung `ui.codex.hint`.
-- Volltextsuche über Titel und Text der freigeschalteten Regeln.
-- Jede Regel zeigt den Hinweis „vereinfacht“ und die Fundstelle mit Link.
-- Bei 54 Regeln bleibt der Kodex bedienbar: Lesezeichen springen zum Tag, die Suche findet auch Teilwörter.
+Leitidee: Der Kodex ist eine Loseblattsammlung im Leinenband, wie sie in Amtsstuben steht. Jeden Tag kommt eine Ergänzungslieferung dazu, die in den Einband eingeordnet wird. Das Buch wird dadurch sichtbar dicker. Inhalt, Freischaltung, „neu“, Hinweis, Suche, „vereinfacht“ und Fundstelle bleiben wie bisher, nur Darstellung und Bedienung ändern sich.
+
+### 6.1 Zugeklappt (auf dem Schreibtisch)
+
+- Der Kodex liegt links auf dem Tisch, um wenige Grad gedreht. Der Einband ist dunkelrotes Leinen mit Goldprägung: Titel „KODEX“ (`ui.codex.coverTitle`), darunter `ui.codex.coverSubtitle` und `ui.codex.coverStand` („Stand: Tag {day}“). Am Rücken sind Bünde angedeutet, am Schnitt sind die Blätter als feine Linien zu sehen.
+- Die Dicke des Buchblocks wächst mit der Zahl der freigeschalteten Tage. Das ist ein reiner CSS-Wert aus der Anzahl, keine Bilddatei.
+- Solange der Spieler die heutige Lieferung noch nicht aufgeschlagen hat, ragt ein Zettel „neu“ (`ui.codex.new`) aus dem Buch. Er verschwindet, sobald die erste Seite der heutigen Lieferung gesehen wurde.
+- Öffnen per Klick, Enter, Leertaste oder Taste K. Die Schaltfläche trägt `ui.codex.open`.
+
+### 6.2 Aufgeschlagen
+
+- Das Buch erscheint als Doppelseite, zentriert über dem Tisch, höchstens 1120 × 760 Pixel und mit dem Fenster skaliert. Der Tisch dahinter ist abgedunkelt. Beim Aufschlagen klappt der Einband auf (Effekte „voll“, etwa 400 ms), bei „reduziert“ blendet das Buch ein, bei „aus“ steht es sofort da.
+- Schließen mit Escape, Klick neben das Buch, Taste K oder der Schaltfläche `ui.codex.close`. Der Fokus kehrt zum zugeklappten Buch zurück.
+- Unter 900 Pixel Fensterbreite zeigt das Buch eine Einzelseite statt einer Doppelseite. Blättern geht dann auch per Wischen.
+- Hinter dem Buch steht der Tisch. Zum Vergleichen mit der Akte öffnet und schließt man das Buch schnell mit K, die Seite bleibt erhalten (6.7).
+
+### 6.3 Seitenaufbau
+
+- **Papier:** gebrochenes Weiß, feiner und dünner als die Akten, in der Mitte ein Schattenverlauf für den Falz. Die Blätter der heutigen Lieferung sind etwas heller (frisch eingelegt) und haben am Außenrand einen schmalen roten Streifen.
+- **Schrift:** Antiqua mit Serifen, lokal eingebunden (Vorschlag EB Garamond, SIL OFL, Lizenz in `QUELLEN.md`). Die Zeitung bleibt bei Old Standard TT. Blocksatz mit automatischer Silbentrennung (`lang="de-AT"`), Überschriften in Kapitälchen.
+- **Kopfzeile:** links `ui.codex.runningHeadLeft` („Kodex“), rechts `ui.codex.runningHeadRight` („Lieferung Tag {day}“) für die Lieferung, zu der die Seite gehört. Seitenzahl unten außen. Das Vorspann-Register ist mit römischen Zahlen nummeriert, die Regelseiten mit arabischen.
+- **Regel:** In der Randspalte steht die Regel-ID (zum Beispiel R12) wie eine Randzahl. Daneben der Titel fett, darunter der Text. Am Ende der Regel eine Fußnotenzeile mit `ui.codex.simplified` und der Fundstelle (Link zu `sourceUrl`), klein und kursiv. Links sind in Buchfarbe, nicht im Browser-Blau, und haben einen sichtbaren Fokus.
+- **Neue Regeln:** Regeln der heutigen Lieferung tragen den kleinen Vermerk `ui.codex.new` am Rand.
+- **Hinweisregeln** (`hint: true`) stehen in einem Kasten mit feinem Rahmen und grauem Grund. Über dem Kasten steht `ui.codex.hint`, dazu ein kleines Zeigefinger-Symbol als SVG.
+- **Lieferungen:** Jede Lieferung beginnt auf einer neuen Seite mit Lieferungskopf (`ui.codex.deliveryHeading`, „Lieferung Tag {day}“) und einer feinen Zierlinie. Eine Regel wird nicht über zwei Seiten zerrissen. Ist eine Regel länger als eine Seite (zum Beispiel R9), darf sie umbrechen.
+
+### 6.4 Gliederung des Buchs
+
+1. **Inhaltsverzeichnis** (`ui.codex.register`), eine oder mehrere Seiten. Gruppiert nach Lieferung, je Regel eine Zeile: Regel-ID, Titel, Punktlinie, Seitenzahl. Klick springt zur Regel. Hinweisregeln tragen ein kleines Hinweis-Symbol.
+2. **Lieferung Tag 1 bis zum aktuellen Tag**, jede Regel an der Stelle ihres Tags.
+3. **Gesperrte Lieferungen:** Für jeden noch gesperrten Tag folgt danach eine leere, nur liniierte Seite mit dem Aufdruck `ui.codex.locked` („Gesperrt – ab Tag {day}“) und mit `ui.codex.lockedSheet`. Im Inhaltsverzeichnis stehen gesperrte Tage als eine Zeile `ui.codex.locked` ohne Regel-IDs und Titel.
+4. **Freischaltung:** Regeln mit `day` kleiner oder gleich dem aktuellen Tag sind lesbar. Der Text, der Titel und die Fundstelle gesperrter Regeln stehen nirgends im DOM, auch nicht versteckt.
+
+### 6.5 Griffregister, Lesezeichen und Blättern
+
+- **Griffregister** am rechten Buchschnitt: ein Reiter „Inhalt“ (`ui.codex.tabRegister`) und je ein Reiter pro Tag des Akts (`ui.codex.day`). Freigeschaltete Reiter springen zur ersten Seite der Lieferung, der Reiter der Lieferung, in der gerade gelesen wird, ist hervorgehoben (`aria-current`). Gesperrte Reiter sind blass, tragen ein Schloss, sind nicht anklickbar (`aria-disabled`) und haben die Beschriftung `ui.codex.locked`. Der Reiter der heutigen Lieferung trägt „neu“, bis sie gesehen wurde.
+- **Lesezeichenband:** Ein Band am Rücken liegt auf der zuletzt gelesenen Seite. Beim erneuten Öffnen öffnet das Buch dort (6.7).
+- **Blättern:** Pfeil-Schaltflächen an den unteren Seitenecken (`ui.codex.nextPage`, `ui.codex.prevPage`), Pfeiltasten links und rechts, Bild auf und ab, Pos1 und Ende (zum Inhaltsverzeichnis und zur letzten lesbaren Seite), Klick auf die Seitenränder, Wischen auf Touch-Geräten. Es wird immer eine ganze Doppelseite (beziehungsweise Einzelseite) weitergeblättert.
+- **Animation je Effekt-Einstellung:** „voll“: Umblättern in 3D um den Falz mit wanderndem Schatten, etwa 350 bis 450 ms. „reduziert“: Überblendung, höchstens 120 ms. „aus“: sofort. Es werden nur `transform` und `opacity` animiert.
+- **Ton:** Beim Aufschlagen und Blättern das vorhandene Papierrascheln, beim Zuklappen der vorhandene Ablageton. Keine neuen Klangdateien.
+
+### 6.6 Suche
+
+- Ein Suchfeld oben am Buch (`ui.codex.searchPlaceholder`, zugängliche Beschriftung `aria.codexSearch`).
+- Beim Tippen ersetzt die Trefferliste das Inhaltsverzeichnis auf der linken Seite (bei Einzelseite die aktuelle Seite). Jeder Treffer zeigt Regel-ID, Titel, Lieferung und einen kurzen Ausschnitt mit markierter Fundstelle. Die Anzahl steht in `ui.codex.hits`, ohne Treffer steht `ui.codex.noHits`.
+- Klick auf einen Treffer blättert zur Regel. Die gefundenen Wörter sind dort wie mit einem Textmarker hinterlegt, solange die Suche besteht. `ui.codex.searchClear` löscht die Suche, danach steht wieder das Inhaltsverzeichnis da.
+- Gesucht wird in Titel und Text der freigeschalteten Regeln. Die Suche findet Teilwörter, ignoriert Groß- und Kleinschreibung und faltet Umlaute und ß (Suche „abzugsfahig“ findet „abzugsfähig“, „strasse“ findet „Straße“). Die Eingabe einer Regel-ID wie „R12“ findet diese Regel.
+- Die Suchlogik ist eine reine Funktion in `core` (Abschnitt 6.8).
+
+### 6.7 Merken der Seite
+
+- Das Spiel merkt sich die zuletzt gelesene Regel (oder das Inhaltsverzeichnis) und den Tag, bis zu dem der Spieler die Lieferung gesehen hat (`codex.lastRuleId`, `codex.seenDay` im Spielstand, Abschnitt 9).
+- Beim Öffnen am selben Tag öffnet das Buch an der gemerkten Stelle. Gibt es eine neue, ungesehene Lieferung, öffnet es stattdessen auf deren erster Seite.
+- Gemerkt wird die Regel, nicht die Seitenzahl, weil sich Seitenzahlen mit der Fenstergröße ändern können.
+
+### 6.8 Technische Umsetzung
+
+- **core:** `src/core/codex.ts` mit reinen Funktionen: sichtbare Regeln für einen Tag, Gruppierung nach Lieferung, gesperrte Tage, `normalizeForSearch`, Suche mit Treffern und Ausschnitt, römische Zahlen. Kein DOM, vollständig getestet.
+- **Seitenumbruch (ui):** Die Seiten entstehen durch CSS-Spalten, die auf die Seitengröße gesetzt und mit `translateX` weitergeschoben werden. Die Texte bleiben echtes HTML, daher sind Suche, Auswahl und Screenreader unverändert möglich. Der Umbruch wird neu berechnet beim Öffnen, bei Größenänderung, nach `document.fonts.ready` und wenn ein neuer Tag Regeln freischaltet. Nach einem Neuumbruch bleibt die Leseposition über die Regel-ID erhalten.
+- **Nicht sichtbare Seiten** sind `inert`, damit der Fokus nie auf eine Seite fällt, die gerade nicht zu sehen ist, und Screenreader nur die sichtbare Seite lesen.
+- **Rolle:** Das aufgeschlagene Buch ist ein `dialog` (`aria-modal`, Name `aria.codex`) mit Fokusfalle. Jede Seite ist eine Region mit Name `aria.codexPage` („Seite {n}“), eine gesperrte Seite trägt `aria.lockedPage`. Das Griffregister ist eine Navigation mit Name `aria.bookmarks`.
+- **Texte:** Alle Beschriftungen stehen in `ui.json`. Die Regeltexte kommen aus den Inhaltsdateien.
+- **Fallback:** Fällt die 3D-Animation aus oder werden die Effekte reduziert, funktioniert alles ohne Verlust (Überblendung oder sofortiger Wechsel).
 
 ## 7. Schreibtisch, Optik und Gefühl
 
@@ -186,15 +248,15 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - **Ziehen:** Pointer Events für Maus und Touch. Beim Aufnehmen leicht vergrößern, Schatten weicher und länger, Neigung je nach Zugrichtung. Beim Loslassen kurze Ablege-Animation. Das zuletzt angefasste Papier liegt oben. Nur `transform` animieren. Ein Papier lässt sich nie so weit ablegen, dass ein Teil seiner Fläche, auch gedreht, vom Rand der Unterlage abgeschnitten wird.
 - **Ziehen per Tastatur:** Ein fokussiertes Papier lässt sich mit den Pfeiltasten verschieben. Ziehen ist für keine Entscheidung nötig.
 - **Papier:** feine Papierstruktur (SVG-Rauschfilter oder kleine Textur), zufällige Drehung von ein bis zwei Grad, Büroklammern bei Belegen.
-- **Viele Papiere:** Akten haben bis zu sechs Papiere. Sie werden beim Auflegen leicht versetzt gefächert, sodass jeder Titel sichtbar bleibt.
+- **Viele Papiere:** Akten haben bis zu sechs Papiere. Sie liegen im Raster, nur leicht versetzt und nicht übereinander, sodass jeder Titel sichtbar bleibt und beim Markieren nichts verdeckt ist. Bei fünf oder sechs Papieren sind sie etwas kleiner.
 - **Stempel:** Aufschlag mit kurzer Skalierungs-Animation und leichtem Wackeln der Arbeitsfläche (nur bei „voll“). Der Abdruck bleibt auf dem Prüfvermerk sichtbar.
 - **Kanzleistempel:** Dokumente mit `stamp` zeigen unten links einen blassen Kanzleistempel.
 - **Morgenzeitung:** ein schmales Zeitungsblatt mit Kopfzeile in Antiqua-Anmutung (lokal eingebundene freie Schrift, Lizenz in `QUELLEN.md`), Schlagzeile groß, Text in Spalten. Es liegt beim Tagesbeginn auf dem Tisch und lässt sich wie ein Papier ziehen und zoomen, bis der Tag endet.
 - **Anruf:** kurzes Klingeln (CC0, Quelle in `QUELLEN.md`), dann der Text als Sprechblase neben einem Telefon.
-- **Tischrechner:** ein kleines Gerät mit Ziffern 0 bis 9, Komma, + − × ÷, = und C, per Maus und Tastatur bedienbar. Die Anzeige nutzt das österreichische Zahlenformat. Der Rechner überträgt nichts automatisch in den Prüfvermerk. Division durch null zeigt `ui.calculator.error`.
-- **Markierungen:** Markierte Zeilen bekommen einen roten Bleistiftrahmen, ein Paar wird mit derselben kleinen Nummer gekennzeichnet.
+- **Tischrechner:** ein kleines Gerät mit Ziffern 0 bis 9, Komma, + − × ÷, = und C, per Maus und Tastatur bedienbar. Die Anzeige nutzt das österreichische Zahlenformat. Der Rechner rechnet in Eingabereihenfolge wie ein einfacher Tischrechner (2 + 3 × 4 = 20) und überträgt nichts automatisch in den Prüfvermerk. Division durch null zeigt `ui.calculator.error`.
+- **Markierungen:** Markierte Zeilen bekommen einen roten Bleistiftrahmen mit kleiner roter Nummer, je Paar dieselbe.
 - **Lesbarkeit:** Doppelklick auf ein Papier oder Enter beziehungsweise Leertaste bei Fokus zoomt es lesbar heran. Erneuter Doppelklick oder Escape legt es zurück.
-- **Sound:** Stempel (3 Varianten), Papierrascheln (2), Ablage (2, auch beim Ausgangskorb), Telefonklingeln und leises Büro-Ambiente. Alle Klangdateien sind CC0, Quellen und Bearbeitungen stehen in `public/audio/QUELLEN.md`. Ton startet erst nach der ersten Nutzeraktion. Fällt der Ton aus, läuft das Spiel unverändert weiter.
+- **Sound:** Stempel (3 Varianten), Papierrascheln (2), Ablage (2, auch beim Ausgangskorb), Telefonklingeln und leises Büro-Ambiente. Das Blättern im Kodex nutzt das Papierrascheln, das Zuklappen den Ablageton. Alle Klangdateien sind CC0, Quellen und Bearbeitungen stehen in `public/audio/QUELLEN.md`. Ton startet erst nach der ersten Nutzeraktion. Fällt der Ton aus, läuft das Spiel unverändert weiter.
 - **Musik (Akt 1):** Ein eigenes, synthetisch erzeugtes 16-Bit-Arrangement des Walzers Nr. 1 aus „G'schichten aus dem Wienerwald“ von Johann Strauß (Sohn, gemeinfrei) als nahtlose Schleife. Das Arrangement entsteht aus eigener Notation mit `tools/music/wienerwald16-loop.mjs`, nicht aus einer Aufnahme oder einer geschützten Notenausgabe. Die Musik hat einen eigenen Lautstärkeregler (Standard 0,5, 0 ist aus), getrennt vom Regler für die Effekte. Bei 0 wird sie weder geladen noch dekodiert; wird sie dabei abgeschaltet, blendet sie in 80 ms aus, und beim Wiedereinschalten setzt sie an derselben Stelle fort. Für spätere Akte ist ein eigenes Stück je Akt vorgesehen. Jede Musikquelle steht in `QUELLEN.md`.
 - **Einstellungen:** Effekte aus, reduziert oder voll. `prefers-reduced-motion` setzt automatisch „reduziert“. Dazu Lautstärke (Soundeffekte) und Musiklautstärke. Lautstärke 0 und Musik 0 bedeuten aus.
 - **Bedienbarkeit ohne Maus:** Alle Entscheidungen, Betragsfelder, Markierungen, Nachfragen, der Rechner und die Stempel sind per Tastatur erreichbar. Fokus ist sichtbar.
@@ -206,7 +268,7 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 ## 9. Speichern
 
 - Automatisches Speichern nach jeder gestempelten Akte und am Tagesende.
-- Gespeichert werden: aktueller Tag, Ergebnisse je Akte (inklusive eingegebener Beträge, Markierungen und gewählter Nachfrage), Fehler je Tag, offene Folgeakten, freigeschaltete Werkzeuge, Einstellungen.
+- Gespeichert werden: aktueller Tag, Ergebnisse je Akte (inklusive eingegebener Beträge, Markierungen und gewählter Nachfrage), Fehler je Tag, offene Folgeakten, freigeschaltete Werkzeuge, Einstellungen, Kodex-Lesestand (`codex.lastRuleId`: ID der zuletzt gelesenen Regel oder leer für das Inhaltsverzeichnis, und `codex.seenDay`: höchster Tag, dessen Lieferung der Spieler gesehen hat). Ein älterer Spielstand ohne `codex` bekommt `lastRuleId` leer und `seenDay` 0, der Rest bleibt erhalten.
 - Die Einstellungen sind `effects` (aus, reduziert, voll), Lautstärke (0 = aus) und `music` (Musiklautstärke, Standard 0,5, 0 = aus). Ein älterer Spielstand ohne einzelne Felder bekommt für diese die Standardwerte aus `DEFAULT_SETTINGS`, ohne dass der übrige Spielstand verloren geht.
 - **Spielstände aus Version 0.2:** Ein Spielstand, der an Tag 4 oder danach steht (Ende des Prototyps), wird so übernommen, dass der Spieler mit Tag 4 weiterspielt. Die Ergebnisse von Tag 1 bis 3 bleiben erhalten. Die Folgeakte von 3-4 kommt an Tag 4, wenn sie damals offen war. Ein Test deckt das ab.
 - „Neues Spiel“ fragt vor dem Überschreiben nach.
@@ -215,7 +277,7 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 
 1. Zuerst `core`: Schema, Zusammenführen, Querprüfungen, Bewertung, Rechner, Spielstand-Übernahme, inklusive Tests.
 2. Dann die Oberfläche für die neuen Teile ohne Animationen, danach Optik nach Abschnitt 7.
-3. Nach jedem Oberflächen-Schritt Screenshots mit Playwright erstellen (Startbildschirm, Schreibtisch mit offener Akte vom Typ `entscheidungen` mit Betragsfeld, Markiermodus mit einem Paar, Nachfrage-Auswahl, Morgenzeitung, Rechner, Kodex offen mit Hinweisregel, Tagesauswertung mit Betrag und Widerspruch, Schlussbildschirm Akt I) und selbst prüfen: Ist der Text lesbar, überlappt nichts, sind alle Bedienelemente sichtbar?
+3. Nach jedem Oberflächen-Schritt Screenshots mit Playwright erstellen (Startbildschirm, Schreibtisch mit offener Akte vom Typ `entscheidungen` mit Betragsfeld, Markiermodus mit einem Paar, Nachfrage-Auswahl, Morgenzeitung, Rechner, Kodex offen mit Hinweisregel, Tagesauswertung mit Betrag und Widerspruch, Schlussbildschirm Akt I, dazu die Kodex-Ansichten aus Abschnitt 6: zugeklappt an Tag 1 und an Tag 10, aufgeschlagen mit Inhaltsverzeichnis, aufgeschlagen mit Hinweisregel, aufgeschlagen mit Suchtreffern und markiertem Wort, gesperrte Seite, schmale Ansicht mit Einzelseite) und selbst prüfen: Ist der Text lesbar, überlappt nichts, sind alle Bedienelemente sichtbar?
 4. Inhalte nie im Code ändern. Fällt ein Fehler im JSON auf, im Bericht melden statt stillschweigend anzupassen. Fehlt ein Spieltext im JSON, ebenfalls melden und nicht im Code erfinden. Für fehlende Oberflächentexte gilt die Regel des jeweiligen Auftrags.
 5. Änderungen an `src/core`, die ein Auftrag nicht vorsieht, nur machen, wenn sie zwingend sind, und im Bericht begründen.
 
@@ -237,10 +299,16 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - [ ] Jeder Schlüssel in `ui.json` wird im Code verwendet, jeder im Code verwendete Schlüssel steht in `ui.json`, und die Platzhalter passen.
 - [ ] Der Startbildschirm zeigt den Hinweis auf Fiktion, Vereinfachung und fehlende Rechtsauskunft.
 - [ ] Jedes Bedienelement hat eine zugängliche Beschriftung.
-- [ ] Gesperrte Kodexseiten zeigen keinen Inhalt.
+- [ ] Gesperrte Kodexseiten zeigen keinen Inhalt. Ein Test prüft an Tag 1, dass Titel, Text und Fundstelle einer Regel von Tag 10 nirgends im DOM stehen.
+- [ ] Der Kodex ist zugeklappt ein Buch auf dem Tisch und lässt sich mit Klick, Enter, Leertaste und K öffnen und mit Escape, K und der Schaltfläche schließen. Der Fokus kehrt zurück.
+- [ ] Aufgeschlagen zeigt er Inhaltsverzeichnis, Lieferungen je Tag, Griffregister mit gesperrten Reitern und Lesezeichenband. Jede freigeschaltete Regel ist in der Doppelseite vollständig lesbar und wird an keinem Rand abgeschnitten, bei 1280 × 720, 1920 × 1080 und in der schmalen Einzelseiten-Ansicht.
+- [ ] Blättern geht mit Schaltflächen, Pfeiltasten, Bild auf und ab, Pos1, Ende und Wischen. Bei „Effekte aus“ gibt es keine Animation. Der Fokus fällt nie auf eine nicht sichtbare Seite.
+- [ ] Die Suche findet Teilwörter, ignoriert Groß- und Kleinschreibung, Umlaute und ß, findet eine Regel-ID, zeigt die Trefferzahl, springt zur Regel und markiert dort die Fundstelle. Ein Unit-Test deckt die Suche in `core` ab.
+- [ ] Der Kodex merkt sich die Leseposition über Neuladen. Ein Spielstand ohne `codex` lädt weiterhin. An einem neuen Tag öffnet das Buch auf der ersten Seite der neuen Lieferung.
+- [ ] Der Kodex bleibt mit allen 54 Regeln bedienbar, auch mit Tastatur und Screenreader-Struktur (Dialog, Seiten, Griffregister).
 - [ ] Papiere lassen sich mit Maus und Touch ziehen, bei „Effekte aus“ ohne Animation, und werden an keinem Rand abgeschnitten.
 - [ ] Der Build läuft auf GitHub Pages (Unterpfad, Neuladen und alle Assets werden gefunden).
 
 ## 12. Nicht Teil dieser Version
 
-Pinnwand und Spuren (Darstellung), Lade mit Notizbuch, Metagame (Tagesbudget, Beurteilung, Vertrauen, Zuhause, Ereigniskarten), Begründung beim Stempel (Auswahl der Regel-ID), Bedingungen auf Merker oder frühere Entscheidungen, Fristen und Kalender im Spielablauf, Three.js-Atmosphäre, Akte ab Akt II, weitere Musikstücke.
+Weiterspielen am Schlussbildschirm (kommt mit Akt II), Regel-ID in der Tagesauswertung als Sprung in den Kodex (Vorschlag für einen späteren Auftrag), Pinnwand und Spuren (Darstellung), Lade mit Notizbuch, Metagame (Tagesbudget, Beurteilung, Vertrauen, Zuhause, Ereigniskarten), Begründung beim Stempel (Auswahl der Regel-ID), Bedingungen auf Merker oder frühere Entscheidungen, Fristen und Kalender im Spielablauf, Three.js-Atmosphäre, Akte ab Akt II, weitere Musikstücke.
