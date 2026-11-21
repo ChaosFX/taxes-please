@@ -2,6 +2,14 @@
 
 Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in diesem Repo parallel geführt. Jede Änderung steht hier mit Datum, Datei und Version.
 
+## 21.11.2026
+
+- `SPEC.md` 0.3.0: ganzer Akt I (Tag 1 bis 10). Neuer Akten-Typ `entscheidungen` (Auswahl, Betrag, `offen`), Widersprüche markieren, Nachfrage mit Auswahl, Varianten, Hinweisregeln, Story-Ereignisse `newspaper`, `call`, `unlock`, `actSummary`, dazu `traces` und `event` (nur geprüft). `texts` wird über alle Dateien zusammengeführt. Tischrechner, Schlussbildschirm „Ende von Akt I“, Übernahme alter Spielstände.
+- `content/akt1-tag4-10.json` 0.1.0 angelegt: Tag 4 bis 10, 47 Regeln (R8 bis R54), 37 Akten, 5 Folgeakten.
+- `content/akt1-tag1-3.json` 0.2.0: Leertag 4 entfernt, Tag 4 steht jetzt in `akt1-tag4-10.json`.
+- `content/ui.json` 0.2.0: neue Schlüssel für Betragsfeld, Markiermodus, Nachfrage, Zeitung, Anruf, Rechner, Hinweisregeln, Auswertung und Kopf ohne Beruf. `end.heading` lautet „Ende von Akt {act}“.
+- `auftraege/03-akt1-komplett.md` angelegt. Inhalte und SPEC 0.3.0 liegen bis zur Umsetzung auf dem Branch `inhalt/akt1-tag4-10`.
+
 ## 20.11.2026
 
 - `SPEC.md` 0.2.2: Loader- und Fehlermeldungen für Inhaltsautoren bleiben im Code (Ausnahme der Textregel). Kein eigener Ton-an/aus-Schalter, Lautstärke 0 und Musik 0 bedeuten aus. Abnahmekriterien um e2e-Textprüfung, Platzhalter und zugängliche Beschriftung ergänzt.

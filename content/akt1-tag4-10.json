@@ -1,0 +1,3126 @@
+{
+  "meta": {
+    "version": "0.1.0",
+    "veranlagungsjahr": 2025,
+    "hinweis": "Alle Personen und Firmen sind erfunden. Kodextexte sind vereinfacht und keine Rechtsauskunft."
+  },
+  "texts": {
+    "optionLabels": {
+      "nichtselbstaendig": "nichtselbständige Arbeit",
+      "selbstaendig": "selbständige Arbeit",
+      "gewerbe": "Gewerbebetrieb",
+      "lf": "Land- und Forstwirtschaft",
+      "kapital": "Kapitalvermögen",
+      "vv": "Vermietung und Verpachtung",
+      "sonstige": "sonstige Einkünfte",
+      "steuerpflichtig": "steuerpflichtig",
+      "steuerfrei": "steuerfrei (befreit)",
+      "nichtsteuerbar": "nicht steuerbar",
+      "y2024": "2024",
+      "y2025": "2025",
+      "y2026": "2026",
+      "moeglich": "Verlängerung ist möglich",
+      "unmoeglich": "Verlängerung ist nicht mehr möglich",
+      "bilanz": "Bilanzierung (Betriebsvermögensvergleich)",
+      "ea": "Einnahmen-Ausgaben-Rechnung zulässig",
+      "betriebseinnahme": "Betriebseinnahme",
+      "keineBe": "keine Betriebseinnahme",
+      "ba": "Betriebsausgabe",
+      "keineBa": "keine Betriebsausgabe",
+      "gewinnwirksam": "wirkt auf den Gewinn",
+      "nichtGw": "wirkt nicht auf den Gewinn",
+      "bv": "notwendiges Betriebsvermögen",
+      "pv": "Privatvermögen",
+      "anlage": "Anlagevermögen",
+      "umlauf": "Umlaufvermögen",
+      "aktivieren": "aktivieren",
+      "nichtAktivieren": "nicht aktivieren",
+      "voll": "zur Gänze abzugsfähig",
+      "haelfte": "zur Hälfte abzugsfähig",
+      "nichts": "nicht abzugsfähig",
+      "bvGanz": "Betriebsvermögen (zur Gänze)",
+      "ja": "ja",
+      "nein": "nein",
+      "afa": "Absetzung für Abnutzung",
+      "keineAfa": "keine Absetzung für Abnutzung",
+      "horizontal": "horizontaler Verlustausgleich",
+      "vertikal": "vertikaler Verlustausgleich",
+      "ausgleichsfaehig": "mit anderen Einkünften ausgleichsfähig",
+      "nichtAusgleichsfaehig": "nicht ausgleichsfähig",
+      "einkunftsquelle": "Einkunftsquelle",
+      "liebhaberei": "Liebhaberei",
+      "wirksam": "wirksam eingebracht",
+      "maengel": "Mängelbehebung auftragen",
+      "zurueckgenommen": "gilt als zurückgenommen",
+      "zurueckweisen": "zurückweisen"
+    },
+    "wrongInquiry": "Diese Frage klärt den offenen Punkt nicht.",
+    "missedDiscrepancy": "Widerspruch nicht benannt",
+    "falseDiscrepancy": "kein Widerspruch"
+  },
+  "rules": [
+    {
+      "id": "R8",
+      "day": 4,
+      "title": "Einkommen",
+      "text": "Die Einkommensteuer wird für das Einkommen festgesetzt, das jemand innerhalb eines Kalenderjahres bezogen hat. Einkommen ist der Gesamtbetrag der Einkünfte aus den Einkunftsarten nach Ausgleich mit Verlusten und nach Abzug von Sonderausgaben und außergewöhnlichen Belastungen. Nur die gesetzlich aufgezählten Einkunftsarten unterliegen der Einkommensteuer. Was in keine davon fällt, etwa ein Geschenk, ist nicht steuerbar.",
+      "source": "§ 2 Abs. 1 bis 3 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/2"
+    },
+    {
+      "id": "R9",
+      "day": 4,
+      "title": "Die sieben Einkunftsarten",
+      "text": "Es gibt sieben Einkunftsarten: Land- und Forstwirtschaft, selbständige Arbeit, Gewerbebetrieb, nichtselbständige Arbeit, Kapitalvermögen, Vermietung und Verpachtung und sonstige Einkünfte. Bei den ersten drei zählt der Gewinn, bei den übrigen der Überschuss der Einnahmen über die Werbungskosten. Selbständige Arbeit ist unter anderem die künstlerische, wissenschaftliche und unterrichtende Tätigkeit sowie die Tätigkeit von Ärzten, Rechtsanwälten, Steuerberatern, Journalisten, Dolmetschern und Übersetzern. Gewerbebetrieb ist eine selbständige, nachhaltige Tätigkeit mit Gewinnabsicht im allgemeinen wirtschaftlichen Verkehr, die weder Land- und Forstwirtschaft noch selbständige Arbeit ist. Nichtselbständige Arbeit sind Bezüge aus einem Dienstverhältnis und Pensionen. Zu Vermietung und Verpachtung gehört die Überlassung von Grundstücken und Rechten.",
+      "source": "§ 2 Abs. 3 und 4, §§ 22, 23, 25, 28 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/22"
+    },
+    {
+      "id": "R10",
+      "day": 4,
+      "title": "Steuerbefreiungen",
+      "text": "Bestimmte Einnahmen sind von der Einkommensteuer befreit, zum Beispiel Leistungen nach dem Familienlastenausgleichsgesetz wie die Familienbeihilfe und Beihilfen nach dem Studienförderungsgesetz. Ausgaben, die mit steuerfreien Einnahmen in unmittelbarem wirtschaftlichem Zusammenhang stehen, sind nicht abzugsfähig.",
+      "source": "§ 3 Abs. 1 Z 3 lit. e und Z 7 EStG, § 20 Abs. 2 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/3"
+    },
+    {
+      "id": "R11",
+      "day": 4,
+      "title": "Kalenderjahr und Wirtschaftsjahr",
+      "text": "Der Gewinn wird für das Wirtschaftsjahr ermittelt. Es deckt sich grundsätzlich mit dem Kalenderjahr. Nur buchführende Land- und Forstwirte und rechnungslegungspflichtige Gewerbetreibende dürfen ein abweichendes Wirtschaftsjahr haben. Der Gewinn zählt dann zu dem Kalenderjahr, in dem das Wirtschaftsjahr endet.",
+      "source": "§ 2 Abs. 5 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/2"
+    },
+    {
+      "id": "R12",
+      "day": 4,
+      "title": "Ertrags- und Aufwandsprinzip",
+      "text": "Wer Bücher führt und den Gewinn durch Betriebsvermögensvergleich ermittelt, erfasst Erträge in dem Jahr, in dem die Leistung erbracht ist, und Aufwendungen in dem Jahr, dem sie wirtschaftlich zuzuordnen sind. Wann die Rechnung gestellt oder bezahlt wird, ist nicht entscheidend. Eine Zahlung im Voraus ist kein Ertrag des Jahres, in dem sie eingeht.",
+      "source": "§ 4 Abs. 1 EStG; EStR 2000, Abschnitt 6.3 (Gewinnverwirklichung)",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_6___3/"
+    },
+    {
+      "id": "R13",
+      "day": 4,
+      "title": "Zufluss und Abfluss",
+      "text": "Wer nur Einnahmen und Ausgaben gegenüberstellt (Einnahmen-Ausgaben-Rechnung) und wer Überschusseinkünfte hat, erfasst Einnahmen in dem Kalenderjahr, in dem sie zugeflossen sind, und Ausgaben in dem Jahr, in dem sie bezahlt wurden. Ausnahme: Regelmäßig wiederkehrende Einnahmen und Ausgaben (mindestens drei gleichartige hintereinander, Raten zählen nicht), die mit dem Jahreswechsel fällig sind und bis zu 15 Tage davor oder danach gezahlt werden, zählen zu dem Jahr, zu dem sie wirtschaftlich gehören.",
+      "source": "§ 19 EStG; EStR 2000 Rz 4629 bis 4632",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_13___4/"
+    },
+    {
+      "id": "R14",
+      "day": 4,
+      "title": "Berechnung von Fristen",
+      "text": "Eine nach Tagen bestimmte Frist beginnt am Tag nach dem fristauslösenden Ereignis, zum Beispiel der Zustellung. Eine nach Wochen, Monaten oder Jahren bestimmte Frist endet mit Ablauf des Tages, der durch seine Benennung oder Zahl dem Tag des Ereignisses entspricht. Fehlt dieser Tag im letzten Monat, endet die Frist am letzten Tag dieses Monats. Fällt das Ende auf einen Samstag, Sonntag, gesetzlichen Feiertag, den Karfreitag oder den 24. Dezember, endet die Frist am nächsten Tag, der keiner davon ist. Die Tage des Postlaufs zählen nicht mit.",
+      "source": "§ 108 BAO",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76638_108/"
+    },
+    {
+      "id": "R15",
+      "day": 4,
+      "title": "Fristverlängerung",
+      "text": "Fristen, die das Gesetz festlegt, können nicht geändert werden, wenn das Gesetz nichts anderes bestimmt. Fristen, die die Abgabenbehörde gesetzt hat, zum Beispiel in einem Ergänzungsersuchen, können verlängert werden. Der Antrag muss vor Ablauf der Frist gestellt werden. Gegen die Ablehnung eines Antrags gibt es kein eigenes Rechtsmittel.",
+      "source": "§ 110 BAO; VwGH-Rechtssatz zum Antrag vor Fristablauf",
+      "sourceUrl": "https://www.jusline.at/gesetz/bao/paragraf/110"
+    },
+    {
+      "id": "R16",
+      "day": 5,
+      "title": "Arten der Gewinnermittlung",
+      "text": "Bei Land- und Forstwirtschaft, selbständiger Arbeit und Gewerbebetrieb wird der Gewinn ermittelt, bei den übrigen Einkunftsarten der Überschuss der Einnahmen über die Werbungskosten. Der Gewinn wird entweder durch Bilanz (Betriebsvermögensvergleich) ermittelt oder, bei rechnungslegungspflichtigen Gewerbetreibenden, nach den unternehmensrechtlichen Grundsätzen (§ 5 EStG). Die Einnahmen-Ausgaben-Rechnung ist nur zulässig, wenn keine gesetzliche Buchführungspflicht besteht und auch freiwillig keine Bücher geführt werden.",
+      "source": "§ 2 Abs. 4, § 4 Abs. 1 und 3, § 5 Abs. 1 EStG; EStR 2000 Rz 660",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/4"
+    },
+    {
+      "id": "R17",
+      "day": 5,
+      "title": "Buchführungspflicht",
+      "text": "Kapitalgesellschaften (GmbH, AG) müssen immer Bücher führen. Sonstige Unternehmer werden rechnungslegungspflichtig, wenn ihre Umsatzerlöse in zwei aufeinanderfolgenden Jahren jeweils 700.000 Euro übersteigen. Die Pflicht beginnt mit dem Jahr, das auf das zweite Überschreitungsjahr folgt. Beträgt der Umsatz eines Jahres mindestens 1.000.000 Euro, beginnt sie schon im Folgejahr. Freie Berufe sind nach dem UGB nicht rechnungslegungspflichtig. Für Land- und Forstwirte gilt dieselbe Umsatzgrenze von 700.000 Euro in zwei aufeinanderfolgenden Jahren nach der BAO. Die Pflicht endet, wenn die Grenze in zwei aufeinanderfolgenden Jahren nicht mehr überschritten wird.",
+      "source": "§ 189 Abs. 1, 2 und 4 UGB; §§ 124, 125 BAO; EStR 2000 Rz 5018",
+      "sourceUrl": "https://www.jusline.at/gesetz/ugb/paragraf/189"
+    },
+    {
+      "id": "R18",
+      "day": 5,
+      "title": "Betriebseinnahmen",
+      "text": "Betriebseinnahmen sind alle betrieblich veranlassten Zugänge in Geld oder Geldeswert. Ein mittelbarer Zusammenhang mit dem Betrieb genügt. Zugänge aus dem privaten Bereich, etwa der Verkauf eines privaten Gegenstands, sind keine Betriebseinnahmen.",
+      "source": "EStR 2000 Rz 1001; VwGH 25.5.2022, Ra 2021/15/0086",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_5/"
+    },
+    {
+      "id": "R19",
+      "day": 5,
+      "title": "Betriebsausgaben",
+      "text": "Betriebsausgaben sind Aufwendungen und Ausgaben, die betrieblich veranlasst sind. Jedenfalls Betriebsausgaben sind unter anderem die Pflichtbeiträge zur Kranken-, Unfall- und Pensionsversicherung sowie Aus- und Fortbildungskosten, die mit der ausgeübten Tätigkeit zusammenhängen. Aufwendungen der privaten Lebensführung sind auch im Betrieb nicht abzugsfähig (R3).",
+      "source": "§ 4 Abs. 4 Z 1 und Z 7 EStG; § 20 Abs. 1 Z 2 lit. a EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/4"
+    },
+    {
+      "id": "R20",
+      "day": 5,
+      "title": "Reisekosten",
+      "text": "Mehraufwendungen für Verpflegung und Unterkunft bei einer Reise sind nur dann Betriebsausgaben, wenn die Reise ausschließlich betrieblich veranlasst ist. Sie werden ohne Nachweis der Höhe bis zu den Tagesgeldern und Nächtigungsgeldern des § 26 Z 4 EStG anerkannt. Eine Reise mit privatem Anteil, etwa ein Familienurlaub, ist keine Betriebsausgabe.",
+      "source": "§ 4 Abs. 5 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/4"
+    },
+    {
+      "id": "R21",
+      "day": 6,
+      "title": "Einnahmen-Ausgaben-Rechnung: Zahlungszeitpunkt",
+      "text": "Die Einnahmen-Ausgaben-Rechnung ist eine Geldflussrechnung. Einnahmen und Ausgaben zählen in dem Jahr, in dem sie zugeflossen oder bezahlt wurden (R13). Wer einen gedeckten Scheck übergibt, hat damit schon bezahlt. Bei Kreditkarten zählt die Ausgabe erst mit der Abbuchung vom Bankkonto.",
+      "source": "§ 4 Abs. 3 EStG; EStR 2000 Rz 658, Rz 4624; Kreditkarte: WKO, Geldflussprinzip",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_13___2/"
+    },
+    {
+      "id": "R22",
+      "day": 6,
+      "title": "Entnahmen und Einlagen",
+      "text": "Geldentnahmen und Geldeinlagen wirken sich auf den Gewinn nicht aus. Entnimmt der Unternehmer ein Wirtschaftsgut aus dem Betrieb, entsteht eine Betriebseinnahme. Bei Anlagevermögen ist es der Unterschied zwischen Buchwert und Entnahmewert. Die Einlage eines Wirtschaftsguts wird bei Umlaufvermögen als Betriebsausgabe erfasst, bei Anlagevermögen aktiviert.",
+      "source": "EStR 2000 Rz 680 bis 682",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_4___4___4/"
+    },
+    {
+      "id": "R23",
+      "day": 6,
+      "title": "Durchlaufende Posten",
+      "text": "Durchlaufende Posten sind Beträge, die im Namen und auf Rechnung eines anderen eingenommen und ausgegeben werden, zum Beispiel Gerichtsgebühren, die ein Rechtsanwalt für den Klienten vorstreckt. Sie scheiden aus der Gewinnermittlung aus. Werden sie vom Klienten nicht ersetzt, werden sie zur Betriebsausgabe.",
+      "source": "§ 4 Abs. 3 EStG; EStR 2000 Rz 683 bis 685",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_4___4___4/"
+    },
+    {
+      "id": "R24",
+      "day": 6,
+      "title": "Betriebsvermögen",
+      "text": "Zum Betriebsvermögen gehören Wirtschaftsgüter, die dem Betriebsinhaber wirtschaftlich gehören und betrieblich veranlasst sind. Notwendiges Betriebsvermögen sind Wirtschaftsgüter, die erkennbar zum unmittelbaren Einsatz im Betrieb bestimmt sind und ihm auch tatsächlich dienen. Ist der betriebliche Einsatz nur möglich, aber nicht sicher, fehlt der Zusammenhang. Gewillkürtes Betriebsvermögen, das freie Widmen weiterer Gegenstände, gibt es nur bei Gewerbetreibenden mit Gewinnermittlung nach § 5. Bei der Einnahmen-Ausgaben-Rechnung zählt daher nur notwendiges Betriebsvermögen.",
+      "source": "EStR 2000 Rz 451, 469 bis 472, 589",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_4___1___10___4/"
+    },
+    {
+      "id": "R25",
+      "day": 6,
+      "title": "Privatvermögen",
+      "text": "Ein Wirtschaftsgut, das erkennbar privaten Zwecken dient oder dafür bestimmt ist, ist notwendiges Privatvermögen, gleichgültig wie es gebucht wurde. Es wird nicht bilanziert, es gibt keine Absetzung für Abnutzung, und sein Verkauf wirkt nicht auf den Betriebsgewinn. Kosten dafür sind grundsätzlich keine Betriebsausgaben.",
+      "source": "EStR 2000 Rz 602, 603",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_4___1___10___6/"
+    },
+    {
+      "id": "R26",
+      "day": 6,
+      "title": "Anlage- und Umlaufvermögen",
+      "text": "Anlagevermögen sind Gegenstände, die bestimmt sind, dauernd dem Geschäftsbetrieb zu dienen. Maßgeblich ist die wirtschaftliche Zweckbestimmung im Betrieb, nicht die Art des Gegenstands. Dasselbe Wirtschaftsgut kann in einem Betrieb Anlagevermögen sein und in einem anderen Umlaufvermögen. Was nicht dauernd dem Betrieb dienen soll, etwa Ware zum Verkauf oder Material zum Verbrauch, ist Umlaufvermögen.",
+      "source": "§ 198 Abs. 2 UGB; EStR 2000 Rz 604 bis 607",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_4___2/"
+    },
+    {
+      "id": "R27",
+      "day": 6,
+      "title": "Aktivierung bei Bilanzierung",
+      "text": "Wer bilanziert, setzt alle Wirtschaftsgüter des Betriebsvermögens in der Bilanz an. Unkörperliche Anlagegüter wie Marken, Rechte oder einen Kundenstock darf er nur ansetzen, wenn er sie entgeltlich erworben hat. Selbst geschaffene unkörperliche Anlagegüter werden nicht aktiviert.",
+      "source": "§ 4 Abs. 1 EStG; EStR 2000 Rz 604 bis 607",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/4"
+    },
+    {
+      "id": "R28",
+      "day": 6,
+      "title": "Hinweis: Inhalt der Bilanz",
+      "hint": true,
+      "text": "In der Bilanz werden die Posten in Gruppen zusammengefasst. Auf der Aktivseite stehen Anlagevermögen, Umlaufvermögen und aktive Rechnungsabgrenzungsposten, auf der Passivseite Eigenkapital und Schulden. Dieser Hinweis hat keinen eigenen Fall.",
+      "source": "EStR 2000 Rz 450",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_4___1___10/"
+    },
+    {
+      "id": "R29",
+      "day": 7,
+      "title": "Aufteilungsverbot",
+      "text": "Aus dem Abzugsverbot für Kosten der Lebensführung (R3) folgt das Aufteilungsverbot: Eine Ausgabe, die zugleich privat und betrieblich veranlasst ist, wird nicht in einen betrieblichen und einen privaten Teil zerlegt. Sie ist zur Gänze nicht abzugsfähig. Ausgenommen sind Wirtschaftsgüter, deren betriebliche Nutzung sich verlässlich abgrenzen lässt (R30).",
+      "source": "§ 20 Abs. 1 Z 2 lit. a EStG; VwGH 18.10.2017, Ra 2017/13/0068; EStR 2000 Rz 603, Rz 4707",
+      "sourceUrl": "https://www.jusline.at/entscheidung/837497"
+    },
+    {
+      "id": "R30",
+      "day": 7,
+      "title": "Gemischt genutzte bewegliche Wirtschaftsgüter",
+      "text": "Ein bewegliches Wirtschaftsgut, das zu mehr als 50 % betrieblich genutzt wird, gehört zur Gänze zum Betriebsvermögen. Wird es höchstens zu 50 % betrieblich genutzt, bleibt es Privatvermögen. Die Kosten der betrieblichen Nutzung sind dann nur anteilig Betriebsausgaben.",
+      "source": "EStR 2000 Rz 471 (Tabelle), Rz 603",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_4___1___10___4/"
+    },
+    {
+      "id": "R31",
+      "day": 7,
+      "title": "Arbeitszimmer und Wohnungseinrichtung",
+      "text": "Aufwendungen für ein Arbeitszimmer in der Wohnung und seine Einrichtung sowie für Einrichtungsgegenstände der Wohnung sind nicht abzugsfähig. Ausnahme: Das Arbeitszimmer bildet den Mittelpunkt der gesamten betrieblichen und beruflichen Tätigkeit.",
+      "source": "§ 20 Abs. 1 Z 2 lit. d EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/20"
+    },
+    {
+      "id": "R32",
+      "day": 7,
+      "title": "Angemessenheit bei PKW",
+      "text": "Aufwendungen für Pkw und Kombi, Luxusboote, Flugzeuge, Jagden, Teppiche, Tapisserien und Antiquitäten sind nicht abzugsfähig, soweit sie unangemessen hoch sind. Bei Pkw und Kombi sind Anschaffungskosten bis 40.000 Euro angemessen, einschließlich Umsatzsteuer und Normverbrauchsabgabe. Liegen die Anschaffungskosten darüber, werden Abschreibung und wertabhängige Kosten im Verhältnis 40.000 Euro zu den tatsächlichen Anschaffungskosten gekürzt.",
+      "source": "§ 20 Abs. 1 Z 2 lit. b EStG; § 1 PKW-Angemessenheitsverordnung; EStR 2000 Rz 4771 ff",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_14___3/"
+    },
+    {
+      "id": "R33",
+      "day": 7,
+      "title": "Repräsentation und Bewirtung",
+      "text": "Repräsentationsaufwendungen sind nicht abzugsfähig. Dazu gehören auch Geschenke an Kunden und Feiern, die das gesellschaftliche Ansehen fördern. Eine einzige Ausnahme gilt für die Bewirtung von Geschäftsfreunden, also Personen, mit denen eine Geschäftsbeziehung besteht oder angestrebt wird: Sie ist zur Hälfte abzugsfähig, wenn der Werbezweck nachgewiesen ist und die betriebliche Veranlassung weitaus überwiegt.",
+      "source": "§ 20 Abs. 1 Z 3 EStG; EStR 2000 Rz 4808 ff, Rz 4814, Rz 4816; VwGH 2.8.2000, 94/13/0259",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_14___5/"
+    },
+    {
+      "id": "R34",
+      "day": 7,
+      "title": "Spenden aus dem Betriebsvermögen",
+      "text": "Spenden aus dem Betriebsvermögen sind Betriebsausgaben, wenn der Empfänger begünstigt ist, etwa eine Freiwillige Feuerwehr, eine Universität oder eine Einrichtung auf der Liste der spendenbegünstigten Einrichtungen. Sie sind höchstens bis 10 % des Gewinns abzugsfähig. Spenden an Vereine ohne Begünstigung sind nicht abzugsfähig.",
+      "source": "§ 4a Abs. 1, 6 und 7 Z 1 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/4a"
+    },
+    {
+      "id": "R35",
+      "day": 7,
+      "title": "Entgelte über 500.000 Euro",
+      "text": "Entgelte für Arbeits- oder Werkleistungen sind nicht abzugsfähig, soweit sie 500.000 Euro pro Person und Wirtschaftsjahr übersteigen. Ist die Person weniger als zwölf Monate tätig, wird der Betrag anteilig gekürzt.",
+      "source": "§ 20 Abs. 1 Z 7 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/20"
+    },
+    {
+      "id": "R36",
+      "day": 7,
+      "title": "Hinweis: Strafen und Schmiergelder",
+      "hint": true,
+      "text": "Strafbare Zuwendungen wie Schmiergelder, Strafen und Geldbußen von Gerichten und Behörden sowie Leistungen aus einer Diversion sind nicht abzugsfähig.",
+      "source": "§ 20 Abs. 1 Z 5 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/20"
+    },
+    {
+      "id": "R37",
+      "day": 7,
+      "title": "Hinweis: Personensteuern",
+      "hint": true,
+      "text": "Die Einkommensteuer und andere Personensteuern sind nicht abzugsfähig. Betriebssteuern, die mit dem Betrieb zusammenhängen, bleiben Betriebsausgaben.",
+      "source": "§ 20 Abs. 1 Z 6 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/20"
+    },
+    {
+      "id": "R38",
+      "day": 8,
+      "title": "Bewertung",
+      "text": "Abnutzbares Anlagevermögen wird mit den Anschaffungs- oder Herstellungskosten angesetzt, vermindert um die Absetzung für Abnutzung. Umlaufvermögen und nicht abnutzbares Anlagevermögen wie Grund und Boden werden mit den Anschaffungs- oder Herstellungskosten angesetzt. In beiden Fällen darf ein niedrigerer Teilwert angesetzt werden.",
+      "source": "§ 6 Z 1 und Z 2 lit. a EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/6"
+    },
+    {
+      "id": "R39",
+      "day": 8,
+      "title": "Teilwert, Entnahme und Einlage",
+      "text": "Der Teilwert ist der Betrag, den ein Erwerber des ganzen Betriebs für das einzelne Wirtschaftsgut ansetzen würde, wenn er den Betrieb fortführt. Entnahmen werden mit dem Teilwert im Zeitpunkt der Entnahme bewertet, Einlagen in der Regel mit dem Teilwert im Zeitpunkt der Zuführung. Für Grundstücke, Wertpapiere und Kryptowährungen gelten Sonderregeln.",
+      "source": "§ 6 Z 1, Z 4 und Z 5 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/6"
+    },
+    {
+      "id": "R40",
+      "day": 8,
+      "title": "Lineare Absetzung für Abnutzung",
+      "text": "Bei abnutzbarem Anlagevermögen, das länger als ein Jahr genutzt wird, werden die Anschaffungs- oder Herstellungskosten gleichmäßig auf die betriebsgewöhnliche Nutzungsdauer verteilt. Wird das Wirtschaftsgut im Wirtschaftsjahr mehr als sechs Monate genutzt, steht der volle Jahresbetrag zu, sonst die Hälfte. Wer eine Einnahmen-Ausgaben-Rechnung führt, muss ein Anlageverzeichnis führen.",
+      "source": "§ 7 Abs. 1 bis 3 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/7"
+    },
+    {
+      "id": "R41",
+      "day": 8,
+      "title": "Degressive Absetzung für Abnutzung",
+      "text": "Statt linear darf mit einem gleichbleibenden Prozentsatz von höchstens 30 % vom jeweiligen Restbuchwert abgeschrieben werden. Ausgeschlossen sind unter anderem gebrauchte Wirtschaftsgüter, Gebäude und Pkw (außer emissionsfreie) sowie Anlagen für fossile Energieträger. Ein Wechsel von degressiv auf linear ist zu Beginn eines Wirtschaftsjahres erlaubt, zurück nicht.",
+      "source": "§ 7 Abs. 1a EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/7"
+    },
+    {
+      "id": "R42",
+      "day": 8,
+      "title": "Gebäude und Pkw",
+      "text": "Betriebsgebäude werden ohne Nachweis der Nutzungsdauer mit bis zu 2,5 % der Anschaffungs- oder Herstellungskosten pro Jahr abgeschrieben, Gebäude für Wohnzwecke mit bis zu 1,5 %. Grund und Boden nutzt sich nicht ab und wird nicht abgeschrieben. Für Pkw und Kombi beträgt die Nutzungsdauer mindestens acht Jahre.",
+      "source": "§ 8 Abs. 1 und Abs. 6 Z 1 EStG; § 6 Z 2 lit. a EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/8"
+    },
+    {
+      "id": "R43",
+      "day": 8,
+      "title": "Geringwertige Wirtschaftsgüter",
+      "text": "Betragen die Anschaffungs- oder Herstellungskosten eines abnutzbaren Anlageguts höchstens 1.000 Euro, können sie im Jahr der Anschaffung zur Gänze abgesetzt werden. Das gilt nicht für Wirtschaftsgüter, die zur Vermietung bestimmt sind. Teile, die wirtschaftlich eine Einheit bilden, zählen zusammen.",
+      "source": "§ 13 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/13"
+    },
+    {
+      "id": "R44",
+      "day": 8,
+      "title": "Hinweis: Sonderformen der Absetzung für Abnutzung",
+      "hint": true,
+      "text": "Bei Gebäuden darf im ersten Jahr bis zum Dreifachen und im zweiten Jahr bis zum Zweifachen des normalen Prozentsatzes abgeschrieben werden, die Halbjahresregel gilt dann nicht. Ein gekaufter Firmenwert wird bei Land- und Forstwirten und Gewerbetreibenden auf 15 Jahre verteilt.",
+      "source": "§ 8 Abs. 1a und Abs. 3 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/8"
+    },
+    {
+      "id": "R45",
+      "day": 8,
+      "title": "Hinweis: Außergewöhnliche Abnutzung",
+      "hint": true,
+      "text": "Wird ein Wirtschaftsgut durch ein besonderes Ereignis, etwa einen Unfall oder Brand, technisch oder wirtschaftlich außergewöhnlich abgenutzt, ist eine zusätzliche Absetzung zulässig.",
+      "source": "§ 8 Abs. 4 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/8"
+    },
+    {
+      "id": "R46",
+      "day": 9,
+      "title": "Verträge zwischen nahen Angehörigen",
+      "text": "Verträge zwischen nahen Angehörigen werden steuerlich nur anerkannt, wenn sie nach außen ausreichend zum Ausdruck kommen (Publizität), einen klaren, eindeutigen und jeden Zweifel ausschließenden Inhalt haben und auch zwischen Fremden unter den gleichen Bedingungen abgeschlossen worden wären (Fremdvergleich). Das gilt auch dann, wenn der Vertrag zivilrechtlich gültig ist. Hilfe, die üblicherweise aus familiärer Verbundenheit geleistet wird, ist keine Betriebsausgabe.",
+      "source": "EStR 2000 Rz 1130 ff; VwGH 1996, 92/13/0301 (ECLI:AT:VWGH:1996:1992130301.X02)",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76536_5___4___4"
+    },
+    {
+      "id": "R47",
+      "day": 9,
+      "title": "Gewinnfreibetrag",
+      "text": "Natürliche Personen mit betrieblichen Einkünften können einen Gewinnfreibetrag vom Gewinn abziehen. Der Grundfreibetrag beträgt 15 % des Gewinns bis 33.000 Euro, höchstens 4.950 Euro, und steht ohne Investition zu. Für den Gewinn über 33.000 Euro gibt es einen investitionsbedingten Gewinnfreibetrag: 13 % für die nächsten 145.000 Euro, 7 % für die nächsten 175.000 Euro und 4,5 % für die nächsten 230.000 Euro, höchstens aber in Höhe der Anschaffungskosten begünstigter Investitionen des Jahres. Begünstigt sind neue, abnutzbare körperliche Anlagegüter mit mindestens vier Jahren Nutzungsdauer. Nicht begünstigt sind unter anderem Pkw und Kombi, Luftfahrzeuge, geringwertige und gebrauchte Wirtschaftsgüter. Die Güter müssen vier Jahre im Betrieb bleiben. Insgesamt sind höchstens 46.400 Euro pro Jahr abziehbar.",
+      "source": "§ 10 Abs. 1 bis 5 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/10"
+    },
+    {
+      "id": "R48",
+      "day": 9,
+      "title": "Rechenweg und Tarif 2025",
+      "text": "Vom Gewinn wird der Gewinnfreibetrag abgezogen, das ergibt die Einkünfte. Die Summe aller Einkünfte, vermindert um Sonderausgaben und außergewöhnliche Belastungen, ist das Einkommen (R8). Die Einkommensteuer 2025 beträgt für die ersten 13.308 Euro 0 %, für den Teil über 13.308 bis 21.617 Euro 20 %, über 21.617 bis 35.836 Euro 30 %, über 35.836 bis 69.166 Euro 40 %, über 69.166 bis 103.072 Euro 48 % und darüber 50 %. Für Einkommensteile über 1 Million Euro gilt 55 %. Jeder Satz gilt nur für den Teil des Einkommens in seiner Stufe.",
+      "source": "§ 2 Abs. 2 EStG; § 10 EStG; § 33 Abs. 1 EStG idF für 2025; LStR 2002 Rz 767",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76545_11/"
+    },
+    {
+      "id": "R49",
+      "day": 10,
+      "title": "Verlustausgleich",
+      "text": "Verluste werden im selben Jahr mit positiven Einkünften ausgeglichen. Der Ausgleich innerhalb derselben Einkunftsart heißt horizontaler Verlustausgleich, der Ausgleich mit anderen Einkunftsarten vertikaler Verlustausgleich. Was danach bleibt, ist der Gesamtbetrag der Einkünfte.",
+      "source": "§ 2 Abs. 2 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/2"
+    },
+    {
+      "id": "R50",
+      "day": 10,
+      "title": "Beschränkung des Verlustausgleichs",
+      "text": "Verluste aus Beteiligungen, bei denen steuerliche Vorteile im Vordergrund stehen, sind weder ausgleichs- noch vortragsfähig. Das gilt insbesondere, wenn die Beteiligung allgemein angeboten wird und die Rendite nach Steuern mehr als das Doppelte der Rendite vor Steuern beträgt. Gleiches gilt für Betriebe, deren Schwerpunkt im Verwalten unkörperlicher Wirtschaftsgüter oder in der gewerblichen Vermietung von Wirtschaftsgütern liegt. Solche Verluste dürfen nur mit späteren Gewinnen aus derselben Beteiligung oder demselben Betrieb verrechnet werden (Wartetaste).",
+      "source": "§ 2 Abs. 2a EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/2"
+    },
+    {
+      "id": "R51",
+      "day": 10,
+      "title": "Verlustvortrag",
+      "text": "Betriebliche Verluste früherer Jahre, die noch nicht ausgeglichen wurden, sind als Sonderausgabe abziehbar. Sie müssen durch ordnungsmäßige Buchführung oder ordnungsmäßige Einnahmen-Ausgaben-Rechnung ermittelt sein. Ein Verlust, der schon bei einer früheren Veranlagung berücksichtigt wurde, kann nicht noch einmal abgezogen werden.",
+      "source": "§ 18 Abs. 6 EStG; § 2 Abs. 2 EStG",
+      "sourceUrl": "https://www.jusline.at/gesetz/estg/paragraf/18"
+    },
+    {
+      "id": "R52",
+      "day": 10,
+      "title": "Liebhaberei",
+      "text": "Ein Betrieb ist nur dann eine Einkunftsquelle, wenn er in einem absehbaren Zeitraum einen Gesamtgewinn erzielen soll. Diese Absicht wird anhand objektiver Umstände beurteilt: Ausmaß und Entwicklung der Verluste, Verhältnis der Verluste zu den Gewinnen, Ursachen der Verluste im Vergleich zu ähnlichen Betrieben, marktgerechtes Verhalten bei Leistungen und Preisen sowie Maßnahmen zur Verbesserung der Ertragslage. In den ersten drei Jahren ab Beginn (Anlaufzeitraum) liegt jedenfalls eine Einkunftsquelle vor, außer der Betrieb ist von vornherein aussichtslos. Ist eine Tätigkeit Liebhaberei, sind ihre Verluste steuerlich unbeachtlich.",
+      "source": "§ 1 Abs. 1, § 2 Abs. 1 und 2 Liebhabereiverordnung 1993; LRL 2012 Rz 14 bis 21",
+      "sourceUrl": "https://linda.lindeverlag.at/Dokument/76544_3___3___/"
+    },
+    {
+      "id": "R53",
+      "day": 10,
+      "title": "Anbringen und Mängelbehebung",
+      "text": "Anbringen sind Erklärungen, Anträge, Antworten auf Vorhalte und Rechtsmittel. Sie sind grundsätzlich schriftlich einzubringen. Formgebrechen, inhaltliche Mängel oder eine fehlende Unterschrift sind kein Grund zur Zurückweisung. Die Behörde trägt die Behebung mit angemessener Frist auf und weist auf die Folgen hin. Wird der Mangel rechtzeitig behoben, gilt das Anbringen als ursprünglich richtig eingebracht. Sonst gilt es als zurückgenommen.",
+      "source": "§ 85 Abs. 1 und 2 BAO",
+      "sourceUrl": "https://www.jusline.at/gesetz/bao/paragraf/85"
+    },
+    {
+      "id": "R54",
+      "day": 10,
+      "title": "Vertreter und Vollmacht",
+      "text": "Parteien können sich vertreten lassen. Der Vertreter weist die Vollmacht grundsätzlich durch Vorlage der unterschriebenen Vollmacht nach, eine Kopie genügt, solange die Behörde das Original nicht verlangt. Bei Mängeln veranlasst die Behörde von Amts wegen deren Behebung. Steuerberater, Rechtsanwälte und Notare müssen keine Vollmacht vorlegen: Bei ihnen ersetzt die Berufung auf die erteilte Vollmacht den urkundlichen Nachweis, etwa mit dem Vermerk „Vollmacht erteilt“ oder „namens und auftrags meines Mandanten“. Die Vollmacht selbst muss trotzdem erteilt sein.",
+      "source": "§ 83 Abs. 1 und 2 BAO; § 77 Abs. 11 WTBG 2017; § 8 Abs. 1 RAO; VwGH 28.10.2014, 2012/13/0102",
+      "sourceUrl": "https://www.jusline.at/gesetz/bao/paragraf/83"
+    }
+  ],
+  "days": [
+    {
+      "day": 4,
+      "intro": "Die Post ist da. Obenauf liegt, falls Sie gestern richtig entschieden haben, die Kursbestätigung von Frau Lang. Daneben liegt zum ersten Mal die Morgenzeitung.",
+      "stamps": ["bescheid", "ergaenzung"],
+      "cases": ["4-1", "4-2", "4-3", "4-4", "4-5"],
+      "storyEvents": [
+        {
+          "type": "newspaper",
+          "from": "Donau-Kurier",
+          "headline": "Silvesterkonzert im Kurhaus: Edlinger bringt den Saal zum Schunkeln",
+          "text": "Wie der Donau-Kurier erfuhr, war das Konzert schon Wochen vorher ausverkauft. Über die Gage schweigen alle Beteiligten."
+        },
+        {
+          "type": "dialog",
+          "from": "Gerri",
+          "text": "Das Silvesterkonzert, was? Meine Frau wollte unbedingt hin. Kaffee?"
+        }
+      ]
+    },
+    {
+      "day": 5,
+      "intro": "Heute liegt zum ersten Mal ein Betrieb auf dem Tisch. Zu jeder Erklärung gehören Belege. Legen Sie sie nebeneinander und prüfen Sie, ob sie zusammenpassen.",
+      "stamps": ["bescheid", "ergaenzung"],
+      "cases": ["5-1", "5-2", "5-3", "5-4"],
+      "storyEvents": [
+        {
+          "type": "newspaper",
+          "from": "Donau-Kurier",
+          "headline": "Goldener Hirsch lädt zum Winterfest",
+          "text": "Wirt Ferdinand Brandl feierte Mitte Dezember mit rund 200 Gästen. Für Dekoration und Service sorgte nach Angaben des Hauses die Eventservice GmbH."
+        },
+        {
+          "type": "dialog",
+          "from": "Dr. Wallner",
+          "text": "Ab heute gibt es Betriebe. Belege und Erklärung müssen zusammenpassen, sonst fragen Sie nach, bevor Sie stempeln."
+        }
+      ]
+    },
+    {
+      "day": 6,
+      "intro": "Heute geht es um das Vermögen im Betrieb: Was gehört dazu, was bleibt privat? Brandl liegt wieder auf dem Tisch. Bei Akten mit Lücken dürfen Sie diesmal wählen, was Sie nachfragen.",
+      "stamps": ["bescheid", "ergaenzung"],
+      "cases": ["6-1", "6-2", "6-3", "6-4", "6-5"],
+      "storyEvents": [
+        {
+          "type": "dialog",
+          "from": "Gerri",
+          "text": "Brandl? Kenn ich. Netter Kerl, zahlt immer bar. Kaffee? Und merk dir: Wer zuerst nachfragt, spart sich das Telefonieren später."
+        },
+        {
+          "type": "newspaper",
+          "from": "Donau-Kurier",
+          "headline": "Wirte investieren in Küchentechnik",
+          "text": "Immer mehr Gastbetriebe tauschen ihre Geräte vor dem Jahreswechsel aus. Die Branche erwartet einen starken Winter."
+        }
+      ]
+    },
+    {
+      "day": 7,
+      "intro": "Heute geht es um Ausgaben, die der Betrieb zahlt, die aber nicht oder nur teilweise abzugsfähig sind. An der Wand neben Ihrem Tisch hängt seit heute eine Pinnwand. Wenn Ihnen zwischen zwei Akten etwas auffällt, verbinden Sie die Stellen mit einem Faden.",
+      "stamps": ["bescheid", "ergaenzung"],
+      "cases": ["7-1", "7-2", "7-3", "7-4", "7-5"],
+      "storyEvents": [
+        {
+          "type": "unlock",
+          "feature": "pinboard"
+        },
+        {
+          "type": "newspaper",
+          "from": "Donau-Kurier",
+          "headline": "Edlinger feiert Geburtstag mit halber Branche",
+          "text": "Zum Empfang im Palais luden Edlingers Management und eine Wiener Eventagentur. Der Sänger zeigte sich mit neuem Sportwagen."
+        },
+        {
+          "type": "dialog",
+          "from": "Gerri",
+          "text": "Pinnwand? Die hat der Sedlak auch gehabt. Am Ende hat er mehr Fäden gespannt als Akten erledigt. Nur so als Tipp."
+        }
+      ],
+      "traces": [
+        {
+          "id": "t1",
+          "label": "Rechnungsnummern der Eventservice GmbH",
+          "links": [
+            {
+              "case": "5-3",
+              "document": "Rechnung Eventservice GmbH",
+              "line": "Rechnungsnummer"
+            },
+            {
+              "case": "7-3",
+              "document": "Rechnung Eventservice GmbH",
+              "line": "Rechnungsnummer"
+            }
+          ],
+          "reward": {
+            "type": "note",
+            "from": "Sedlak",
+            "text": "Zwei Rechnungen an zwei Tagen, und dazwischen keine einzige. Eine Firma mit so wenig Kunden braucht trotzdem Mitarbeiter. Wer arbeitet dort?"
+          }
+        }
+      ]
+    },
+    {
+      "day": 8,
+      "intro": "Ab heute rechnen Sie selbst. Neben dem Kodex liegt ein Tischrechner. Wo eine Akte einen Betrag verlangt, tragen Sie ihn ein, bevor Sie stempeln.",
+      "stamps": ["bescheid", "ergaenzung"],
+      "cases": ["8-1", "8-2", "8-3", "8-4", "8-5"],
+      "storyEvents": [
+        {
+          "type": "unlock",
+          "feature": "calculator"
+        },
+        {
+          "type": "newspaper",
+          "from": "Donau-Kurier",
+          "headline": "Lea Lux: 400.000 Follower und ein Steuerberater, den sie nicht hat",
+          "text": "Die Influencerin erzählt, sie mache ihre erste Steuererklärung selbst. Ihre Reels aus dem Hotel Seeblick haben sie über Nacht bekannt gemacht."
+        },
+        {
+          "type": "dialog",
+          "from": "Dr. Wallner",
+          "text": "Der Rechner rechnet, Sie denken. Halbes Jahr oder ganzes, das sagt er Ihnen nicht."
+        }
+      ]
+    },
+    {
+      "day": 9,
+      "intro": "Heute rechnen Sie zum ersten Mal eine Einkommensteuer ganz durch. Und Sie werden wieder mit Familien zu tun haben, auf dem Papier und am Telefon.",
+      "stamps": ["bescheid", "ergaenzung"],
+      "cases": ["9-1", "9-2", "9-3", "9-4", "9-5", "9-6"],
+      "storyEvents": [
+        {
+          "type": "newspaper",
+          "from": "Donau-Kurier",
+          "headline": "Goldener Hirsch: ein Familienbetrieb wie aus dem Bilderbuch",
+          "text": "Wirt Ferdinand Brandl dankt beim Winterfest seiner Frau Renate. Ohne sie, sagt er, ginge im Haus gar nichts."
+        },
+        {
+          "type": "call",
+          "from": "Dr. Wallner",
+          "text": "Winkler, ab heute rechnen Sie die Steuer selbst aus. Wenn der Betrag nicht stimmt, sehe ich das am Abend."
+        },
+        {
+          "type": "dialog",
+          "from": "Gerri",
+          "text": "Brandls Frau? Die kenn ich, die macht das schon seit Jahren. Da musst du nicht bohren, stempel das ab, dann bist du um vier daheim."
+        },
+        {
+          "type": "event",
+          "id": "e-tag9-gerri",
+          "provisional": true,
+          "text": "Gerri wartet mit der Kaffeetasse in der Hand, bis Sie sich entscheiden. Der Kindergarten schließt um halb fünf.",
+          "options": [
+            {
+              "text": "Gerri recht geben und die Akte Brandl heute nicht weiter prüfen.",
+              "effects": {
+                "time": 1,
+                "rating": 0,
+                "gerri": 1,
+                "home": 1
+              },
+              "sets": ["gerriHilfe"]
+            },
+            {
+              "text": "Die Akte trotzdem genau prüfen und später gehen.",
+              "effects": {
+                "time": -1,
+                "rating": 0,
+                "gerri": -1,
+                "home": -1
+              },
+              "sets": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "day": 10,
+      "intro": "Der letzte Tag Ihres ersten Akts. Auf dem Tisch liegen Verluste, ein Weingut und ein Stapel Post von derselben Kanzlei. Und die Lade klemmt heute nicht mehr.",
+      "stamps": ["bescheid", "ergaenzung"],
+      "cases": ["10-1", "10-2", "10-3", "10-4", "10-5", "10-6", "10-7"],
+      "storyEvents": [
+        {
+          "type": "newspaper",
+          "from": "Donau-Kurier",
+          "headline": "Haller kauft weitere Rebflächen am Rosenhang",
+          "text": "Der Immobilieninvestor Konstantin Haller baut sein Weingut weiter aus. Wein sei für ihn eine Herzensangelegenheit, ließ er über seine Holding ausrichten."
+        },
+        {
+          "type": "unlock",
+          "feature": "drawer"
+        },
+        {
+          "type": "note",
+          "from": "Sedlak",
+          "title": "Notizbuch, erste Seite",
+          "text": "Edlinger, Brandl, Wolf, Haller. Alle bei Pernold. Drei davon zahlen an die Eventservice. Der vierte zahlt an niemanden und verliert trotzdem jedes Jahr Geld. Warum leistet sich jemand so einen Verlust?"
+        },
+        {
+          "type": "dialog",
+          "from": "Gerri",
+          "text": "Erste zehn Tage geschafft. Gratuliere. Aber verbeiß dich nicht zu sehr in die Akten, Winkler. Das hat beim Sedlak auch so angefangen."
+        },
+        {
+          "type": "actSummary",
+          "act": 1
+        }
+      ],
+      "traces": [
+        {
+          "id": "t2",
+          "label": "Kanzleistempel Pernold & Partner",
+          "links": [
+            {
+              "case": "2-4",
+              "field": "representative"
+            },
+            {
+              "case": "4-3",
+              "field": "representative"
+            },
+            {
+              "case": "10-4",
+              "field": "representative"
+            }
+          ],
+          "reward": {
+            "type": "note",
+            "from": "Sedlak",
+            "text": "Der Stempel sitzt immer unten links, immer schief, immer gleich. Wie viele Akten mit diesem Stempel liegen noch in diesem Haus?"
+          }
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "4-1",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Ingrid Kainz",
+        "job": "Lehrerin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Ingrid Kainz"], ["Gehalt Mittelschule", "41.200,00 €"], ["Miete Eigentumswohnung, vermietet an Dritte", "7.800,00 €"], ["Sonstige Einnahmen", "3.200,00 €"], ["Angaben zu den sonstigen Einnahmen", "keine"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Lohnzettel",
+          "lines": [["Arbeitgeber", "Bildungsdirektion"], ["Bruttobezüge 2025", "41.200,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Mietvertrag",
+          "lines": [["Wohnung", "2 Zimmer, Privatvermögen der Pflichtigen"], ["Monatsmiete", "650,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Gehalt Mittelschule",
+          "amount": 41200,
+          "options": ["nichtselbstaendig", "selbstaendig", "gewerbe", "vv"],
+          "correct": "nichtselbstaendig",
+          "rules": ["R9"],
+          "explanation": "Bezüge aus einem Dienstverhältnis sind Einkünfte aus nichtselbständiger Arbeit."
+        },
+        {
+          "id": "d2",
+          "label": "Miete der Eigentumswohnung",
+          "amount": 7800,
+          "options": ["gewerbe", "kapital", "vv", "sonstige"],
+          "correct": "vv",
+          "rules": ["R9"],
+          "explanation": "Die Überlassung einer Wohnung aus dem Privatvermögen ist Vermietung und Verpachtung."
+        },
+        {
+          "id": "d3",
+          "label": "Sonstige Einnahmen",
+          "amount": 3200,
+          "options": ["nichtselbstaendig", "selbstaendig", "gewerbe", "vv"],
+          "correct": "offen",
+          "rules": ["R7", "R9"],
+          "explanation": "Ohne Angaben zur Tätigkeit lässt sich die Einkunftsart nicht bestimmen. Es braucht ein Ergänzungsersuchen."
+        }
+      ],
+      "correctStamp": "ergaenzung",
+      "followUp": {
+        "arrivesOnDay": 5,
+        "documents": [
+          {
+            "kind": "beleg",
+            "title": "Werkvertrag und Honorarnote",
+            "lines": [["Leistung", "Übersetzung von Fachtexten Englisch–Deutsch"], ["Auftraggeber", "Verlag Lindner"], ["Weisungen des Auftraggebers", "keine, eigene Zeiteinteilung"], ["Honorar", "3.200,00 €"]]
+          }
+        ],
+        "decisions": [
+          {
+            "id": "d3",
+            "label": "Honorar für Übersetzungen",
+            "amount": 3200,
+            "options": ["nichtselbstaendig", "selbstaendig", "gewerbe", "vv"],
+            "correct": "selbstaendig",
+            "rules": ["R9"],
+            "explanation": "Die Tätigkeit als Übersetzerin ist selbständige Arbeit."
+          }
+        ],
+        "correctStamp": "bescheid"
+      }
+    },
+    {
+      "id": "4-2",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Karin Moser",
+        "job": "Angestellte"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Karin Moser"], ["Gehalt", "31.800,00 €"], ["Familienbeihilfe für Tochter", "2.150,00 €"], ["Geldgeschenk der Großmutter zur Hochzeit", "2.000,00 €"], ["Antrag", "alle drei Beträge in die Steuer einbeziehen"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Lohnzettel",
+          "lines": [["Arbeitgeber", "Reisebüro Sonnenwind"], ["Bruttobezüge 2025", "31.800,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Mitteilung Finanzamt",
+          "lines": [["Familienbeihilfe 2025", "2.150,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Gehalt",
+          "amount": 31800,
+          "options": ["steuerpflichtig", "steuerfrei", "nichtsteuerbar"],
+          "correct": "steuerpflichtig",
+          "rules": ["R8", "R9"],
+          "explanation": "Bezüge aus einem Dienstverhältnis sind steuerpflichtig, es gibt keine Befreiung."
+        },
+        {
+          "id": "d2",
+          "label": "Familienbeihilfe",
+          "amount": 2150,
+          "options": ["steuerpflichtig", "steuerfrei", "nichtsteuerbar"],
+          "correct": "steuerfrei",
+          "rules": ["R10"],
+          "explanation": "Leistungen nach dem Familienlastenausgleichsgesetz sind von der Einkommensteuer befreit."
+        },
+        {
+          "id": "d3",
+          "label": "Geldgeschenk der Großmutter",
+          "amount": 2000,
+          "options": ["steuerpflichtig", "steuerfrei", "nichtsteuerbar"],
+          "correct": "nichtsteuerbar",
+          "rules": ["R8", "R9"],
+          "explanation": "Ein Geschenk gehört zu keiner der sieben Einkunftsarten. Es ist nicht steuerbar. Eine Befreiung braucht es dafür nicht."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "4-3",
+      "type": "entscheidungen",
+      "story": true,
+      "taxpayer": {
+        "name": "Toni Edlinger",
+        "job": "Sänger"
+      },
+      "representative": {
+        "name": "Pernold & Partner Steuerberatung",
+        "stampVisible": true
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Toni Edlinger"], ["Einkunftsart", "selbständige Arbeit"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Einnahmen 2025", "41.500,00 €"], ["Silvesterkonzert 31.12.2025", "erfasst 2026"], ["Residenz-Honorar Dezember", "erfasst 2026"], ["Vorschuss Tournee", "erfasst 2026, weil die Konzerte 2026 stattfinden"]],
+          "stamp": "Pernold & Partner"
+        },
+        {
+          "kind": "beleg",
+          "title": "Honorarabrechnung Silvesterkonzert",
+          "lines": [["Auftritt", "31.12.2025, Kurhaus"], ["Honorar", "18.000,00 €"], ["Überweisung eingelangt am", "9.1.2026"], ["Weitere Auftritte laut Vertrag", "keine"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Vereinbarung Residenz Kurhaus",
+          "lines": [["Honorar", "3.000,00 € monatlich"], ["Fällig", "jeweils zum Monatsletzten"], ["Gezahlt bisher", "jeden Monat, seit Oktober 2025"], ["Honorar Dezember eingelangt am", "7.1.2026"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Bankbeleg Tourneevorschuss",
+          "lines": [["Vorschuss", "5.000,00 €"], ["Eingelangt am", "29.12.2025"], ["Konzerte", "Jänner und Februar 2026"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Silvesterkonzert",
+          "amount": 18000,
+          "options": ["y2025", "y2026"],
+          "correct": "y2026",
+          "rules": ["R13"],
+          "explanation": "Bei der Einnahmen-Ausgaben-Rechnung zählt der Zufluss. Das Geld kam am 9.1.2026. Eine einmalige Gage ist keine regelmäßig wiederkehrende Einnahme, die Ausnahme greift nicht."
+        },
+        {
+          "id": "d2",
+          "label": "Residenz-Honorar Dezember",
+          "amount": 3000,
+          "options": ["y2025", "y2026"],
+          "correct": "y2025",
+          "rules": ["R13"],
+          "explanation": "Das monatliche Honorar ist regelmäßig wiederkehrend, war mit Jahresende fällig und kam sieben Tage später. Es zählt zu 2025."
+        },
+        {
+          "id": "d3",
+          "label": "Tourneevorschuss",
+          "amount": 5000,
+          "options": ["y2025", "y2026"],
+          "correct": "y2025",
+          "rules": ["R13"],
+          "explanation": "Der Vorschuss ist am 29.12.2025 zugeflossen und einmalig. Bei der Einnahmen-Ausgaben-Rechnung zählt der Zufluss, nicht das Jahr der Konzerte."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "4-4",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Peter Aigner",
+        "job": "Gärtnermeister"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Peter Aigner"], ["Einkunftsart", "Land- und Forstwirtschaft, Gartenbau"], ["Gewinnermittlung", "Buchführung"], ["Wirtschaftsjahr", "1. Oktober bis 30. September"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Stadtgemeinde",
+          "lines": [["Lieferung von Sträuchern", "29.9.2025"], ["Rechnung gestellt", "6.10.2025"], ["Bezahlt am", "20.10.2025"], ["Betrag", "6.400,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Blumenhandel Huber",
+          "lines": [["Bestellte Setzlinge", "geliefert am 2.10.2025"], ["Vorauszahlung des Kunden", "28.9.2025"], ["Betrag", "2.900,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Gewinn Wirtschaftsjahr",
+          "lines": [["Wirtschaftsjahr", "1.10.2024 bis 30.9.2025"], ["Gewinn laut Bilanz", "34.700,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Sträucher an die Stadtgemeinde",
+          "amount": 6400,
+          "options": [
+            {
+              "value": "wj2425",
+              "label": "Wirtschaftsjahr 2024/25"
+            },
+            {
+              "value": "wj2526",
+              "label": "Wirtschaftsjahr 2025/26"
+            }
+          ],
+          "correct": "wj2425",
+          "rules": ["R11", "R12"],
+          "explanation": "Die Leistung war am 29.9.2025 erbracht. Das liegt noch im Wirtschaftsjahr 2024/25. Rechnung und Zahlung kamen später und ändern daran nichts."
+        },
+        {
+          "id": "d2",
+          "label": "Setzlinge an Blumenhandel Huber",
+          "amount": 2900,
+          "options": [
+            {
+              "value": "wj2425",
+              "label": "Wirtschaftsjahr 2024/25"
+            },
+            {
+              "value": "wj2526",
+              "label": "Wirtschaftsjahr 2025/26"
+            }
+          ],
+          "correct": "wj2526",
+          "rules": ["R11", "R12"],
+          "explanation": "Geliefert wurde am 2.10.2025. Die Vorauszahlung vom 28.9.2025 ist noch kein Ertrag, die Leistung fällt in das Wirtschaftsjahr 2025/26."
+        },
+        {
+          "id": "d3",
+          "label": "Gewinn des Wirtschaftsjahres 2024/25",
+          "amount": 34700,
+          "options": ["y2024", "y2025"],
+          "correct": "y2025",
+          "rules": ["R11"],
+          "explanation": "Der Gewinn zählt zu dem Kalenderjahr, in dem das Wirtschaftsjahr endet, hier 2025."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "4-5",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Hubert Fuchs",
+        "job": "Installateur"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Aktenlage Hubert Fuchs e.U.",
+          "lines": [["Name", "Hubert Fuchs"], ["Brief A", "Ergänzungsersuchen, zugestellt Freitag, 20. März 2026, Frist 14 Tage"], ["Brief B", "Vorhalt, zugestellt Samstag, 31. Jänner 2026, Frist ein Monat"], ["Brief C", "Antrag auf Fristverlängerung zu Brief A, eingelangt Mittwoch, 1. April 2026"], ["Brief D", "Antrag auf Fristverlängerung zu Brief B, persönlich abgegeben Mittwoch, 4. März 2026"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Brief A: Ende der Frist",
+          "options": [
+            {
+              "value": "a1",
+              "label": "Donnerstag, 2. April 2026"
+            },
+            {
+              "value": "a2",
+              "label": "Freitag, 3. April 2026"
+            },
+            {
+              "value": "a3",
+              "label": "Montag, 6. April 2026"
+            },
+            {
+              "value": "a4",
+              "label": "Dienstag, 7. April 2026"
+            }
+          ],
+          "correct": "a4",
+          "rules": ["R14"],
+          "explanation": "Die Frist beginnt am 21. März und endet nach 14 Tagen am Freitag, 3. April, dem Karfreitag. Samstag, Sonntag und der Ostermontag zählen ebenfalls nicht. Der nächste mögliche Tag ist Dienstag, 7. April."
+        },
+        {
+          "id": "d2",
+          "label": "Brief B: Ende der Frist",
+          "options": [
+            {
+              "value": "b1",
+              "label": "Samstag, 28. Februar 2026"
+            },
+            {
+              "value": "b2",
+              "label": "Sonntag, 1. März 2026"
+            },
+            {
+              "value": "b3",
+              "label": "Montag, 2. März 2026"
+            },
+            {
+              "value": "b4",
+              "label": "Dienstag, 3. März 2026"
+            }
+          ],
+          "correct": "b3",
+          "rules": ["R14"],
+          "explanation": "Den 31. Februar gibt es nicht, die Monatsfrist endet daher am letzten Tag des Februars, Samstag, 28. Februar. Der nächste Tag, der kein Samstag, Sonntag oder Feiertag ist, ist Montag, 2. März."
+        },
+        {
+          "id": "d3",
+          "label": "Brief C: Antrag auf Verlängerung",
+          "options": ["moeglich", "unmoeglich"],
+          "correct": "moeglich",
+          "rules": ["R14", "R15"],
+          "explanation": "Die Frist aus Brief A hat das Finanzamt gesetzt, sie ist verlängerbar. Der Antrag kam am 1. April, vor dem Fristende am 7. April."
+        },
+        {
+          "id": "d4",
+          "label": "Brief D: Antrag auf Verlängerung",
+          "options": ["moeglich", "unmoeglich"],
+          "correct": "unmoeglich",
+          "rules": ["R14", "R15"],
+          "explanation": "Die Frist aus Brief B endete am Montag, 2. März. Der Antrag kam am 4. März, nach Fristablauf. Eine abgelaufene Frist lässt sich nicht mehr verlängern."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "5-1",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Sammelakt Gewinnermittlung 2025"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Aktenlage: vier Betriebe",
+          "lines": [["A", "Alpha Handels GmbH, Handel, Umsatz 2025: 95.000,00 €"], ["B", "Bäckerei Reiter e.U., Gewerbebetrieb, Umsatz 2023: 720.000 €, 2024: 745.000 €, 2025: 760.000 €"], ["C", "Gutsbetrieb Hofer, Land- und Forstwirtschaft, Umsatz 2024: 810.000 €, 2025: 790.000 €, davor jeweils unter 700.000 €"], ["D", "Dr. Ruth Wimmer, Fachärztin, Umsatz 2024: 1.100.000 €, 2025: 1.250.000 €"], ["Frage", "Wie ist der Gewinn 2025 zu ermitteln?"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "A: Alpha Handels GmbH",
+          "options": ["bilanz", "ea"],
+          "correct": "bilanz",
+          "rules": ["R16", "R17"],
+          "explanation": "Eine GmbH ist Kapitalgesellschaft und muss unabhängig vom Umsatz Bücher führen."
+        },
+        {
+          "id": "d2",
+          "label": "B: Bäckerei Reiter e.U.",
+          "options": ["bilanz", "ea"],
+          "correct": "bilanz",
+          "rules": ["R16", "R17"],
+          "explanation": "Die Grenze wurde 2023 und 2024 überschritten. Die Pflicht beginnt mit dem Jahr nach dem zweiten Überschreitungsjahr, also 2025."
+        },
+        {
+          "id": "d3",
+          "label": "C: Gutsbetrieb Hofer",
+          "options": ["bilanz", "ea"],
+          "correct": "ea",
+          "rules": ["R16", "R17"],
+          "explanation": "Die Grenze wurde 2024 und 2025 überschritten. Die Pflicht beginnt erst 2026. Für 2025 ist die Einnahmen-Ausgaben-Rechnung noch zulässig."
+        },
+        {
+          "id": "d4",
+          "label": "D: Dr. Ruth Wimmer, Fachärztin",
+          "options": ["bilanz", "ea"],
+          "correct": "ea",
+          "rules": ["R16", "R17"],
+          "explanation": "Freie Berufe sind nach dem UGB nicht rechnungslegungspflichtig. Auch bei hohem Umsatz ist die Einnahmen-Ausgaben-Rechnung zulässig."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "5-2",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Selin Demir",
+        "job": "Friseurin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Selin Demir"], ["Einkunftsart", "Gewerbebetrieb, Friseursalon"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Kundenzahlungen", "31.400,00 €"], ["Verkauf privates Klavier", "600,00 €"], ["Provision Pflegemittel-Lieferant", "450,00 €"], ["Hotelgutschein", "120,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Kassabuch Salon",
+          "lines": [["Summe Kundenzahlungen 2025", "31.400,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Verkaufsbestätigung",
+          "lines": [["Verkauft", "Klavier aus dem Wohnzimmer der Pflichtigen"], ["Käufer", "Privatperson"], ["Preis", "600,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Provisionsabrechnung",
+          "lines": [["Aussteller", "Pflegemittel Brandstätter KG"], ["Grund", "Bestellungen, die Frau Demir an befreundete Salons vermittelt hat"], ["Betrag", "450,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Schreiben Stammkundin",
+          "lines": [["Text", "Als Bezahlung für die Hochzeitsfrisur am 14.6.2025 erhalten Sie einen Gutschein für das Wellnesshotel Seeblick"], ["Wert", "120,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Kundenzahlungen",
+          "amount": 31400,
+          "options": ["betriebseinnahme", "keineBe"],
+          "correct": "betriebseinnahme",
+          "rules": ["R18"],
+          "explanation": "Entgelt für Friseurleistungen ist betrieblich veranlasst."
+        },
+        {
+          "id": "d2",
+          "label": "Verkauf des privaten Klaviers",
+          "amount": 600,
+          "options": ["betriebseinnahme", "keineBe"],
+          "correct": "keineBe",
+          "rules": ["R18"],
+          "explanation": "Das Klavier stand im Wohnzimmer, der Zugang ist privat veranlasst."
+        },
+        {
+          "id": "d3",
+          "label": "Provision des Lieferanten",
+          "amount": 450,
+          "options": ["betriebseinnahme", "keineBe"],
+          "correct": "betriebseinnahme",
+          "rules": ["R18"],
+          "explanation": "Die Vermittlung hängt mit dem Betrieb zusammen. Ein mittelbarer Zusammenhang genügt."
+        },
+        {
+          "id": "d4",
+          "label": "Hotelgutschein der Stammkundin",
+          "amount": 120,
+          "options": ["betriebseinnahme", "keineBe"],
+          "correct": "betriebseinnahme",
+          "rules": ["R18"],
+          "explanation": "Der Gutschein ist die Bezahlung der Frisur. Auch Zugänge in Geldeswert sind Betriebseinnahmen."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "5-3",
+      "type": "entscheidungen",
+      "story": true,
+      "taxpayer": {
+        "name": "Ferdinand Brandl",
+        "job": "Gastwirt, Goldener Hirsch"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Ferdinand Brandl"], ["Einkunftsart", "Gewerbebetrieb, Gastwirtschaft"], ["Umsatz 2025", "495.000,00 €"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Wareneinkauf Fleisch und Gemüse", "38.200,00 €"], ["Eventservice GmbH, Winterfest", "7.500,00 €"], ["Recherchereise Kroatien (Speisekarte)", "3.100,00 €"], ["Gastro-Messe Wien, Reise und Hotel", "21. bis 23.10.2025"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Sammelrechnung Großhandel",
+          "lines": [["Lieferungen Fleisch und Gemüse 2025", "38.200,00 €"], ["Empfänger", "Gasthaus Goldener Hirsch"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Eventservice GmbH",
+          "lines": [["Rechnungsnummer", "ES-2025-117"], ["Rechnungsdatum", "15.12.2025"], ["Leistung", "Dekoration und Servicepersonal Winterfest im Goldenen Hirschen am 14.12.2025"], ["Betrag", "7.500,00 €"], ["Bezahlt", "bar am 15.12.2025"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Buchungsbestätigung Appartement",
+          "lines": [["Ort", "Rovinj, Kroatien"], ["Zeitraum", "19.7. bis 26.7.2025, sieben Nächte"], ["Gäste", "zwei Erwachsene und zwei Kinder"], ["Betrag", "3.100,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Eintrittskarte Gastro-Messe Wien",
+          "lines": [["Gültig", "21.10. bis 23.10.2025"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Hotelrechnung Wien",
+          "lines": [["Aufenthalt", "12.11. bis 14.11.2025"], ["Zwei Nächte", "260,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Wareneinkauf Fleisch und Gemüse",
+          "amount": 38200,
+          "options": ["ba", "keineBa"],
+          "correct": "ba",
+          "rules": ["R19"],
+          "explanation": "Der Einkauf für das Lokal ist betrieblich veranlasst, der Beleg stimmt mit der Erklärung überein."
+        },
+        {
+          "id": "d2",
+          "label": "Eventservice GmbH, Winterfest",
+          "amount": 7500,
+          "options": ["ba", "keineBa"],
+          "correct": "ba",
+          "rules": ["R19"],
+          "explanation": "Das Winterfest fand im Lokal statt, Rechnung und Erklärung stimmen überein. Der Aufwand ist betrieblich veranlasst."
+        },
+        {
+          "id": "d3",
+          "label": "Recherchereise Kroatien",
+          "amount": 3100,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R19", "R20", "R3"],
+          "explanation": "Das Appartement war für die Familie in den Schulferien gebucht. Die Reise ist nicht ausschließlich betrieblich veranlasst und gehört zur Lebensführung."
+        },
+        {
+          "id": "d4",
+          "label": "Gastro-Messe Wien, Reise und Hotel",
+          "options": ["ba", "keineBa"],
+          "correct": "offen",
+          "rules": ["R7", "R20"],
+          "explanation": "Die Messe war vom 21. bis 23.10., das Hotel wurde aber vom 12. bis 14.11. verrechnet. Die Belege widersprechen sich, es braucht ein Ergänzungsersuchen."
+        }
+      ],
+      "discrepancies": [
+        {
+          "id": "w1",
+          "decision": "d4",
+          "a": {
+            "document": "Eintrittskarte Gastro-Messe Wien",
+            "line": "Gültig"
+          },
+          "b": {
+            "document": "Hotelrechnung Wien",
+            "line": "Aufenthalt"
+          },
+          "explanation": "Zwei Daten für dieselbe Reise."
+        }
+      ],
+      "correctStamp": "ergaenzung",
+      "followUp": {
+        "arrivesOnDay": 6,
+        "documents": [
+          {
+            "kind": "beleg",
+            "title": "Korrigierte Hotelrechnung Wien",
+            "lines": [["Aufenthalt", "21.10. bis 23.10.2025"], ["Zwei Nächte", "260,00 €"], ["Vermerk", "Datum auf der ersten Rechnung irrtümlich falsch"]]
+          }
+        ],
+        "decisions": [
+          {
+            "id": "d4",
+            "label": "Gastro-Messe Wien, Reise und Hotel",
+            "options": ["ba", "keineBa"],
+            "correct": "ba",
+            "rules": ["R20"],
+            "explanation": "Messe und Hotel passen zeitlich zusammen. Die Reise ist ausschließlich betrieblich veranlasst."
+          }
+        ],
+        "correctStamp": "bescheid"
+      }
+    },
+    {
+      "id": "5-4",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Klara Berger",
+        "job": "Fotografin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Klara Berger"], ["Einkunftsart", "selbständige Arbeit"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Pflichtbeiträge SVS", "4.900,00 €"], ["Seminar Lichtsetzung", "380,00 €"], ["Miete Fotostudio", "6.000,00 €"], ["Streamingabo für zuhause", "156,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Beitragsvorschreibung SVS",
+          "lines": [["Pflichtbeiträge Kranken-, Unfall-, Pensionsversicherung 2025", "4.900,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Seminarbestätigung",
+          "lines": [["Kurs", "Lichtsetzung im Porträtstudio"], ["Gebühr", "380,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Mietvertrag Studio",
+          "lines": [["Objekt", "Atelier, Wien 16"], ["Miete", "500,00 € monatlich"], ["Zweck", "Fotostudio"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Streamingdienst",
+          "lines": [["Familienabo, Wohnadresse der Pflichtigen", "156,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Pflichtbeiträge SVS",
+          "amount": 4900,
+          "options": ["ba", "keineBa"],
+          "correct": "ba",
+          "rules": ["R19"],
+          "explanation": "Pflichtbeiträge zur Kranken-, Unfall- und Pensionsversicherung sind jedenfalls Betriebsausgaben."
+        },
+        {
+          "id": "d2",
+          "label": "Seminar Lichtsetzung",
+          "amount": 380,
+          "options": ["ba", "keineBa"],
+          "correct": "ba",
+          "rules": ["R19"],
+          "explanation": "Die Fortbildung hängt mit der ausgeübten Tätigkeit zusammen."
+        },
+        {
+          "id": "d3",
+          "label": "Miete Fotostudio",
+          "amount": 6000,
+          "options": ["ba", "keineBa"],
+          "correct": "ba",
+          "rules": ["R19"],
+          "explanation": "Das Atelier wird für den Betrieb gemietet, der Aufwand ist betrieblich veranlasst."
+        },
+        {
+          "id": "d4",
+          "label": "Streamingabo für zuhause",
+          "amount": 156,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R19", "R3"],
+          "explanation": "Ein Familienabo für die Wohnung gehört zur privaten Lebensführung."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "6-1",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Wolfgang Hable",
+        "job": "Tischler"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Wolfgang Hable"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Honorarnote Küche Familie Stein, 8.400 €", "als Einnahme 2025 erfasst"], ["Holzeinkauf, 3.200 €", "als Ausgabe 2026 erfasst"], ["Werkzeug mit Kreditkarte, 1.150 €", "als Ausgabe 2025 erfasst"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Ausgangsrechnung Familie Stein",
+          "lines": [["Rechnung vom", "18.12.2025"], ["Betrag", "8.400,00 €"], ["Zahlungseingang auf dem Konto", "12.1.2026"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Holzeinkauf Sägewerk Berger",
+          "lines": [["Betrag", "3.200,00 €"], ["Scheck übergeben am", "30.12.2025, Scheck gedeckt"], ["Scheck eingelöst am", "5.1.2026"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Kreditkartenbeleg Werkzeughandel",
+          "lines": [["Einkauf am", "29.12.2025"], ["Betrag", "1.150,00 €"], ["Abbuchung vom Bankkonto am", "8.1.2026"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Honorar Familie Stein: Einnahme in",
+          "amount": 8400,
+          "options": ["y2025", "y2026"],
+          "correct": "y2026",
+          "rules": ["R13", "R21"],
+          "explanation": "Das Geld ging am 12.1.2026 ein. Die Rechnung vom Dezember ändert bei der Einnahmen-Ausgaben-Rechnung nichts."
+        },
+        {
+          "id": "d2",
+          "label": "Holzeinkauf: Ausgabe in",
+          "amount": 3200,
+          "options": ["y2025", "y2026"],
+          "correct": "y2025",
+          "rules": ["R13", "R21"],
+          "explanation": "Der gedeckte Scheck wurde am 30.12.2025 übergeben. Damit ist 2025 bezahlt, die Einlösung im Jänner ist unerheblich."
+        },
+        {
+          "id": "d3",
+          "label": "Werkzeug mit Kreditkarte: Ausgabe in",
+          "amount": 1150,
+          "options": ["y2025", "y2026"],
+          "correct": "y2026",
+          "rules": ["R13", "R21"],
+          "explanation": "Bei Kreditkarten zählt die Abbuchung vom Konto. Sie erfolgte am 8.1.2026."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "6-2",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Dr. Eva Prinz",
+        "job": "Rechtsanwältin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Gewinnermittlung 2025, Einnahmen-Ausgaben-Rechnung",
+          "lines": [["Name", "Dr. Eva Prinz"], ["Bargeldentnahme privat", "2.000,00 €"], ["Gerichtsgebühren für Klient Moser", "850,00 €, vom Klienten ersetzt"], ["Firmenlaptop in Privatbesitz übernommen", "Marktwert 400,00 €, Buchwert 0,00 €"], ["Sparbuch aufgelöst, auf Kanzleikonto eingezahlt", "5.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Entnahmebeleg",
+          "lines": [["Barentnahme aus der Kanzleikassa", "2.000,00 €"], ["Verwendung", "private Einkäufe"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Abrechnung Klient Moser",
+          "lines": [["Gerichtsgebühren, im Namen des Klienten", "850,00 €"], ["Vom Klienten ersetzt am", "3.7.2025"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Vermerk Laptop",
+          "lines": [["Laptop, voll abgeschrieben", "Buchwert 0,00 €"], ["Übernommen in den Privatgebrauch", "1.9.2025, Marktwert 400,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Sparbuchauszug",
+          "lines": [["Auflösung des privaten Sparbuchs", "5.000,00 €"], ["Einzahlung auf das Kanzleikonto", "5.000,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Bargeldentnahme für private Einkäufe",
+          "amount": 2000,
+          "options": ["gewinnwirksam", "nichtGw"],
+          "correct": "nichtGw",
+          "rules": ["R22"],
+          "explanation": "Geldentnahmen wirken sich auf den Gewinn nicht aus."
+        },
+        {
+          "id": "d2",
+          "label": "Gerichtsgebühren für den Klienten",
+          "amount": 850,
+          "options": ["gewinnwirksam", "nichtGw"],
+          "correct": "nichtGw",
+          "rules": ["R23"],
+          "explanation": "Die Gebühren wurden im Namen des Klienten bezahlt und von ihm ersetzt. Es sind durchlaufende Posten."
+        },
+        {
+          "id": "d3",
+          "label": "Laptop in den Privatgebrauch übernommen",
+          "amount": 400,
+          "options": ["gewinnwirksam", "nichtGw"],
+          "correct": "gewinnwirksam",
+          "rules": ["R22"],
+          "explanation": "Die Entnahme eines Wirtschaftsguts ist eine Betriebseinnahme, hier der Unterschied zwischen Marktwert 400 € und Buchwert 0 €."
+        },
+        {
+          "id": "d4",
+          "label": "Sparbuch in die Kanzlei eingezahlt",
+          "amount": 5000,
+          "options": ["gewinnwirksam", "nichtGw"],
+          "correct": "nichtGw",
+          "rules": ["R22"],
+          "explanation": "Geldeinlagen wirken sich auf den Gewinn nicht aus."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "6-3",
+      "type": "entscheidungen",
+      "story": true,
+      "taxpayer": {
+        "name": "Ferdinand Brandl",
+        "job": "Gastwirt, Goldener Hirsch"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Anlageverzeichnis 2025",
+          "lines": [["Name", "Ferdinand Brandl"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Kühlanlage und Herd im Lokal", "14.800,00 €"], ["Wertpapierdepot, als Rücklage für das Lokal gewidmet", "40.000,00 €"], ["Familienwohnhaus Mödling", "wird als Betriebsvermögen angegeben"], ["Küchenmaschine", "2.400,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Kühlanlage und Herd",
+          "lines": [["Lieferadresse", "Gasthaus Goldener Hirsch, Küche"], ["Betrag", "14.800,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Depotauszug",
+          "lines": [["Depot bei der Hausbank", "40.000,00 €"], ["Widmung", "Rücklage für Betrieb, Erklärung des Inhabers"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Grundbuchauszug",
+          "lines": [["Einfamilienhaus Mödling", "Eigentümer Ferdinand Brandl"], ["Nutzung", "Wohnsitz der Familie, kein Betrieb im Haus"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Küchenmaschine",
+          "lines": [["Rechnungsadresse", "Ferdinand Brandl, privat"], ["Lieferadresse", "nicht angegeben"], ["Betrag", "2.400,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Kühlanlage und Herd",
+          "amount": 14800,
+          "options": ["bv", "pv"],
+          "correct": "bv",
+          "rules": ["R24"],
+          "explanation": "Die Geräte stehen in der Küche des Lokals. Sie sind erkennbar für den Betrieb bestimmt und dienen ihm."
+        },
+        {
+          "id": "d2",
+          "label": "Wertpapierdepot",
+          "amount": 40000,
+          "options": ["bv", "pv"],
+          "correct": "pv",
+          "rules": ["R24", "R25"],
+          "explanation": "Gewillkürtes Betriebsvermögen gibt es bei der Einnahmen-Ausgaben-Rechnung nicht. Ein Depot ist nicht für den unmittelbaren Einsatz im Betrieb bestimmt."
+        },
+        {
+          "id": "d3",
+          "label": "Familienwohnhaus Mödling",
+          "options": ["bv", "pv"],
+          "correct": "pv",
+          "rules": ["R25"],
+          "explanation": "Das Haus dient erkennbar privaten Zwecken, es ist notwendiges Privatvermögen."
+        },
+        {
+          "id": "d4",
+          "label": "Küchenmaschine",
+          "amount": 2400,
+          "options": ["bv", "pv"],
+          "correct": "offen",
+          "rules": ["R24", "R7"],
+          "explanation": "Rechnung auf die Privatadresse, keine Lieferadresse. Ob die Maschine im Betrieb eingesetzt wird, ist nicht erkennbar. Es braucht eine Nachfrage."
+        }
+      ],
+      "inquiry": {
+        "decision": "d4",
+        "prompt": "Was wollen Sie klären?",
+        "options": [
+          {
+            "id": "q1",
+            "label": "Wo steht die Küchenmaschine und wofür wird sie genutzt?",
+            "answer": "Sie steht in der Küche des Goldenen Hirschen und wird täglich im Abendgeschäft verwendet."
+          },
+          {
+            "id": "q2",
+            "label": "Wie wurde die Küchenmaschine bezahlt?",
+            "answer": "Mit Überweisung, Zahlungsziel 14 Tage."
+          },
+          {
+            "id": "q3",
+            "label": "Wer hat die Küchenmaschine geliefert?",
+            "answer": "Der Händler Gastrotechnik Süd, Lieferung per Spedition."
+          }
+        ],
+        "correct": "q1"
+      },
+      "correctStamp": "ergaenzung",
+      "followUp": {
+        "arrivesOnDay": 7,
+        "documents": [
+          {
+            "kind": "beleg",
+            "title": "Antwort Ferdinand Brandl",
+            "lines": [["Standort", "Küche des Goldenen Hirschen"], ["Nutzung", "täglich im Abendgeschäft"]]
+          }
+        ],
+        "decisions": [
+          {
+            "id": "d4",
+            "label": "Küchenmaschine",
+            "amount": 2400,
+            "options": ["bv", "pv"],
+            "correct": "bv",
+            "rules": ["R24"],
+            "explanation": "Die Maschine steht in der Küche und wird täglich im Betrieb eingesetzt. Sie ist notwendiges Betriebsvermögen."
+          }
+        ],
+        "correctStamp": "bescheid"
+      }
+    },
+    {
+      "id": "6-4",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Sammelakt Anlage- oder Umlaufvermögen"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Aktenlage: vier Wirtschaftsgüter",
+          "lines": [["A", "Elektrohandel Zeiler: 12 Waschmaschinen im Lager, zum Verkauf bestimmt"], ["B", "Wäscherei Lenz: 12 Waschmaschinen im Betrieb, täglich im Einsatz"], ["C", "Tischlerei Hable: Brettervorrat für kommende Aufträge"], ["D", "Tischlerei Hable: Hobelmaschine in der Werkstatt"], ["Frage", "Anlage- oder Umlaufvermögen?"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "A: Waschmaschinen im Elektrohandel",
+          "options": ["anlage", "umlauf"],
+          "correct": "umlauf",
+          "rules": ["R26"],
+          "explanation": "Die Geräte sind zum Verkauf bestimmt und sollen nicht dauernd dem Betrieb dienen."
+        },
+        {
+          "id": "d2",
+          "label": "B: Waschmaschinen in der Wäscherei",
+          "options": ["anlage", "umlauf"],
+          "correct": "anlage",
+          "rules": ["R26"],
+          "explanation": "Dasselbe Gerät dient hier dauernd dem Betrieb. Maßgeblich ist die Zweckbestimmung, nicht die Art des Gegenstands."
+        },
+        {
+          "id": "d3",
+          "label": "C: Brettervorrat der Tischlerei",
+          "options": ["anlage", "umlauf"],
+          "correct": "umlauf",
+          "rules": ["R26"],
+          "explanation": "Das Holz wird verarbeitet und verbraucht, es dient nicht dauernd dem Betrieb."
+        },
+        {
+          "id": "d4",
+          "label": "D: Hobelmaschine der Tischlerei",
+          "options": ["anlage", "umlauf"],
+          "correct": "anlage",
+          "rules": ["R26"],
+          "explanation": "Die Maschine ist dazu bestimmt, dauernd dem Betrieb zu dienen."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "6-5",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Konditorei Samhaber e.U.",
+        "job": "Konditor, bilanzierend"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Bilanz 2025, Anlageverzeichnis",
+          "lines": [["Name", "Konditorei Samhaber e.U."], ["Gewinnermittlung", "Bilanz, Betrieb ist rechnungslegungspflichtig"], ["Marke Samhaber-Torte", "selbst aufgebaut seit 2005, 40.000,00 € als Wert angesetzt"], ["Rezept- und Markenrecht Linzer Spezialität", "gekauft 2025 um 30.000,00 €"], ["PKW des Inhabers, privat angeschafft", "wird als Betriebsvermögen geführt"], ["Backofen Ladenküche", "11.500,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Vermerk Marke",
+          "lines": [["Entstehung", "durch jahrelange eigene Werbung, kein Kaufpreis"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Kaufvertrag Rezept- und Markenrecht",
+          "lines": [["Verkäufer", "Konditorei Wegscheider"], ["Kaufpreis", "30.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Zulassungsschein PKW",
+          "lines": [["Halter", "Inhaber, privat"], ["Verwendung", "Familienfahrzeug, nie für den Betrieb eingesetzt"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Backofen",
+          "lines": [["Lieferadresse", "Konditorei Samhaber, Ladenküche"], ["Betrag", "11.500,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Selbst aufgebaute Marke",
+          "amount": 40000,
+          "options": ["aktivieren", "nichtAktivieren"],
+          "correct": "nichtAktivieren",
+          "rules": ["R27"],
+          "explanation": "Unkörperliche Anlagegüter dürfen nur bei entgeltlichem Erwerb angesetzt werden. Die Marke wurde selbst geschaffen."
+        },
+        {
+          "id": "d2",
+          "label": "Gekauftes Rezept- und Markenrecht",
+          "amount": 30000,
+          "options": ["aktivieren", "nichtAktivieren"],
+          "correct": "aktivieren",
+          "rules": ["R27"],
+          "explanation": "Das Recht wurde entgeltlich erworben und ist deshalb anzusetzen."
+        },
+        {
+          "id": "d3",
+          "label": "Familien-PKW des Inhabers",
+          "options": ["bv", "pv"],
+          "correct": "pv",
+          "rules": ["R25"],
+          "explanation": "Das Fahrzeug dient erkennbar privaten Zwecken. Die Verbuchung im Betrieb ändert daran nichts."
+        },
+        {
+          "id": "d4",
+          "label": "Backofen Ladenküche",
+          "amount": 11500,
+          "options": ["anlage", "umlauf"],
+          "correct": "anlage",
+          "rules": ["R26"],
+          "explanation": "Der Ofen steht in der Ladenküche und dient dauernd dem Betrieb."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "7-1",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Nora Lehner",
+        "job": "Grafikdesignerin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Nora Lehner"], ["Einkunftsart", "Gewerbebetrieb, Grafikdesign"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Arbeitszimmer, anteilige Miete", "2.160,00 €"], ["Laptop", "1.800,00 €, als Betriebsvermögen erfasst"], ["Neue Couch Wohnzimmer", "1.290,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Beschreibung der Tätigkeit",
+          "lines": [["Arbeitsort", "ausschließlich im Arbeitszimmer der Wohnung"], ["Kundentermine", "per Videocall, keine Besuche"], ["Weitere Tätigkeiten", "keine"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Nutzungsaufzeichnung Laptop",
+          "lines": [["Betriebliche Nutzung", "70 %"], ["Private Nutzung", "30 %"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Möbelhaus",
+          "lines": [["Couch, geliefert an die Wohnung", "1.290,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Arbeitszimmer",
+          "amount": 2160,
+          "options": ["ba", "keineBa"],
+          "correct": "ba",
+          "rules": ["R31"],
+          "explanation": "Frau Lehner arbeitet ausschließlich im Arbeitszimmer. Es ist der Mittelpunkt ihrer gesamten Tätigkeit."
+        },
+        {
+          "id": "d2",
+          "label": "Laptop",
+          "amount": 1800,
+          "options": ["bvGanz", "pv"],
+          "correct": "bvGanz",
+          "rules": ["R30"],
+          "explanation": "Der Laptop wird zu 70 % betrieblich genutzt, also zu mehr als 50 %. Er gehört zur Gänze zum Betriebsvermögen."
+        },
+        {
+          "id": "d3",
+          "label": "Couch Wohnzimmer",
+          "amount": 1290,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R31"],
+          "explanation": "Einrichtungsgegenstände der Wohnung sind nicht abzugsfähig."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "7-2",
+      "type": "entscheidungen",
+      "variantOf": "7-1",
+      "taxpayer": {
+        "name": "Florian Kern",
+        "job": "Unternehmensberater"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Florian Kern"], ["Einkunftsart", "Gewerbebetrieb, Unternehmensberatung"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Arbeitszimmer, anteilige Miete", "2.160,00 €"], ["Laptop", "1.800,00 €, als Betriebsvermögen erfasst"], ["Anzug für Kundentermine", "690,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Beschreibung der Tätigkeit",
+          "lines": [["Arbeitsort", "überwiegend in den Büros der Kunden, vier Tage pro Woche"], ["Arbeitszimmer", "für Vorbereitung und Abrechnung, ein Tag pro Woche"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Nutzungsaufzeichnung Laptop",
+          "lines": [["Betriebliche Nutzung", "40 %"], ["Private Nutzung", "60 %"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Herrenausstatter",
+          "lines": [["Anzug, dunkelblau", "690,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Arbeitszimmer",
+          "amount": 2160,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R31"],
+          "explanation": "Herr Kern arbeitet überwiegend bei den Kunden. Das Arbeitszimmer ist nicht der Mittelpunkt seiner gesamten Tätigkeit."
+        },
+        {
+          "id": "d2",
+          "label": "Laptop",
+          "amount": 1800,
+          "options": ["bvGanz", "pv"],
+          "correct": "pv",
+          "rules": ["R30"],
+          "explanation": "Die betriebliche Nutzung liegt mit 40 % nicht über 50 %. Der Laptop bleibt Privatvermögen, nur 40 % der Kosten sind Betriebsausgaben."
+        },
+        {
+          "id": "d3",
+          "label": "Anzug für Kundentermine",
+          "amount": 690,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R4", "R29"],
+          "explanation": "Ein Anzug ist bürgerliche Kleidung. Auch wenn er nur bei Kunden getragen wird, ist er wegen des Aufteilungsverbots nicht abzugsfähig."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "7-3",
+      "type": "entscheidungen",
+      "story": true,
+      "taxpayer": {
+        "name": "Toni Edlinger",
+        "job": "Sänger"
+      },
+      "representative": {
+        "name": "Pernold & Partner Steuerberatung",
+        "stampVisible": true
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einnahmen-Ausgaben-Rechnung 2025, Ausgaben",
+          "lines": [["Name", "Toni Edlinger"], ["Abendessen mit Konzertveranstalter Hartl", "640,00 €, zur Gänze"], ["Geburtstagsempfang im Palais", "4.200,00 €, zur Gänze"], ["Sportwagen, Anschaffungskosten", "120.000,00 €, Abschreibung vom vollen Betrag"], ["Eventservice GmbH, Tourneelogistik", "28.000,00 €"]],
+          "stamp": "Pernold & Partner"
+        },
+        {
+          "kind": "beleg",
+          "title": "Bewirtungsbeleg Restaurant",
+          "lines": [["Teilnehmer", "Toni Edlinger, Veranstalter Hartl"], ["Anlass", "Vertrag Sommertournee 2026, Werbepaket besprochen"], ["Betrag", "640,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Palais",
+          "lines": [["Anlass", "50. Geburtstag Toni Edlinger"], ["Gäste", "120 Freunde, Familie und Kollegen aus der Branche"], ["Betrag", "4.200,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Kaufvertrag Sportwagen",
+          "lines": [["Anschaffungskosten einschließlich Umsatzsteuer und NoVA", "120.000,00 €"], ["Vorsteuerabzug", "nein"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Eventservice GmbH",
+          "lines": [["Rechnungsnummer", "ES-2025-118"], ["Rechnungsdatum", "16.12.2025"], ["Leistung", "Tourneelogistik für 12 Konzerte, Herbsttournee 2025"], ["Betrag", "28.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Tourneeplan Herbst 2025",
+          "lines": [["Konzerte", "Linz, Graz, Salzburg, Innsbruck, Klagenfurt, St. Pölten, Wels, Bregenz"], ["Anzahl", "8 Konzerte"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Abendessen mit Veranstalter Hartl",
+          "amount": 640,
+          "options": ["voll", "haelfte", "nichts"],
+          "correct": "haelfte",
+          "rules": ["R33"],
+          "explanation": "Hartl ist Geschäftsfreund, Anlass und Werbezweck sind belegt. Die Bewirtung ist zur Hälfte abzugsfähig, nicht zur Gänze."
+        },
+        {
+          "id": "d2",
+          "label": "Geburtstagsempfang im Palais",
+          "amount": 4200,
+          "options": ["voll", "haelfte", "nichts"],
+          "correct": "nichts",
+          "rules": ["R33", "R29"],
+          "explanation": "Ein Geburtstagsfest mit Freunden und Familie ist Repräsentation und Lebensführung. Dass auch Kollegen kamen, ändert nichts."
+        },
+        {
+          "id": "d3",
+          "label": "Sportwagen: Grundlage der Abschreibung",
+          "amount": 120000,
+          "options": [
+            {
+              "value": "a40",
+              "label": "40.000 €"
+            },
+            {
+              "value": "a60",
+              "label": "60.000 €"
+            },
+            {
+              "value": "a120",
+              "label": "120.000 €"
+            }
+          ],
+          "correct": "a40",
+          "rules": ["R32"],
+          "explanation": "Angemessen sind 40.000 €. Abgeschrieben wird nur ein Drittel der Anschaffungskosten."
+        },
+        {
+          "id": "d4",
+          "label": "Eventservice GmbH, Tourneelogistik",
+          "amount": 28000,
+          "options": ["ba", "keineBa"],
+          "correct": "offen",
+          "rules": ["R7", "R19"],
+          "explanation": "Die Rechnung nennt 12 Konzerte, der Tourneeplan nur 8. Ohne Aufklärung lässt sich nicht beurteilen, ob der ganze Betrag betrieblich veranlasst ist."
+        }
+      ],
+      "discrepancies": [
+        {
+          "id": "w1",
+          "decision": "d4",
+          "a": {
+            "document": "Rechnung Eventservice GmbH",
+            "line": "Leistung"
+          },
+          "b": {
+            "document": "Tourneeplan Herbst 2025",
+            "line": "Anzahl"
+          },
+          "explanation": "12 Konzerte auf der Rechnung, 8 im Tourneeplan."
+        }
+      ],
+      "correctStamp": "ergaenzung",
+      "followUp": {
+        "arrivesOnDay": 8,
+        "documents": [
+          {
+            "kind": "beleg",
+            "title": "Schreiben Pernold & Partner",
+            "lines": [["Betreff", "Ergänzung Edlinger, Tourneelogistik"], ["Text", "Vier Konzerte wurden im September abgesagt. Laut Vertrag war die Logistik trotzdem für alle 12 Termine zu bezahlen."]],
+            "stamp": "Pernold & Partner"
+          },
+          {
+            "kind": "beleg",
+            "title": "Vertrag Eventservice GmbH, Auszug",
+            "lines": [["Punkt 7", "Bei Absage durch den Künstler sind die vereinbarten Leistungen in voller Höhe zu entgelten."], ["Unterschrift für die Eventservice GmbH", "Geschäftsführung"]]
+          }
+        ],
+        "decisions": [
+          {
+            "id": "d4",
+            "label": "Eventservice GmbH, Tourneelogistik",
+            "amount": 28000,
+            "options": ["ba", "keineBa"],
+            "correct": "ba",
+            "rules": ["R19"],
+            "explanation": "Der Vertrag erklärt den Unterschied. Auch das Entgelt für abgesagte Termine ist betrieblich veranlasst."
+          }
+        ],
+        "correctStamp": "bescheid"
+      }
+    },
+    {
+      "id": "7-4",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Gernot Gruber",
+        "job": "Malermeister"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einnahmen-Ausgaben-Rechnung 2025, Auszug",
+          "lines": [["Name", "Gernot Gruber"], ["Gewinn vor Spenden", "30.000,00 €"], ["Spende Freiwillige Feuerwehr Hollabrunn", "800,00 €"], ["Spende Fußballverein SV Hollabrunn", "500,00 €"], ["Weinpakete für Stammkunden", "350,00 €"], ["Strafmandat Falschparken vor der Baustelle", "90,00 €"], ["Einkommensteuer-Vorauszahlungen", "3.600,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Spendenbestätigung Feuerwehr",
+          "lines": [["Empfänger", "Freiwillige Feuerwehr Hollabrunn"], ["Betrag", "800,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Bestätigung SV Hollabrunn",
+          "lines": [["Empfänger", "Fußballverein, nicht auf der Liste der spendenbegünstigten Einrichtungen"], ["Betrag", "500,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Weinhandel",
+          "lines": [["Zehn Weinpakete, Weihnachtsgeschenk für Kunden", "350,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Strafverfügung",
+          "lines": [["Behörde", "Bezirkshauptmannschaft"], ["Betrag", "90,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Spende Freiwillige Feuerwehr",
+          "amount": 800,
+          "options": ["ba", "keineBa"],
+          "correct": "ba",
+          "rules": ["R34"],
+          "explanation": "Die Freiwillige Feuerwehr ist begünstigt. 800 € liegen unter 10 % des Gewinns von 30.000 €."
+        },
+        {
+          "id": "d2",
+          "label": "Spende Fußballverein",
+          "amount": 500,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R34"],
+          "explanation": "Der Verein ist nicht spendenbegünstigt."
+        },
+        {
+          "id": "d3",
+          "label": "Weinpakete für Stammkunden",
+          "amount": 350,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R33"],
+          "explanation": "Geschenke an Kunden sind Repräsentationsaufwand. Die Ausnahme gilt nur für die Bewirtung."
+        },
+        {
+          "id": "d4",
+          "label": "Strafmandat Falschparken",
+          "amount": 90,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R36"],
+          "explanation": "Strafen von Behörden sind nicht abzugsfähig, auch wenn sie bei der Arbeit entstehen."
+        },
+        {
+          "id": "d5",
+          "label": "Einkommensteuer-Vorauszahlungen",
+          "amount": 3600,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R37"],
+          "explanation": "Die Einkommensteuer ist eine Personensteuer und nicht abzugsfähig."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "7-5",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Kunststoffwerk Riedl e.U.",
+        "job": "Kunststoffverarbeitung, bilanzierend"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Gewinn- und Verlustrechnung 2025, Auszug",
+          "lines": [["Name", "Kunststoffwerk Riedl e.U."], ["Gehalt technischer Leiter Dr. Mayr", "620.000,00 €"], ["Gehalt Vertriebsleiterin Mag. Pichl, ab 1.7.2025", "300.000,00 €"], ["Werbebanner an der Westautobahn", "2.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Lohnkonto Dr. Mayr",
+          "lines": [["Beschäftigt", "1.1. bis 31.12.2025"], ["Bezüge", "620.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Lohnkonto Mag. Pichl",
+          "lines": [["Beschäftigt", "1.7. bis 31.12.2025, sechs Monate"], ["Bezüge", "300.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Werbeagentur",
+          "lines": [["Werbebanner mit Firmenlogo, 12 Monate", "2.000,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Gehalt Dr. Mayr: abzugsfähig",
+          "amount": 620000,
+          "options": [
+            {
+              "value": "m620",
+              "label": "620.000 €"
+            },
+            {
+              "value": "m500",
+              "label": "500.000 €"
+            },
+            {
+              "value": "m310",
+              "label": "310.000 €"
+            }
+          ],
+          "correct": "m500",
+          "rules": ["R35"],
+          "explanation": "Abzugsfähig sind höchstens 500.000 € pro Person und Jahr. 120.000 € sind nicht abzugsfähig."
+        },
+        {
+          "id": "d2",
+          "label": "Gehalt Mag. Pichl: abzugsfähig",
+          "amount": 300000,
+          "options": [
+            {
+              "value": "p300",
+              "label": "300.000 €"
+            },
+            {
+              "value": "p250",
+              "label": "250.000 €"
+            },
+            {
+              "value": "p500",
+              "label": "500.000 €"
+            }
+          ],
+          "correct": "p250",
+          "rules": ["R35"],
+          "explanation": "Sie war sechs Monate tätig. Die Grenze wird anteilig auf 250.000 € gekürzt, 50.000 € sind nicht abzugsfähig."
+        },
+        {
+          "id": "d3",
+          "label": "Werbebanner",
+          "amount": 2000,
+          "options": ["ba", "keineBa"],
+          "correct": "ba",
+          "rules": ["R19", "R33"],
+          "explanation": "Das ist Werbung für den Betrieb, keine Repräsentation. Der Aufwand ist zur Gänze Betriebsausgabe."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "8-1",
+      "type": "entscheidungen",
+      "story": true,
+      "taxpayer": {
+        "name": "Lea Lux",
+        "job": "Influencerin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025, handschriftlich ergänzt",
+          "lines": [["Name", "Lea Lux"], ["Einkunftsart", "Gewerbebetrieb, Social Media"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Kamera", "2.400,00 €, alles 2025 abgezogen"], ["Ringlicht", "180,00 €"], ["Gebrauchter Laptop", "1.300,00 €, degressiv 30 %"], ["Hotel Seeblick, Gratisaufenthalt für Posts", "nicht angegeben, war ja gratis"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Fotohandel",
+          "lines": [["Kamera mit Objektiv", "2.400,00 €"], ["Kaufdatum", "10.9.2025"], ["Nutzungsdauer laut Anlageverzeichnis", "4 Jahre"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Onlineshop",
+          "lines": [["Ringlicht", "180,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Kaufvertrag Laptop",
+          "lines": [["Verkäufer", "Privatperson"], ["Zustand", "gebraucht, zwei Jahre alt"], ["Preis", "1.300,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Kooperationsvereinbarung Hotel Seeblick",
+          "lines": [["Leistung des Hotels", "drei Nächte Suite mit Halbpension"], ["Gegenleistung", "fünf Instagram-Posts und zwei Reels"], ["Wert laut Hotel", "1.150,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Kamera: Absetzung 2025",
+          "answerType": "amount",
+          "correct": 300,
+          "rules": ["R40"],
+          "explanation": "2.400 € auf vier Jahre ergibt 600 € pro Jahr. Die Kamera wurde ab September genutzt, also weniger als sechs Monate. Es steht die Hälfte zu, 300 €."
+        },
+        {
+          "id": "d2",
+          "label": "Ringlicht: höchstmögliche Betriebsausgabe 2025",
+          "answerType": "amount",
+          "correct": 180,
+          "rules": ["R43"],
+          "explanation": "Die Kosten liegen unter 1.000 €. Als geringwertiges Wirtschaftsgut darf das Ringlicht sofort zur Gänze abgesetzt werden."
+        },
+        {
+          "id": "d3",
+          "label": "Gebrauchter Laptop: degressive Absetzung zulässig?",
+          "options": ["ja", "nein"],
+          "correct": "nein",
+          "rules": ["R41"],
+          "explanation": "Gebrauchte Wirtschaftsgüter dürfen nicht degressiv abgeschrieben werden."
+        },
+        {
+          "id": "d4",
+          "label": "Gratisaufenthalt im Hotel Seeblick",
+          "amount": 1150,
+          "options": ["betriebseinnahme", "keineBe"],
+          "correct": "betriebseinnahme",
+          "rules": ["R18"],
+          "explanation": "Der Aufenthalt ist die Bezahlung für Posts. Auch ein Zugang in Geldeswert ist eine Betriebseinnahme."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "8-2",
+      "type": "entscheidungen",
+      "story": true,
+      "taxpayer": {
+        "name": "Ferdinand Brandl",
+        "job": "Gastwirt, Goldener Hirsch"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Anlageverzeichnis 2025",
+          "lines": [["Name", "Ferdinand Brandl"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Kühlanlage und Elektroherd, neu", "14.800,00 €, angeschafft 1.3.2025, Nutzungsdauer 10 Jahre"], ["Absetzung 2025 laut Erklärung", "4.440,00 €"], ["Alte Siebträgermaschine", "nach Hause mitgenommen, nicht erfasst"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Gastrotechnik Süd",
+          "lines": [["Kühlanlage und Elektroherd, Neugeräte", "14.800,00 €"], ["Lieferung", "1.3.2025"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Anlagekarte Siebträgermaschine",
+          "lines": [["Restbuchwert am Tag der Mitnahme", "300,00 €"], ["Mitgenommen am", "2.6.2025, seither in der Privatküche"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Bewertung Gastrotechnik Süd",
+          "lines": [["Wert der Siebträgermaschine am 2.6.2025", "900,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Kühlanlage und Herd: lineare Absetzung 2025",
+          "answerType": "amount",
+          "correct": 1480,
+          "rules": ["R40"],
+          "explanation": "14.800 € auf zehn Jahre ergibt 1.480 €. Die Geräte wurden ab März genutzt, mehr als sechs Monate, also der volle Jahresbetrag."
+        },
+        {
+          "id": "d2",
+          "label": "Ist die erklärte degressive Absetzung von 4.440 € zulässig?",
+          "options": ["ja", "nein"],
+          "correct": "ja",
+          "rules": ["R41"],
+          "explanation": "Die Geräte sind neu und elektrisch betrieben. 30 % von 14.800 € sind 4.440 €, das ist der Höchstsatz."
+        },
+        {
+          "id": "d3",
+          "label": "Siebträgermaschine: Betriebseinnahme aus der Entnahme",
+          "answerType": "amount",
+          "correct": 600,
+          "rules": ["R22", "R39"],
+          "explanation": "Die Entnahme wird mit dem Teilwert von 900 € bewertet. Abzüglich des Restbuchwerts von 300 € entsteht eine Betriebseinnahme von 600 €."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "8-3",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Bäckerei Reiter e.U.",
+        "job": "Bäckerei, bilanzierend"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Anlagenzugänge 2025",
+          "lines": [["Name", "Bäckerei Reiter e.U."], ["Produktionshalle mit Grundstück", "750.000,00 €, angeschafft 3.3.2025"], ["Lieferwagen Pkw-Kombi", "48.000,00 €, angeschafft 7.1.2025"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Kaufvertrag Produktionshalle",
+          "lines": [["Kaufpreis gesamt", "750.000,00 €"], ["davon Grund und Boden", "150.000,00 €"], ["davon Gebäude", "600.000,00 €"], ["Nutzung", "ausschließlich Backstube und Lager"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Kaufvertrag Kombi",
+          "lines": [["Anschaffungskosten einschließlich Umsatzsteuer und NoVA", "48.000,00 €"], ["Vorsteuerabzug", "nein"], ["Fahrzeug", "neu"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Gebäude: Absetzung 2025 ohne Beschleunigung",
+          "answerType": "amount",
+          "correct": 15000,
+          "rules": ["R42", "R40"],
+          "explanation": "2,5 % von 600.000 € sind 15.000 €. Die Halle wird seit März genutzt, also mehr als sechs Monate."
+        },
+        {
+          "id": "d2",
+          "label": "Grund und Boden, 150.000 €",
+          "options": ["afa", "keineAfa"],
+          "correct": "keineAfa",
+          "rules": ["R42", "R38"],
+          "explanation": "Grund und Boden nutzt sich nicht ab. Er wird mit den Anschaffungskosten angesetzt und nicht abgeschrieben."
+        },
+        {
+          "id": "d3",
+          "label": "Kombi: Absetzung 2025",
+          "answerType": "amount",
+          "correct": 5000,
+          "rules": ["R42", "R32"],
+          "explanation": "Angemessen sind 40.000 €, die Nutzungsdauer beträgt acht Jahre. 40.000 € durch acht ergibt 5.000 €."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "8-4",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Elektrohandel Zeiler e.U.",
+        "job": "Elektrohandel, bilanzierend"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Bilanz 31.12.2025, Auszug",
+          "lines": [["Name", "Elektrohandel Zeiler e.U."], ["Lager: 12 Waschmaschinen", "Anschaffungskosten je 400,00 €"], ["Eingelegter Kastenwagen", "angesetzt mit 20.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Vermerk Inventur",
+          "lines": [["Waschmaschinen, Vorjahresmodell", "Wiederbeschaffung derzeit 250,00 € je Stück"], ["Teilwert laut Inventur", "250,00 € je Stück"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Einlagebeleg Kastenwagen",
+          "lines": [["Fahrzeug", "Kastenwagen mit Lkw-Zulassung, bisher privat"], ["Privat angeschafft 2022 um", "20.000,00 €"], ["Teilwert am Tag der Einlage, 1.4.2025", "12.000,00 €"], ["Restnutzungsdauer", "4 Jahre"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Waschmaschinen: niedrigster zulässiger Ansatz",
+          "answerType": "amount",
+          "correct": 3000,
+          "rules": ["R38"],
+          "explanation": "Umlaufvermögen darf mit dem niedrigeren Teilwert angesetzt werden: 12 Stück zu 250 € ergibt 3.000 €."
+        },
+        {
+          "id": "d2",
+          "label": "Kastenwagen: Einlagewert",
+          "answerType": "amount",
+          "correct": 12000,
+          "rules": ["R39"],
+          "explanation": "Einlagen werden mit dem Teilwert im Zeitpunkt der Zuführung bewertet, nicht mit den früheren Anschaffungskosten."
+        },
+        {
+          "id": "d3",
+          "label": "Kastenwagen: Absetzung 2025",
+          "answerType": "amount",
+          "correct": 3000,
+          "rules": ["R40", "R39"],
+          "explanation": "12.000 € auf vier Jahre Restnutzungsdauer ergibt 3.000 €. Von April bis Dezember sind es neun Monate, also der volle Jahresbetrag."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "8-5",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Sandra Ofner",
+        "job": "Physiotherapeutin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Anlageverzeichnis 2025",
+          "lines": [["Name", "Sandra Ofner"], ["Einkunftsart", "selbständige Arbeit"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Massageliege", "950,00 €, angeschafft 12.2.2025"], ["Ultraschallgerät", "3.600,00 €, angeschafft 15.10.2025, Nutzungsdauer 6 Jahre"], ["Bürosessel für die Praxis", "1.050,00 €, angeschafft 8.1.2025, Nutzungsdauer 5 Jahre"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnungen Praxisbedarf",
+          "lines": [["Massageliege", "950,00 €"], ["Ultraschallgerät", "3.600,00 €"], ["Bürosessel", "1.050,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Massageliege: höchstmögliche Betriebsausgabe 2025",
+          "answerType": "amount",
+          "correct": 950,
+          "rules": ["R43"],
+          "explanation": "Die Liege kostet höchstens 1.000 € und darf als geringwertiges Wirtschaftsgut sofort abgesetzt werden."
+        },
+        {
+          "id": "d2",
+          "label": "Ultraschallgerät: lineare Absetzung 2025",
+          "answerType": "amount",
+          "correct": 300,
+          "rules": ["R40"],
+          "explanation": "3.600 € auf sechs Jahre ergibt 600 €. Ab Mitte Oktober sind es weniger als sechs Monate, also die Hälfte."
+        },
+        {
+          "id": "d3",
+          "label": "Bürosessel: lineare Absetzung 2025",
+          "answerType": "amount",
+          "correct": 210,
+          "rules": ["R40", "R43"],
+          "explanation": "Mit 1.050 € liegt der Sessel über der Grenze von 1.000 €. 1.050 € auf fünf Jahre ergibt 210 €, ganzjährig genutzt."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "9-1",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Wolfgang Hable",
+        "job": "Tischler"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einnahmen-Ausgaben-Rechnung 2025, Auszug",
+          "lines": [["Name", "Wolfgang Hable"], ["Gehalt Ehefrau Birgit, Büro", "19.800,00 €"], ["Zinsen Darlehen Bruder Kurt", "2.400,00 €"], ["Rasenmähen Privathaus durch Sohn", "600,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Dienstvertrag Birgit Hable",
+          "lines": [["Form", "schriftlich, unterschrieben am 2.1.2025"], ["Tätigkeit", "Buchhaltung, Angebote, Telefon, 20 Stunden pro Woche"], ["Entgelt", "nach Kollektivvertrag"], ["Anmeldung Sozialversicherung", "ja, seit 2.1.2025"], ["Arbeitszeitaufzeichnung", "vorhanden"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Bestätigung Kurt Hable",
+          "lines": [["Darlehen", "30.000,00 €, mündlich vereinbart"], ["Zinsen", "8 % pro Jahr"], ["Laufzeit und Rückzahlung", "nicht festgelegt"], ["Sicherheiten", "keine"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Zahlungsbeleg",
+          "lines": [["Empfänger", "Sohn Lukas"], ["Grund", "Rasenmähen im Garten des Wohnhauses, Sommer 2025"], ["Betrag", "600,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Gehalt der Ehefrau",
+          "amount": 19800,
+          "options": ["ba", "keineBa"],
+          "correct": "ba",
+          "rules": ["R46"],
+          "explanation": "Der Vertrag ist schriftlich, bei der Sozialversicherung gemeldet, im Inhalt klar und entspricht dem Kollektivvertrag. Er hält dem Fremdvergleich stand."
+        },
+        {
+          "id": "d2",
+          "label": "Zinsen an den Bruder",
+          "amount": 2400,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R46"],
+          "explanation": "Nur mündlich, ohne Laufzeit, Rückzahlung oder Sicherheit. Einem Fremden würde niemand so 30.000 € leihen. Der Vertrag wird nicht anerkannt."
+        },
+        {
+          "id": "d3",
+          "label": "Rasenmähen durch den Sohn",
+          "amount": 600,
+          "options": ["ba", "keineBa"],
+          "correct": "keineBa",
+          "rules": ["R3", "R46"],
+          "explanation": "Der Garten des Wohnhauses ist privat. Die Zahlung hat mit dem Betrieb nichts zu tun."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "9-2",
+      "type": "entscheidungen",
+      "story": true,
+      "taxpayer": {
+        "name": "Ferdinand Brandl",
+        "job": "Gastwirt, Goldener Hirsch"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einnahmen-Ausgaben-Rechnung 2025, Auszug",
+          "lines": [["Name", "Ferdinand Brandl"], ["Gehalt Ehefrau Renate, Service", "18.000,00 €"], ["Geschirrspülanlage, neu", "9.000,00 €, angeschafft 28.12.2025, Nutzungsdauer 8 Jahre"], ["Investitionsbedingter Gewinnfreibetrag", "beantragt"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Dienstvertrag Renate Brandl",
+          "lines": [["Form", "schriftlich"], ["Tätigkeit", "Service im Gastraum, 25 Stunden pro Woche"], ["Entgelt", "1.500,00 € monatlich, zwölfmal"], ["Anmeldung Sozialversicherung", "ja"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Dienstplan Goldener Hirsch, Oktober bis Dezember 2025",
+          "lines": [["Servicekräfte", "Huber, Lechner, Novak, Steindl"], ["Renate Brandl", "nicht eingetragen"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Rechnung Gastrotechnik Süd",
+          "lines": [["Geschirrspülanlage, Neugerät", "9.000,00 €"], ["Lieferung und Inbetriebnahme", "28.12.2025"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Gehalt der Ehefrau",
+          "amount": 18000,
+          "options": ["ba", "keineBa"],
+          "correct": "offen",
+          "rules": ["R46", "R7"],
+          "explanation": "Der Vertrag ist schriftlich und gemeldet. Laut Dienstplan arbeitet Frau Brandl aber nie im Service. Ob der Vertrag so durchgeführt wird, ist zu klären."
+        },
+        {
+          "id": "d2",
+          "label": "Geschirrspülanlage begünstigt für den investitionsbedingten Gewinnfreibetrag?",
+          "amount": 9000,
+          "options": ["ja", "nein"],
+          "correct": "ja",
+          "rules": ["R47"],
+          "explanation": "Die Anlage ist neu, abnutzbar, körperlich und hat acht Jahre Nutzungsdauer. Dass sie erst am 28.12. angeschafft wurde, ist für den Gewinnfreibetrag unerheblich."
+        }
+      ],
+      "discrepancies": [
+        {
+          "id": "w1",
+          "decision": "d1",
+          "a": {
+            "document": "Dienstvertrag Renate Brandl",
+            "line": "Tätigkeit"
+          },
+          "b": {
+            "document": "Dienstplan Goldener Hirsch, Oktober bis Dezember 2025",
+            "line": "Renate Brandl"
+          },
+          "explanation": "Laut Vertrag 25 Stunden Service pro Woche, laut Dienstplan keine einzige Schicht."
+        }
+      ],
+      "inquiry": {
+        "decision": "d1",
+        "prompt": "Was wollen Sie klären?",
+        "options": [
+          {
+            "id": "q1",
+            "label": "Welche Arbeiten hat Frau Brandl tatsächlich geleistet, und wann?",
+            "answer": "Sie hilft aus, wenn Not am Mann ist. Aufzeichnungen über die Stunden gibt es keine."
+          },
+          {
+            "id": "q2",
+            "label": "Wie wird das Gehalt ausbezahlt?",
+            "answer": "Bar aus der Kassa, jeweils am Monatsende."
+          },
+          {
+            "id": "q3",
+            "label": "Seit wann ist Frau Brandl bei der Sozialversicherung gemeldet?",
+            "answer": "Seit 1. Jänner 2020."
+          }
+        ],
+        "correct": "q1"
+      },
+      "correctStamp": "ergaenzung",
+      "followUp": {
+        "arrivesOnDay": 10,
+        "documents": [
+          {
+            "kind": "beleg",
+            "title": "Antwort Ferdinand Brandl",
+            "lines": [["Tätigkeit meiner Frau", "Sie hilft aus, wenn Not am Mann ist."], ["Arbeitszeiten", "Aufzeichnungen gibt es keine, das war nie nötig."]]
+          }
+        ],
+        "decisions": [
+          {
+            "id": "d1",
+            "label": "Gehalt der Ehefrau",
+            "amount": 18000,
+            "options": ["ba", "keineBa"],
+            "correct": "keineBa",
+            "rules": ["R46"],
+            "explanation": "Ein fixes Gehalt für gelegentliches Aushelfen ohne Aufzeichnungen würde ein Fremder nicht bekommen. Der Vertrag wird nicht wie vereinbart durchgeführt, das ist familiäre Mithilfe."
+          }
+        ],
+        "correctStamp": "bescheid"
+      }
+    },
+    {
+      "id": "9-3",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Sandra Ofner",
+        "job": "Physiotherapeutin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Sandra Ofner"], ["Einkunftsart", "selbständige Arbeit"], ["Gewinn vor Gewinnfreibetrag", "28.000,00 €"], ["Investitionen 2025", "Ultraschallgerät 3.600,00 €, neu"], ["Gewinnfreibetrag laut Erklärung", "nicht beantragt"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Gewinnfreibetrag 2025",
+          "answerType": "amount",
+          "correct": 4200,
+          "rules": ["R47"],
+          "explanation": "Der Gewinn liegt unter 33.000 €. Es steht nur der Grundfreibetrag zu: 15 % von 28.000 € sind 4.200 €. Dafür braucht es keine Investition."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "9-4",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Hubert Fuchs",
+        "job": "Installateur"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Hubert Fuchs e.U."], ["Gewinn vor Gewinnfreibetrag", "60.000,00 €"], ["Rohrbiegemaschine, neu", "5.000,00 €, Nutzungsdauer 6 Jahre"], ["Firmen-Pkw, neu", "30.000,00 €"], ["Kompressor, gebraucht", "1.200,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Firmen-Pkw begünstigt?",
+          "amount": 30000,
+          "options": ["ja", "nein"],
+          "correct": "nein",
+          "rules": ["R47"],
+          "explanation": "Pkw und Kombi sind vom investitionsbedingten Gewinnfreibetrag ausgeschlossen."
+        },
+        {
+          "id": "d2",
+          "label": "Gebrauchter Kompressor begünstigt?",
+          "amount": 1200,
+          "options": ["ja", "nein"],
+          "correct": "nein",
+          "rules": ["R47"],
+          "explanation": "Gebrauchte Wirtschaftsgüter sind ausgeschlossen."
+        },
+        {
+          "id": "d3",
+          "label": "Gewinnfreibetrag 2025 gesamt",
+          "answerType": "amount",
+          "correct": 8460,
+          "rules": ["R47"],
+          "explanation": "Grundfreibetrag 15 % von 33.000 € = 4.950 €. Für die übrigen 27.000 € stehen 13 % zu, also 3.510 €. Die begünstigte Rohrbiegemaschine um 5.000 € deckt diesen Betrag. Zusammen 8.460 €."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "9-5",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Klara Berger",
+        "job": "Fotografin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Klara Berger"], ["Einkunftsart", "selbständige Arbeit, einzige Einkunftsquelle"], ["Gewinn vor Gewinnfreibetrag", "35.150,00 €"], ["Investitionen 2025", "keine"], ["Sonderausgaben, außergewöhnliche Belastungen", "keine"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Gewinnfreibetrag",
+          "answerType": "amount",
+          "correct": 4950,
+          "rules": ["R47"],
+          "explanation": "Ohne Investitionen steht nur der Grundfreibetrag zu: 15 % von höchstens 33.000 € sind 4.950 €."
+        },
+        {
+          "id": "d2",
+          "label": "Einkommen 2025",
+          "answerType": "amount",
+          "correct": 30200,
+          "rules": ["R48", "R8"],
+          "explanation": "35.150 € minus 4.950 € Gewinnfreibetrag ergibt 30.200 €. Weitere Einkünfte oder Abzüge gibt es nicht."
+        },
+        {
+          "id": "d3",
+          "label": "Einkommensteuer 2025",
+          "answerType": "amount",
+          "correct": 4236.7,
+          "rules": ["R48"],
+          "explanation": "Bis 13.308 € 0 €. Von 13.308 € bis 21.617 € 20 % von 8.309 € = 1.661,80 €. Von 21.617 € bis 30.200 € 30 % von 8.583 € = 2.574,90 €. Zusammen 4.236,70 €."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "9-6",
+      "type": "entscheidungen",
+      "variantOf": "9-5",
+      "taxpayer": {
+        "name": "Jonas Reisinger",
+        "job": "Tontechniker"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Jonas Reisinger"], ["Einkunftsart", "Gewerbebetrieb, einzige Einkunftsquelle"], ["Gewinn vor Gewinnfreibetrag", "26.000,00 €"], ["Investitionen 2025", "keine"], ["Sonderausgaben, außergewöhnliche Belastungen", "keine"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Gewinnfreibetrag",
+          "answerType": "amount",
+          "correct": 3900,
+          "rules": ["R47"],
+          "explanation": "15 % von 26.000 € sind 3.900 €."
+        },
+        {
+          "id": "d2",
+          "label": "Einkommen 2025",
+          "answerType": "amount",
+          "correct": 22100,
+          "rules": ["R48", "R8"],
+          "explanation": "26.000 € minus 3.900 € ergibt 22.100 €."
+        },
+        {
+          "id": "d3",
+          "label": "Einkommensteuer 2025",
+          "answerType": "amount",
+          "correct": 1806.7,
+          "rules": ["R48"],
+          "explanation": "20 % von 8.309 € = 1.661,80 €, dazu 30 % von 483 € (21.617 € bis 22.100 €) = 144,90 €. Zusammen 1.806,70 €."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "10-1",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Martin Ecker",
+        "job": "Elektrotechniker"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Martin Ecker"], ["Gewerbebetrieb A: Elektroinstallation", "Gewinn 40.000,00 €"], ["Gewerbebetrieb B: Onlineshop Ersatzteile", "Verlust 10.000,00 €"], ["Vermietung einer Garage", "Verlust 5.000,00 €"], ["Gehalt als Teilzeit-Lehrbeauftragter", "Einkünfte 30.000,00 €"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Verlust Onlineshop mit Gewinn Elektroinstallation",
+          "options": ["horizontal", "vertikal"],
+          "correct": "horizontal",
+          "rules": ["R49", "R9"],
+          "explanation": "Beide Betriebe sind Gewerbebetrieb, also dieselbe Einkunftsart."
+        },
+        {
+          "id": "d2",
+          "label": "Verlust aus der Garagenvermietung",
+          "options": ["horizontal", "vertikal"],
+          "correct": "vertikal",
+          "rules": ["R49", "R9"],
+          "explanation": "Vermietung und Verpachtung ist eine andere Einkunftsart. Der Verlust wird mit Einkünften aus anderen Einkunftsarten ausgeglichen."
+        },
+        {
+          "id": "d3",
+          "label": "Gesamtbetrag der Einkünfte 2025",
+          "answerType": "amount",
+          "correct": 55000,
+          "rules": ["R49"],
+          "explanation": "40.000 € minus 10.000 € minus 5.000 € plus 30.000 € ergibt 55.000 €."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "10-2",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Stefan Wurm",
+        "job": "Fliesenleger"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Stefan Wurm"], ["Einkünfte aus Gewerbebetrieb 2025, nach Gewinnfreibetrag", "20.000,00 €"], ["Weitere Einkünfte", "keine"], ["Verlustvortrag beantragt", "11.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Aufstellung Verluste",
+          "lines": [["Verlust 2023", "3.000,00 €, im Bescheid 2023 mit Einkünften aus nichtselbständiger Arbeit ausgeglichen"], ["Verlust 2024", "8.000,00 €, ordnungsgemäße Einnahmen-Ausgaben-Rechnung, bisher nicht berücksichtigt"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Abziehbarer Verlustvortrag 2025",
+          "answerType": "amount",
+          "correct": 8000,
+          "rules": ["R51"],
+          "explanation": "Der Verlust 2023 wurde schon 2023 ausgeglichen und kann nicht noch einmal abgezogen werden. Abziehbar ist nur der Verlust 2024 mit 8.000 €."
+        },
+        {
+          "id": "d2",
+          "label": "Einkommen 2025",
+          "answerType": "amount",
+          "correct": 12000,
+          "rules": ["R51", "R48"],
+          "explanation": "20.000 € minus 8.000 € Verlustvortrag ergibt 12.000 €."
+        },
+        {
+          "id": "d3",
+          "label": "Einkommensteuer 2025",
+          "answerType": "amount",
+          "correct": 0,
+          "rules": ["R48"],
+          "explanation": "Das Einkommen liegt unter 13.308 €. Die Steuer beträgt 0 €."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "10-3",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Dr. Elisabeth Hauer",
+        "job": "Zahnärztin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Dr. Elisabeth Hauer"], ["Ordination, selbständige Arbeit", "Gewinn 120.000,00 €"], ["Beteiligung Sonnenkraft Steuermodell KG", "Verlustanteil 24.000,00 €"], ["Eigene Zahntechnik-Werkstatt, Gewerbebetrieb, Neugründung 2024", "Verlust 6.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Werbeprospekt Sonnenkraft Steuermodell KG",
+          "lines": [["Angebot", "Beteiligung ab 10.000 €, für alle Anleger offen"], ["Rendite vor Steuern", "2 % pro Jahr"], ["Rendite nach Steuern", "7 % pro Jahr, dank Verlustzuweisung"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Beschreibung Werkstatt",
+          "lines": [["Tätigkeit", "Herstellung von Zahnersatz für drei Ordinationen"], ["Verlustursache", "Anschaffung der Geräte im ersten Jahr"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Verlustanteil Sonnenkraft Steuermodell KG",
+          "amount": 24000,
+          "options": ["ausgleichsfaehig", "nichtAusgleichsfaehig"],
+          "correct": "nichtAusgleichsfaehig",
+          "rules": ["R50"],
+          "explanation": "Die Beteiligung wird allgemein angeboten, und die Rendite nach Steuern ist mehr als doppelt so hoch wie vor Steuern. Der Verlust bleibt auf der Wartetaste."
+        },
+        {
+          "id": "d2",
+          "label": "Verlust Zahntechnik-Werkstatt",
+          "amount": 6000,
+          "options": ["ausgleichsfaehig", "nichtAusgleichsfaehig"],
+          "correct": "ausgleichsfaehig",
+          "rules": ["R49", "R52"],
+          "explanation": "Ein gewöhnlicher Betrieb im Anlaufzeitraum. Der Verlust wird mit dem Gewinn der Ordination ausgeglichen."
+        },
+        {
+          "id": "d3",
+          "label": "Gesamtbetrag der Einkünfte 2025",
+          "answerType": "amount",
+          "correct": 114000,
+          "rules": ["R49", "R50"],
+          "explanation": "120.000 € minus 6.000 € ergibt 114.000 €. Der Verlust der Steuermodell-KG wird nicht abgezogen."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "10-4",
+      "type": "entscheidungen",
+      "story": true,
+      "taxpayer": {
+        "name": "Konstantin Haller",
+        "job": "Investor, Weingut Rosenhang"
+      },
+      "representative": {
+        "name": "Pernold & Partner Steuerberatung",
+        "stampVisible": true
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Konstantin Haller"], ["Einkünfte aus Vermietung und Verpachtung, Zinshaus", "250.000,00 €"], ["Weingut Rosenhang, Land- und Forstwirtschaft", "Verlust 64.000,00 €"], ["Verlustausgleich", "beantragt"]],
+          "stamp": "Pernold & Partner"
+        },
+        {
+          "kind": "beleg",
+          "title": "Ergebnisübersicht Weingut Rosenhang",
+          "lines": [["Betrieb seit", "2016"], ["Ergebnisse 2016 bis 2025", "jedes Jahr Verlust, zwischen 38.000 € und 71.000 €"], ["Gewinne bisher", "keine"], ["Maßnahmen zur Verbesserung", "keine, Bewirtschaftung unverändert"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Preisliste Weingut Rosenhang",
+          "lines": [["Grüner Veltliner, 0,75 l", "4,00 €"], ["Vergleichbare Weingüter der Region laut Weinbauverband", "11,00 € bis 14,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Lieferschein-Übersicht 2025",
+          "lines": [["Größter Abnehmer", "Haller Holding, Veranstaltungen"], ["Anteil der Jahresmenge", "rund 70 %"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Liegt das Weingut noch im Anlaufzeitraum?",
+          "options": ["ja", "nein"],
+          "correct": "nein",
+          "rules": ["R52"],
+          "explanation": "Der Betrieb läuft seit 2016. Die ersten drei Jahre sind längst vorbei."
+        },
+        {
+          "id": "d2",
+          "label": "Weingut Rosenhang",
+          "options": ["einkunftsquelle", "liebhaberei"],
+          "correct": "liebhaberei",
+          "rules": ["R52"],
+          "explanation": "Zehn Jahre nur Verluste, nie ein Gewinn, Preise weit unter dem Markt und keine Verbesserungsmaßnahmen. Ein Gesamtgewinn ist nicht absehbar. Das ist Liebhaberei."
+        },
+        {
+          "id": "d3",
+          "label": "Gesamtbetrag der Einkünfte 2025",
+          "answerType": "amount",
+          "correct": 250000,
+          "rules": ["R52", "R49"],
+          "explanation": "Der Verlust aus Liebhaberei ist steuerlich unbeachtlich und wird nicht ausgeglichen. Es bleiben 250.000 €."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "10-5",
+      "type": "entscheidungen",
+      "story": true,
+      "taxpayer": {
+        "name": "Posteingang Kanzleien und Vertreter"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Eingangsliste",
+          "lines": [["A", "Antrag auf Fristverlängerung für Toni Edlinger, von Dr. Viktor Pernold, Steuerberater, mit dem Vermerk „namens und auftrags meines Mandanten“, keine Vollmachtsurkunde beigelegt"], ["B", "Antrag auf Fristverlängerung für Ferdinand Brandl, eingebracht von Martina Wolf, Eventservice GmbH, keine Vollmacht und kein Hinweis auf eine Bevollmächtigung"], ["C", "Einkommensteuererklärung 2025 von Dr. Lorenz Maier, auf Papier, nicht unterschrieben"], ["D", "Antrag von Ing. Gustav Pree, Mangel festgestellt, Mängelbehebungsauftrag mit Frist von zwei Wochen, die Frist ist abgelaufen, keine Antwort eingelangt"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "A: Antrag Pernold für Edlinger",
+          "options": ["wirksam", "maengel", "zurueckgenommen", "zurueckweisen"],
+          "correct": "wirksam",
+          "rules": ["R54"],
+          "explanation": "Ein Steuerberater muss keine Vollmacht vorlegen. Die Berufung auf die Vollmacht ersetzt den Nachweis."
+        },
+        {
+          "id": "d2",
+          "label": "B: Antrag Wolf für Brandl",
+          "options": ["wirksam", "maengel", "zurueckgenommen", "zurueckweisen"],
+          "correct": "maengel",
+          "rules": ["R54", "R53"],
+          "explanation": "Frau Wolf ist keine berufsmäßige Parteienvertreterin. Sie muss die Vollmacht nachweisen. Der Mangel wird behoben, nicht zurückgewiesen."
+        },
+        {
+          "id": "d3",
+          "label": "C: Erklärung Dr. Maier ohne Unterschrift",
+          "options": ["wirksam", "maengel", "zurueckgenommen", "zurueckweisen"],
+          "correct": "maengel",
+          "rules": ["R53"],
+          "explanation": "Eine fehlende Unterschrift berechtigt nicht zur Zurückweisung. Die Behebung wird mit Frist aufgetragen."
+        },
+        {
+          "id": "d4",
+          "label": "D: Antrag Ing. Pree nach Fristablauf",
+          "options": ["wirksam", "maengel", "zurueckgenommen", "zurueckweisen"],
+          "correct": "zurueckgenommen",
+          "rules": ["R53"],
+          "explanation": "Die Frist zur Mängelbehebung ist ungenützt verstrichen. Das Anbringen gilt als zurückgenommen."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "10-6",
+      "type": "entscheidungen",
+      "variantOf": "10-4",
+      "taxpayer": {
+        "name": "Theresa Mold",
+        "job": "Winzerin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025",
+          "lines": [["Name", "Theresa Mold"], ["Einkünfte aus nichtselbständiger Arbeit, Teilzeit", "28.000,00 €"], ["Weingut Mold, Land- und Forstwirtschaft", "Verlust 9.000,00 €"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Betriebsbeschreibung Weingut Mold",
+          "lines": [["Betrieb seit", "Juni 2024, übernommene Rebflächen neu bepflanzt"], ["Preise", "12,00 € je Flasche, wie in der Region üblich"], ["Planrechnung", "Gewinne ab 2028 erwartet"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Liegt das Weingut noch im Anlaufzeitraum?",
+          "options": ["ja", "nein"],
+          "correct": "ja",
+          "rules": ["R52"],
+          "explanation": "Der Betrieb besteht seit 2024. 2025 ist das zweite Jahr."
+        },
+        {
+          "id": "d2",
+          "label": "Weingut Mold",
+          "options": ["einkunftsquelle", "liebhaberei"],
+          "correct": "einkunftsquelle",
+          "rules": ["R52"],
+          "explanation": "Im Anlaufzeitraum liegt jedenfalls eine Einkunftsquelle vor. Preise und Planung sprechen ohnehin für eine Gewinnabsicht."
+        },
+        {
+          "id": "d3",
+          "label": "Gesamtbetrag der Einkünfte 2025",
+          "answerType": "amount",
+          "correct": 19000,
+          "rules": ["R49", "R52"],
+          "explanation": "28.000 € minus 9.000 € Verlust ergibt 19.000 €."
+        }
+      ],
+      "correctStamp": "bescheid"
+    },
+    {
+      "id": "10-7",
+      "type": "entscheidungen",
+      "taxpayer": {
+        "name": "Ingrid Kainz",
+        "job": "Lehrerin und Übersetzerin"
+      },
+      "documents": [
+        {
+          "kind": "erklaerung",
+          "title": "Einkommensteuererklärung 2025, Beilage Übersetzungen",
+          "lines": [["Name", "Ingrid Kainz"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Laptop für Übersetzungen", "900,00 €, angeschafft 4.11.2025, nur betrieblich"], ["Honorar Verlag Lindner, Dezember-Auftrag", "1.100,00 €"], ["Abendessen mit Lektorin des Verlags", "120,00 €, zur Gänze"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Kontoauszug",
+          "lines": [["Honorar Verlag Lindner", "eingegangen am 9.1.2026"]]
+        },
+        {
+          "kind": "beleg",
+          "title": "Bewirtungsbeleg",
+          "lines": [["Teilnehmer", "Ingrid Kainz, Lektorin Verlag Lindner"], ["Anlass", "Folgeauftrag Fachbuch 2026 besprochen"]]
+        }
+      ],
+      "decisions": [
+        {
+          "id": "d1",
+          "label": "Laptop: höchstmögliche Betriebsausgabe 2025",
+          "answerType": "amount",
+          "correct": 900,
+          "rules": ["R43"],
+          "explanation": "900 € liegen unter 1.000 €. Als geringwertiges Wirtschaftsgut darf der Laptop sofort zur Gänze abgesetzt werden, die Halbjahresregel spielt keine Rolle."
+        },
+        {
+          "id": "d2",
+          "label": "Honorar Dezember-Auftrag: Einnahme in",
+          "amount": 1100,
+          "options": ["y2025", "y2026"],
+          "correct": "y2026",
+          "rules": ["R13", "R21"],
+          "explanation": "Bei der Einnahmen-Ausgaben-Rechnung zählt der Zufluss am 9.1.2026."
+        },
+        {
+          "id": "d3",
+          "label": "Abendessen mit der Lektorin",
+          "amount": 120,
+          "options": ["voll", "haelfte", "nichts"],
+          "correct": "haelfte",
+          "rules": ["R33"],
+          "explanation": "Bewirtung einer Geschäftsfreundin mit belegtem Werbezweck ist zur Hälfte abzugsfähig."
+        }
+      ],
+      "correctStamp": "bescheid"
+    }
+  ]
+}

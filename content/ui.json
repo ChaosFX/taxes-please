@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "title": {
     "heading": "Taxes Please",
     "year": "Veranlagungsjahr {year}",
@@ -11,7 +11,10 @@
     "day": "Tag {day}",
     "noteFrom": "– {from}",
     "speaker": "{from}:",
-    "begin": "An den Schreibtisch"
+    "begin": "An den Schreibtisch",
+    "newspaper": "Morgenzeitung",
+    "call": "Anruf von {from}",
+    "unlockCalculator": "Neben dem Kodex steht ab heute ein Tischrechner."
   },
   "desk": {
     "day": "Tag {day}",
@@ -26,7 +29,16 @@
     "stamps": "Stempel",
     "outbox": "Ausgangskorb",
     "outboxButton": "In den Ausgangskorb",
-    "stampFirst": "Erst stempeln, dann ablegen."
+    "stampFirst": "Erst stempeln, dann ablegen.",
+    "amountLabel": "Betrag in €",
+    "amountPlaceholder": "0,00",
+    "inquiryHeading": "Nachfrage",
+    "inquiryRequired": "Wählen Sie zuerst, was Sie nachfragen.",
+    "markMode": "Widerspruch markieren",
+    "markHint": "Wählen Sie zwei Angaben in zwei Papieren, die nicht zusammenpassen.",
+    "markCount": "Markierte Widersprüche: {count}",
+    "markClear": "Markierungen aufheben",
+    "akteNoJob": "Akte {id} · {name}"
   },
   "verdict": {
     "anerkennen": "anerkennen",
@@ -42,7 +54,8 @@
     "simplified": "vereinfacht",
     "sourceSeparator": " · ",
     "searchPlaceholder": "Kodex durchsuchen …",
-    "hits": "{count} Treffer"
+    "hits": "{count} Treffer",
+    "hint": "Hinweis, ohne eigenen Fall"
   },
   "evaluation": {
     "heading": "Tagesauswertung – Tag {day}",
@@ -63,13 +76,23 @@
     "questionHeading": "{question}: ",
     "correctStamp": "Richtiger Stempel: ",
     "ruleSeparator": " – ",
-    "closeDay": "Feierabend"
+    "closeDay": "Feierabend",
+    "amountGiven": "Ihr Betrag: {given}",
+    "inquiryGiven": "Ihre Frage: {given}",
+    "discrepancyHeading": "Widersprüche: "
   },
   "end": {
-    "heading": "Ende des Prototyps",
+    "heading": "Ende von Akt {act}",
     "colDay": "Tag",
     "colErrors": "Fehler",
     "toStart": "Zum Startbildschirm"
+  },
+  "calculator": {
+    "heading": "Tischrechner",
+    "clear": "C",
+    "equals": "=",
+    "decimal": ",",
+    "error": "Fehler"
   },
   "settings": {
     "heading": "Einstellungen",
@@ -94,6 +117,9 @@
     "officeStamp": "Kanzleistempel {stamp}",
     "pruefvermerk": "Prüfvermerk",
     "worksurface": "Arbeitsfläche",
-    "tools": "Stempel und Ausgangskorb"
+    "tools": "Stempel und Ausgangskorb",
+    "calculator": "Tischrechner",
+    "amountInput": "Betrag für {label}",
+    "markableLine": "Angabe {label} markieren"
   }
 }

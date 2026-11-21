@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "0.1.1",
+    "version": "0.2.0",
     "veranlagungsjahr": 2025,
     "hinweis": "Alle Personen und Firmen sind erfunden. Kodextexte sind vereinfacht und keine Rechtsauskunft."
   },
@@ -104,13 +104,6 @@
       "storyEvents": [
         { "type": "dialog", "from": "Gerri", "text": "Der Edlinger? Den kennt jeder. Der wohnt doch eh in Monaco, oder?" }
       ]
-    },
-    {
-      "day": 4,
-      "intro": "Die Post ist da. Obenauf liegt, falls Sie gestern richtig entschieden haben, die Kursbestätigung von Frau Lang.",
-      "stamps": ["bescheid", "ergaenzung"],
-      "cases": [],
-      "storyEvents": []
     }
   ],
   "cases": [
