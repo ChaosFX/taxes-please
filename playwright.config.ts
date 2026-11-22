@@ -15,6 +15,8 @@ const viewport = { width: 1440, height: 900 };
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  // CI runners are slower and share their CPU: one retry, reported as „flaky“.
+  retries: process.env.CI ? 1 : 0,
   use: { baseURL: `http://localhost:4173${BASE_PATH}`, viewport },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport } },

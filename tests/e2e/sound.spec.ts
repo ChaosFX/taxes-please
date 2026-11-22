@@ -95,10 +95,11 @@ test('Musik läuft als Schleife nach dem ersten Klick, eigener Regler wird gespe
   await page.waitForTimeout(500);
   expect(await page.evaluate(() => (window as unknown as { __loops: number[] }).__loops)).toEqual([]);
   await key(page, 'new-game').click();
-  // Loop length: 48 bars at 156 bpm ≈ 55.38 s.
-  await expect
-    .poll(() => page.evaluate(() => (window as unknown as { __loops: number[] }).__loops))
-    .toEqual([expect.closeTo(55.38, 1)]);
+  // Loop length: 48 bars at 156 bpm ≈ 55.38 s. WebKit on Linux (GStreamer) keeps the
+  // MP3 encoder padding and decodes about 60 ms more, hence ±0.1 s.
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __loops: number[] }).__loops.length)).toBe(1);
+  const [loop] = await page.evaluate(() => (window as unknown as { __loops: number[] }).__loops);
+  expect(Math.abs(loop! - 55.38)).toBeLessThan(0.1);
 
   await page.locator('.settings summary').click();
   const slider = key(page, 'music');
@@ -115,8 +116,8 @@ test('Musik läuft als Schleife nach dem ersten Klick, eigener Regler wird gespe
 
 test('Musik-Regler 0: Musik wird weder geladen noch abgespielt; Umschalten blendet und setzt fort', async ({ page }) => {
   await page.addInitScript(() => {
-    const w = window as unknown as { __music: { fetched: number; starts: number[]; stops: number } };
-    w.__music = { fetched: 0, starts: [], stops: 0 };
+    const w = window as unknown as { __music: { fetched: number; starts: number[]; stops: number; clock: number[] } };
+    w.__music = { fetched: 0, starts: [], stops: 0, clock: [] };
     const fetch0 = window.fetch;
     window.fetch = (input, init) => {
       if (String(input).includes('musik-akt1')) w.__music.fetched++;
@@ -124,24 +125,30 @@ test('Musik-Regler 0: Musik wird weder geladen noch abgespielt; Umschalten blend
     };
     const start = AudioBufferSourceNode.prototype.start;
     AudioBufferSourceNode.prototype.start = function (...args: Parameters<typeof start>) {
-      if (this.loop) w.__music.starts.push(Number(args[1] ?? 0));
+      if (this.loop) {
+        w.__music.starts.push(Number(args[1] ?? 0));
+        w.__music.clock.push(this.context.currentTime);
+      }
       return start.apply(this, args);
     };
     const stop = AudioBufferSourceNode.prototype.stop;
     AudioBufferSourceNode.prototype.stop = function (...args: Parameters<typeof stop>) {
-      if (this.loop) w.__music.stops++;
+      if (this.loop) {
+        w.__music.stops++;
+        w.__music.clock.push(this.context.currentTime);
+      }
       return stop.apply(this, args);
     };
   });
   // Settings saved earlier with music at 0.
   await page.evaluate(() => localStorage.setItem('taxes-please/settings/v1', JSON.stringify({ effects: 'voll', volume: 0.7, music: 0 })));
   await page.reload();
-  const music = () => page.evaluate(() => (window as unknown as { __music: { fetched: number; starts: number[]; stops: number } }).__music);
+  const music = () => page.evaluate(() => (window as unknown as { __music: { fetched: number; starts: number[]; stops: number; clock: number[] } }).__music);
 
   await key(page, 'new-game').click();
   await key(page, 'begin').click();
   await page.waitForTimeout(500);
-  expect(await music()).toEqual({ fetched: 0, starts: [], stops: 0 });
+  expect(await music()).toEqual({ fetched: 0, starts: [], stops: 0, clock: [] });
 
   const setMusic = (v: number) =>
     key(page, 'music').evaluate((el: HTMLInputElement, v) => {
@@ -159,6 +166,11 @@ test('Musik-Regler 0: Musik wird weder geladen noch abgespielt; Umschalten blend
   await setMusic(40);
   // Resumes where it stopped (not from the start), file not loaded again.
   await expect.poll(async () => (await music()).starts.length).toBe(2);
-  expect((await music()).starts[1]).toBeGreaterThan(0.3);
+  // The offset is the audio clock time it played. Without an audio device (CI) the clock
+  // may stand still; then it correctly resumes at 0.
+  const m = await music();
+  const played = m.clock[1]! - m.clock[0]!;
+  expect(m.starts[1]).toBeCloseTo(played, 1);
+  if (played > 0.3) expect(m.starts[1]).toBeGreaterThan(0.3);
   expect((await music()).fetched).toBe(1);
 });

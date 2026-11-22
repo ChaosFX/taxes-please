@@ -116,11 +116,13 @@ test('Pfeiltasten: Papier an jede Kante und in jede Ecke', async ({ page }) => {
 test('Mobil: Papier bleibt beim Ziehen an den Rand vollständig sichtbar', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await toDesk(page);
-  // No paper is wider than the pad, not even before it is moved.
-  const tooWide = await page.locator('.worksurface .paper').evaluateAll((els) =>
-    els.filter((el) => el.scrollWidth > el.clientWidth + 1 || el.getBoundingClientRect().width > el.closest('.worksurface')!.clientWidth).length,
-  );
-  expect(tooWide).toBe(0);
+  // No paper is wider than the pad, not even before it is moved (measured with the web fonts).
+  await page.evaluate(() => document.fonts.ready);
+  const tooWide = () =>
+    page.locator('.worksurface .paper').evaluateAll((els) =>
+      els.filter((el) => el.scrollWidth > el.clientWidth + 1 || el.getBoundingClientRect().width > el.closest('.worksurface')!.clientWidth).length,
+    );
+  await expect.poll(tooWide).toBe(0);
   const paper = key(page, 'paper-1');
   await paper.scrollIntoViewIfNeeded();
   for (const [where, dir] of Object.entries({ links: [-1, 0], rechts: [1, 0] } as const)) {

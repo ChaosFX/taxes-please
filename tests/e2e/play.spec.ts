@@ -1,11 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
-import { drawUntil, enter, freshStart, key, markKey, playDay, raw, solutionFor, solveNext, startAtDay } from './helpers';
+import { drawUntil, enter, freshStart, key, longTest, markKey, playDay, raw, solutionFor, solveNext, startAtDay } from './helpers';
 
 const FOLLOW_UP_DAYS: Record<number, string> = { 4: '3-4/folge', 5: '4-1/folge', 6: '5-3/folge', 7: '6-3/folge', 8: '7-3/folge', 10: '9-2/folge' };
 const eventsOf = (day: number): { type: string; feature?: string }[] => raw.days.find((d: { day: number }) => d.day === day).storyEvents;
 
 test('Akt I richtig durchspielen mit Neuladen: null Fehler an allen zehn Tagen, dann „Ende von Akt I“', async ({ page }) => {
-  test.setTimeout(240_000);
+  longTest(240_000);
   await freshStart(page);
   await key(page, 'new-game').click();
   for (let day = 1; day <= 10; day++) {

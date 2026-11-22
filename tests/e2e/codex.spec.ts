@@ -268,8 +268,7 @@ test('Effekte voll und reduziert: Umblättern ist animiert, nur transform und op
   expect(Math.max(...full.map((a) => a.duration))).toBeGreaterThanOrEqual(350);
   expect(Math.max(...full.map((a) => a.duration))).toBeLessThanOrEqual(450);
   for (const a of full) for (const p of a.props) expect(['transform', 'opacity']).toContain(p);
-  await page.waitForTimeout(700);
-  expect(await page.evaluate(() => document.querySelector('.flip-layer')!.childElementCount)).toBe(0);
+  await expect.poll(() => page.evaluate(() => document.querySelector('.flip-layer')!.childElementCount)).toBe(0);
 
   await openAtDesk(page, 10, 'reduziert');
   await page.waitForTimeout(300);

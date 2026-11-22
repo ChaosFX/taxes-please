@@ -1,6 +1,11 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+/** Timeout for a long test; WebKit on the CI runners is about three times slower. */
+export function longTest(ms: number) {
+  test.setTimeout(test.info().project.name === 'webkit' ? ms * 3 : ms);
+}
 
 /** Akt I straight from the JSON (independent of src/core). */
 export const raw = JSON.parse(readFileSync(join(import.meta.dirname, '..', '..', 'content', 'akt1.json'), 'utf8'));
