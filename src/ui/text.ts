@@ -13,13 +13,13 @@ const KEYS = {
   intro: ['day', 'noteFrom', 'speaker', 'begin', 'newspaper', 'call', 'unlockCalculator'],
   desk: ['day', 'stack', 'pruefvermerk', 'akte', 'followUpId', 'colPosition', 'colAmount', 'colDecision', 'emptyDesk', 'stamps', 'outbox', 'outboxButton', 'stampFirst', 'amountLabel', 'amountPlaceholder', 'inquiryHeading', 'inquiryRequired', 'markMode', 'markHint', 'markCount', 'markClear', 'akteNoJob', 'markPair', 'markSide', 'markRemove'],
   verdict: ['anerkennen', 'streichen', 'offen'],
-  codex: ['open', 'close', 'day', 'locked', 'new', 'simplified', 'sourceSeparator', 'searchPlaceholder', 'hits', 'hint'],
+  codex: ['open', 'close', 'day', 'locked', 'new', 'simplified', 'sourceSeparator', 'searchPlaceholder', 'hits', 'hint', 'coverTitle', 'coverSubtitle', 'coverStand', 'runningHeadLeft', 'runningHeadRight', 'deliveryHeading', 'register', 'tabRegister', 'lockedSheet', 'nextPage', 'prevPage', 'noHits', 'searchClear'],
   evaluation: ['heading', 'noErrors', 'errorsToday', 'speaker', 'markOk', 'markWrong', 'result', 'followUpName', 'correct', 'wrong', 'errorStamp', 'errorDetail', 'notGiven', 'solution', 'positionHeading', 'questionHeading', 'correctStamp', 'ruleSeparator', 'closeDay', 'amountGiven', 'inquiryGiven', 'discrepancyHeading', 'errorAbout', 'inquiryCorrect', 'inquiryAnswer'],
   end: ['heading', 'colDay', 'colErrors', 'toStart'],
   calculator: ['heading', 'clear', 'equals', 'decimal', 'error', 'add', 'subtract', 'multiply', 'divide'],
   settings: ['heading', 'effects', 'effectsAus', 'effectsReduziert', 'effectsVoll', 'sound', 'volume', 'music', 'percent'],
   error: ['heading'],
-  aria: ['codex', 'codexSearch', 'bookmarks', 'lockedPage', 'paper', 'officeStamp', 'pruefvermerk', 'worksurface', 'tools', 'calculator', 'amountInput', 'markableLine', 'calcDisplay', 'calcAdd', 'calcSubtract', 'calcMultiply', 'calcDivide', 'calcDecimal', 'calcClear', 'calcEquals', 'markRemove'],
+  aria: ['codex', 'codexSearch', 'bookmarks', 'lockedPage', 'paper', 'officeStamp', 'pruefvermerk', 'worksurface', 'tools', 'calculator', 'amountInput', 'markableLine', 'calcDisplay', 'calcAdd', 'calcSubtract', 'calcMultiply', 'calcDivide', 'calcDecimal', 'calcClear', 'calcEquals', 'markRemove', 'codexPage', 'codexBook'],
 } as const;
 
 type Keys = typeof KEYS;

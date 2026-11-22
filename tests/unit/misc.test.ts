@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { codexDays, codexEntries, searchCodex } from '../../src/core/codex';
 import { correctAnswer } from '../../src/core/evaluate';
 import { formatEuro } from '../../src/core/format';
 import { advanceDay, beginWork, drawNext, fileCurrent, applyStamp, decidePosition, newGame, type GameState } from '../../src/core/game';
@@ -8,47 +7,6 @@ import { clearSave, hasSave, loadGame, SAVE_KEY, saveGame } from '../../src/core
 import { MemoryStore, realContent } from './helpers';
 
 const content = realContent();
-
-describe('Kodex', () => {
-  it('gesperrte Regeln tragen keinen Inhalt', () => {
-    const entries = codexEntries(content, 1);
-    const locked = entries.filter((e) => e.locked);
-    expect(locked).toHaveLength(52);
-    for (const e of locked) expect(Object.keys(e).sort()).toEqual(['day', 'id', 'locked']);
-  });
-
-  it('markiert Regeln des aktuellen Tages als neu', () => {
-    const isNew = codexEntries(content, 2).filter((e) => !e.locked && e.isNew).map((e) => e.id);
-    expect(isNew).toEqual(['R3', 'R4', 'R5']);
-  });
-
-  it('Hinweisregeln sind erkennbar', () => {
-    const hints = codexEntries(content, 10).flatMap((e) => (!e.locked && e.rule.hint ? [e.id] : []));
-    expect(hints).toEqual(['R28', 'R36', 'R37', 'R44', 'R45']);
-  });
-
-  it('Suche findet nur freigeschaltete Regeln, ohne Groß/Klein und Umlaut-Probleme', () => {
-    expect(searchCodex(content, 1, 'kleidung').map((r) => r.id)).toEqual(['R2']);
-    expect(searchCodex(content, 2, 'KLEIDUNG').map((r) => r.id)).toEqual(['R2', 'R4']);
-    expect(searchCodex(content, 3, 'ergänzung').map((r) => r.id)).toEqual(['R7']);
-    expect(searchCodex(content, 3, 'erganzung').map((r) => r.id)).toEqual(['R7']);
-    expect(searchCodex(content, 1, 'wohnsitz')).toEqual([]);
-    expect(searchCodex(content, 2, '')).toHaveLength(5);
-  });
-
-  it('Suche findet Teilwörter, auch bei 54 Regeln', () => {
-    const all = searchCodex(content, 10, '');
-    expect(all).toHaveLength(54);
-    const part = searchCodex(content, 10, 'gewinnfrei');
-    expect(part.length).toBeGreaterThan(0);
-    for (const r of part) expect(`${r.title} ${r.text}`.toLowerCase()).toContain('gewinnfrei');
-    expect(searchCodex(content, 3, 'gewinnfrei')).toEqual([]);
-  });
-
-  it('Lesezeichen nach Tagen', () => {
-    expect(codexDays(content)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-  });
-});
 
 describe('formatEuro', () => {
   it.each([

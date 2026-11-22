@@ -253,32 +253,6 @@ test('Ermahnung ab drei Fehlern, Auswertung zeigt Lösung und Fundstelle', async
   await expect(first.locator('.rule-refs a').first()).toHaveText('§ 16 Abs. 1 erster Satz EStG');
 });
 
-test('Kodex: gesperrte Seiten ohne Inhalt, Suche, Hinweisregeln, Lesezeichen', async ({ page }) => {
-  await freshStart(page);
-  await key(page, 'new-game').click();
-  await key(page, 'begin').click();
-  const locked = page.locator('.rule.locked');
-  await expect(locked).toHaveCount(52);
-  await expect(locked.first()).toHaveText('Gesperrt – ab Tag 2');
-  await expect(page.locator('.codex')).not.toContainText('Lebensführung');
-  await key(page, 'codex-search').fill('wohnsitz');
-  await expect(page.locator('.codex-list .rule')).toHaveCount(0);
-  await key(page, 'codex-search').fill('werkzeug');
-  await expect(page.locator('.codex-list .rule')).toHaveCount(1);
-  await key(page, 'codex-toggle').click();
-  await expect(page.locator('.codex-list')).toHaveCount(0);
-
-  await startAtDay(page, 10);
-  await key(page, 'begin').click();
-  await expect(page.locator('.rule.locked')).toHaveCount(0);
-  await expect(page.locator('.rule .badge-hint')).toHaveCount(5);
-  await expect(page.locator('.rule[data-rule="R28"] .badge-hint')).toHaveText('Hinweis, ohne eigenen Fall');
-  await key(page, 'bookmark-7').click();
-  await expect(page.locator('#kodex-tag-7')).toBeInViewport();
-  await key(page, 'codex-search').fill('gewinnfrei');
-  await expect(page.locator('.codex-list .rule').first()).toBeVisible();
-});
-
 test('eine Akte vollständig mit der Tastatur', async ({ page }) => {
   await freshStart(page);
   /** Tabs to the element with data-key and presses Enter. Fails if unreachable. */

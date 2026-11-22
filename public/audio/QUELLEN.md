@@ -28,9 +28,10 @@ Lizenz jeweils am 20.11.2026 (`telefon.mp3`: 21.11.2026) auf der Freesound-Seite
 
 ## Schriften
 
-Beide Schriften sind lokal über npm (`@fontsource`) eingebunden und werden mit dem Build ausgeliefert, nichts wird von fremden Servern geladen.
+Alle Schriften sind lokal über npm (`@fontsource`) eingebunden und werden mit dem Build ausgeliefert, nichts wird von fremden Servern geladen.
 
 | Schrift | Verwendung | Paket | Lizenz |
 | --- | --- | --- | --- |
 | Courier Prime | Papiere, Schreibmaschinenschrift | `@fontsource/courier-prime` | SIL Open Font License 1.1 |
 | Old Standard TT (Alexey Kryukov, The Old Standard Project Authors) | Morgenzeitung: Kopf, Schlagzeile und Text in Antiqua-Anmutung | `@fontsource/old-standard-tt` 5.3.0 | SIL Open Font License 1.1 (Lizenztext in `node_modules/@fontsource/old-standard-tt/LICENSE`) |
+| EB Garamond (Georg Duffner, Octavio Pardo, The EB Garamond Project Authors) | Kodex als Buch: Einband, Seiten, Inhaltsverzeichnis, Kapitälchen | `@fontsource/eb-garamond` 5.3.0 | SIL Open Font License 1.1 (Lizenztext in `node_modules/@fontsource/eb-garamond/LICENSE`) |

@@ -66,6 +66,15 @@ function allowed(s: string, depth = 3): boolean {
   return false;
 }
 
+/** Content texts, for pieces of excerpts and highlighted passages (search in the codex). */
+const contentTexts = [...atoms].filter((a) => a.length > 20);
+/** A piece of an excerpt must be part of one content text. Other texts lose the marker and are checked as usual. */
+function excerptOk(s: string): boolean {
+  if (!s.startsWith('\u0000')) return false;
+  const piece = s.slice(1).trim();
+  return piece === '' || allowed(piece) || contentTexts.some((t) => t.includes(piece));
+}
+
 const seen = new Set<string>();
 async function check(page: Page, where: string) {
   const items = await page.evaluate(() => {
@@ -73,7 +82,9 @@ async function check(page: Page, where: string) {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     for (let n = walker.nextNode(); n; n = walker.nextNode()) {
       if (n.parentElement?.closest('script, style')) continue;
-      if (n.textContent?.trim()) out.push(n.textContent);
+      // Excerpts and highlighted passages split a content text into pieces; marked for the check.
+      const excerpt = n.parentElement?.closest('[data-excerpt]') ? '\u0000' : '';
+      if (n.textContent?.trim()) out.push(excerpt + n.textContent);
     }
     const attrs = ['aria-label', 'aria-roledescription', 'aria-valuetext', 'aria-description', 'placeholder', 'title', 'alt'];
     for (const el of document.body.querySelectorAll('*')) for (const a of attrs) if (el.hasAttribute(a)) out.push(el.getAttribute(a)!);
@@ -81,7 +92,7 @@ async function check(page: Page, where: string) {
     return out;
   });
   items.forEach((s) => seen.add(s.trim()));
-  const foreign = [...new Set(items.filter((s) => !allowed(s)).map((s) => s.trim()))];
+  const foreign = [...new Set(items.filter((s) => !allowed(s) && !excerptOk(s)).map((s) => s.trim()))];
   expect(foreign, `Text ohne Herkunft in ui.json oder Inhalt (${where})`).toEqual([]);
 }
 
@@ -104,12 +115,18 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await key(page, 'paper-0').dblclick();
   await check(page, 'Zoom');
   await page.keyboard.press('Escape');
+  await check(page, 'Kodex zu');
+  await key(page, 'codex-book').click();
+  await check(page, 'Kodex offen');
   await key(page, 'codex-search').fill('werbungskosten');
   await check(page, 'Kodex-Suche');
-  await key(page, 'codex-search').fill('');
-  await key(page, 'codex-toggle').click();
-  await check(page, 'Kodex zu');
-  await key(page, 'codex-toggle').click();
+  await key(page, 'hit-R1').click();
+  await check(page, 'Kodex-Treffer markiert');
+  await key(page, 'codex-search-clear').click();
+  await page.keyboard.press('End');
+  await page.keyboard.press('ArrowRight');
+  await check(page, 'Kodex gesperrte Seite');
+  await page.keyboard.press('Escape');
 
   // Day 1 wrong: flipped verdicts, one left open, wrong stamp → reprimand and every error line.
   for (let first = true; await page.locator('.screen.desk').isVisible(); first = false) {
