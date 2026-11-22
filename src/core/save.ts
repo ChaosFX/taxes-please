@@ -1,3 +1,4 @@
+import { codexProgress } from './codex';
 import { STATE_VERSION, startDay, toolsUntil, type GameState } from './game';
 import type { Content } from './types';
 
@@ -31,10 +32,12 @@ export function saveGame(store: KeyValueStore | null, state: GameState): boolean
 }
 
 /** Shape shared by both save versions. */
-interface StoredState extends Omit<GameState, 'version' | 'phase' | 'tools'> {
+interface StoredState extends Omit<GameState, 'version' | 'phase' | 'tools' | 'codex'> {
   version: 1 | typeof STATE_VERSION;
   phase: string;
   tools?: GameState['tools'];
+  /** Missing in saves before SPEC 0.3.2. */
+  codex?: unknown;
 }
 
 function isStoredState(v: unknown): v is StoredState {
@@ -69,6 +72,7 @@ export function migrateV1(content: Content, old: StoredState): GameState {
     version: STATE_VERSION,
     phase: old.phase as GameState['phase'],
     tools: toolsUntil(content, old.day),
+    codex: codexProgress(old.codex),
   };
   if (old.day < PROTOTYPE_LAST_DAY && old.phase !== 'finished') return base;
 
@@ -100,7 +104,9 @@ export function loadGame(store: KeyValueStore | null, content: Content): GameSta
   const saved = readSave(store);
   if (!saved) return null;
   try {
-    return saved.version === 1 ? migrateV1(content, saved) : (saved as GameState);
+    if (saved.version === 1) return migrateV1(content, saved);
+    // A save without `codex` (before SPEC 0.3.2) keeps everything else (SPEC 9).
+    return { ...(saved as Omit<GameState, 'codex'>), codex: codexProgress(saved.codex) } as GameState;
   } catch {
     return null;
   }

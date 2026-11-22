@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { test, type Page } from '@playwright/test';
 import { drawUntil, enter, freshStart, key, markKey, playDay, solutionFor, solveNext, startAtDay } from './helpers';
 
 /** Screenshots of the main views (SPEC section 10.3). Output: screenshots/. */
@@ -37,10 +37,13 @@ test('Screenshots Akt I (SPEC 10.3)', async ({ page }) => {
   await page.screenshot({ path: shot('05-nachfrage-auswahl'), fullPage: true });
 
   // Codex open with a hint rule (R28, day 6).
-  await key(page, 'codex-search').fill('R28');
-  await key(page, 'codex-search').fill('');
-  await page.locator('.rule[data-rule="R28"]').scrollIntoViewIfNeeded();
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('k');
+  await page.keyboard.press('Home');
+  await key(page, 'toc-R28').click();
+  await page.waitForTimeout(600);
   await page.screenshot({ path: shot('06-kodex-hinweisregel') });
+  await page.keyboard.press('Escape');
 
   // Desk with an amount field and the calculator (day 8, 8-1).
   await startAtDay(page, 8);
@@ -98,4 +101,85 @@ test('Screenshots mobil und Effekte', async ({ page }) => {
   await page.screenshot({ path: shot('16-gestempelt'), fullPage: true });
   await page.locator('.settings summary').click();
   await page.screenshot({ path: shot('17-einstellungen') });
+});
+
+/** Codex views of Auftrag 04 (SPEC 6, 10.3). Output: screenshots/kodex-*.png. */
+test('Screenshots Kodex als Buch', async ({ page }) => {
+  test.setTimeout(120_000);
+  const settle = (p: Page) => p.evaluate(() => document.fonts.ready).then(() => p.waitForTimeout(650));
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  // 1. Closed on the desk, day 1 and day 10 (thickness).
+  await freshStart(page);
+  await key(page, 'new-game').click();
+  await key(page, 'begin').click();
+  await page.screenshot({ path: shot('kodex-01-zu-tag1') });
+  await page.locator('.left-col').screenshot({ path: shot('kodex-01a-zu-tag1-detail') });
+  // 6. Locked page on day 1.
+  await page.keyboard.press('k');
+  await settle(page);
+  await page.keyboard.press('End');
+  await page.keyboard.press('ArrowRight');
+  await settle(page);
+  await page.screenshot({ path: shot('kodex-06-gesperrte-seite') });
+  await page.keyboard.press('Escape');
+
+  await startAtDay(page, 10);
+  await key(page, 'begin').click();
+  await page.screenshot({ path: shot('kodex-01-zu-tag10') });
+  await page.locator('.left-col').screenshot({ path: shot('kodex-01b-zu-tag10-detail') });
+
+  // 4. Today's delivery with „neu“ (opens there).
+  await page.keyboard.press('k');
+  await settle(page);
+  await page.screenshot({ path: shot('kodex-04-heutige-lieferung-neu') });
+  // 2. Register on day 10.
+  await page.keyboard.press('Home');
+  await settle(page);
+  await page.screenshot({ path: shot('kodex-02-inhaltsverzeichnis-tag10') });
+  // 3. Hint rule.
+  await key(page, 'toc-R36').click();
+  await settle(page);
+  await page.screenshot({ path: shot('kodex-03-hinweisregel') });
+  // 5. Search with hits, then the marked word in the text.
+  await key(page, 'codex-search').fill('abzugsfahig');
+  await settle(page);
+  await page.screenshot({ path: shot('kodex-05a-suche-treffer') });
+  await page.locator('.hit').nth(1).click();
+  await settle(page);
+  await page.screenshot({ path: shot('kodex-05b-suche-markiert') });
+  await key(page, 'codex-search-clear').click();
+  // 7. Register tabs with locked tabs (day 4).
+  await page.keyboard.press('Escape');
+  await startAtDay(page, 4);
+  await key(page, 'begin').click();
+  await page.keyboard.press('k');
+  await settle(page);
+  await page.locator('.register-tabs').screenshot({ path: shot('kodex-07-griffregister') });
+  await page.screenshot({ path: shot('kodex-07b-tag4-geoeffnet') });
+  // 9. Mid page turn (effects „voll“).
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForTimeout(190);
+  await page.screenshot({ path: shot('kodex-09-umblaettern') });
+  await page.keyboard.press('Escape');
+
+  // 8. Narrow view with a single page.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await startAtDay(page, 10);
+  await key(page, 'begin').click();
+  await page.screenshot({ path: shot('kodex-08a-mobil-tisch'), fullPage: true });
+  await page.keyboard.press('k');
+  await settle(page);
+  await page.screenshot({ path: shot('kodex-08-mobil-einzelseite') });
+  await page.keyboard.press('Home');
+  await settle(page);
+  await page.screenshot({ path: shot('kodex-08b-mobil-inhalt') });
+
+  // 1280 × 720 for the smallest double page.
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await startAtDay(page, 9);
+  await key(page, 'begin').click();
+  await page.keyboard.press('k');
+  await settle(page);
+  await page.screenshot({ path: shot('kodex-10-1280x720') });
 });

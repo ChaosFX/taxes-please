@@ -16,7 +16,7 @@ import {
   type StoryEvent,
 } from '../core/types';
 import { renderCalculator } from './calculator';
-import { renderCodex, type CodexUiState } from './codex';
+import { closedBook } from './codex';
 import { h } from './dom';
 import { akteHeading, choiceLabel, optionLabel, pairText, playerVerdictLabel, stampLabel } from './labels';
 import { newspaperSheet } from './story';
@@ -37,7 +37,7 @@ export interface DeskActions {
   clearMarks(): void;
   calc(key: CalcKey): void;
   file(): void;
-  toggleCodex(): void;
+  openCodex(): void;
 }
 
 /** Desk state that lives only in the interface; reset when a new Akte lands on the desk. */
@@ -312,7 +312,7 @@ function newspapers(events: StoryEvent[], hook: PaperHook): HTMLElement[] {
   });
 }
 
-export function deskView(content: Content, state: GameState, codexUi: CodexUiState, ui: DeskUi, a: DeskActions, hook: PaperHook): HTMLElement {
+export function deskView(content: Content, state: GameState, ui: DeskUi, a: DeskActions, hook: PaperHook): HTMLElement {
   const d = dayInfo(content, state.day);
   const akte = state.current ? getAkte(content, state.current.akteId) : null;
   const answer = state.current?.answer;
@@ -370,7 +370,7 @@ export function deskView(content: Content, state: GameState, codexUi: CodexUiSta
   const left = h(
     'div',
     { class: 'left-col' },
-    renderCodex(content, state.day, codexUi, a.toggleCodex),
+    closedBook(content, state.day, state.codex, a.openCodex),
     state.tools.includes('calculator') ? renderCalculator(ui.calc, a.calc) : null,
   );
 

@@ -1,3 +1,4 @@
+import { DEFAULT_CODEX, type CodexProgress } from './codex';
 import { samePair, evaluate } from './evaluate';
 import { getAkte } from './loader';
 import type { Answer, CaseResult, Content, Day, Mark, PlayerVerdict, Settings, Stamp, Tool } from './types';
@@ -28,6 +29,8 @@ export interface GameState {
   /** Act shown on the end screen while `phase` is `actEnd`. */
   act?: number;
   settings: Settings;
+  /** Reading progress in the codex (SPEC 6.7, 9). Saves without it get DEFAULT_CODEX. */
+  codex: CodexProgress;
 }
 
 export const DEFAULT_SETTINGS: Settings = { effects: 'voll', volume: 0.7, music: 0.5 };
@@ -88,6 +91,7 @@ export function newGame(content: Content, settings: Settings = DEFAULT_SETTINGS)
     pendingFollowUps: [],
     tools: [],
     settings,
+    codex: { ...DEFAULT_CODEX },
   };
   return startDay(content, empty, first);
 }
@@ -262,4 +266,16 @@ export function errorsPerDay(content: Content, state: GameState): Record<number,
 /** True when the day's errors reach `texts.warning.minErrors`. */
 export function needsReprimand(content: Content, state: GameState, day: number): boolean {
   return errorsOfDay(state, day) >= content.texts.warning.minErrors;
+}
+
+/** Remembers the rule read last when the codex closes (empty: the register). */
+export function rememberCodexPlace(state: GameState, lastRuleId: string): GameState {
+  if (state.codex.lastRuleId === lastRuleId) return state;
+  return { ...state, codex: { ...state.codex, lastRuleId } };
+}
+
+/** Today's delivery has been seen; `seenDay` never goes back. */
+export function markDeliverySeen(state: GameState, day: number): GameState {
+  if (state.codex.seenDay >= day) return state;
+  return { ...state, codex: { ...state.codex, seenDay: day } };
 }

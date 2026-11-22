@@ -4,6 +4,8 @@ Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in
 
 ## 21.11.2026
 
+- `content/ui.json` 0.3.0 (Ausnahme in Auftrag 04): neue Schlüssel `codex.coverTitle`, `codex.coverSubtitle`, `codex.coverStand`, `codex.runningHeadLeft`, `codex.runningHeadRight`, `codex.deliveryHeading`, `codex.register`, `codex.tabRegister`, `codex.lockedSheet`, `codex.nextPage`, `codex.prevPage`, `codex.noHits`, `codex.searchClear`, `aria.codexPage`, `aria.codexBook`; `aria.calcDisplay` jetzt „Rechneranzeige“. Kein Schlüssel entfernt. Bitte im Chat prüfen.
+- Auftrag 04 umgesetzt (Kodex als Buch): `core/codex.ts` mit Gliederung, Suche, römischen Seitenzahlen und Lesestand; Spielstand um `codex.lastRuleId` und `codex.seenDay` erweitert; zugeklapptes Buch auf dem Tisch, aufgeschlagenes Buch als Dialog mit Seitenumbruch, Griffregister, Lesezeichenband, Blättern und Suche; EB Garamond in `public/audio/QUELLEN.md`.
 - `SPEC.md` 0.3.2: Kodex als Buch (Abschnitt 6), Entscheidungen aus Bericht 03 übernommen (Abschnitte 4, 5, 7), Spielstand um `codex.lastRuleId` und `codex.seenDay` erweitert, `aria.calcDisplay` künftig „Rechneranzeige“. `auftraege/04-kodex-als-buch.md` angelegt.
 
 - Auftrag 03 umgesetzt (Akt I komplett): Schema, Zusammenführen und Querprüfungen für `entscheidungen`, Widersprüche, Nachfrage, Story-Ereignisse und Spuren; Bewertung von Beträgen, Widersprüchen und Nachfragen; Tischrechner; Folgeakten vor den Akten des Tages; Schlussbildschirm „Ende von Akt I“; Übernahme von Spielständen aus 0.2.

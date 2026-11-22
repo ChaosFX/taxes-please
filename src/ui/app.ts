@@ -2,7 +2,7 @@ import { createSound } from '../audio';
 import * as core from '../core';
 import type { Content, EffectsLevel, GameState, Settings } from '../core';
 import * as atmosphere from './atmosphere';
-import type { CodexUiState } from './codex';
+import { CodexBook } from './codex';
 import { deskView, type DeskActions, type DeskUi, type PaperHook } from './desk';
 import { h } from './dom';
 import { DeskLayout, makeDraggable, openZoom, paperRotation } from './paper-interaction';
@@ -30,7 +30,7 @@ export function startApp(root: HTMLElement, content: Content): void {
   let focusNext: string | null = null;
   /** Day whose phone call has rung, so re-renders of the intro do not ring again. */
   let rungFor: number | null = null;
-  const codexUi: CodexUiState = { open: true, query: '' };
+  const book = new CodexBook();
   const deskUi: DeskUi = { akteId: null, markMode: false, pending: null, inquiryOpen: false, calc: core.CALC_INITIAL };
   const layout = new DeskLayout();
 
@@ -97,7 +97,6 @@ export function startApp(root: HTMLElement, content: Content): void {
         return;
       }
       screen = 'game';
-      codexUi.query = '';
       update(core.newGame(content, settings));
     },
     continueGame() {
@@ -109,7 +108,6 @@ export function startApp(root: HTMLElement, content: Content): void {
     beginWork: () => state && update(core.beginWork(state)),
     advanceDay: () => {
       if (!state) return;
-      codexUi.query = '';
       update(core.advanceDay(content, state));
     },
     toStart() {
@@ -192,11 +190,43 @@ export function startApp(root: HTMLElement, content: Content): void {
       if (next !== state) sound.play('file');
       update(next);
     },
-    toggleCodex() {
-      codexUi.open = !codexUi.open;
-      render();
-    },
+    openCodex,
   };
+
+  /** Opens the codex as a book (SPEC 6). While it is open the desk is not re-rendered. */
+  function openCodex(): void {
+    if (!state || state.phase !== 'desk' || book.isOpen) return;
+    const day = state.day;
+    book.open({
+      content,
+      day,
+      progress: state.codex,
+      effects: () => settings.effects,
+      sound: (name) => sound.play(name),
+      onSeen: () => {
+        if (!state) return;
+        // Saved at once, without re-rendering the desk behind the dialog.
+        state = core.markDeliverySeen(state, day);
+        core.saveGame(store, state);
+      },
+      onClose: (lastRuleId) => {
+        if (!state) return;
+        focusNext = 'codex-book';
+        update(core.rememberCodexPlace(state, lastRuleId));
+      },
+    });
+  }
+
+  // Taste K opens the codex on the desk, unless a text field has focus (SPEC 6.1). The open book handles K itself.
+  window.addEventListener('keydown', (e) => {
+    if ((e.key !== 'k' && e.key !== 'K') || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+    if (book.isOpen || screen !== 'game' || state?.phase !== 'desk') return;
+    const target = e.target as HTMLElement | null;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return;
+    if (document.querySelector('dialog[open]')) return;
+    e.preventDefault();
+    openCodex();
+  });
 
   const paperHook: PaperHook = (el, key, seed) =>
     makeDraggable(el, {
@@ -271,7 +301,7 @@ export function startApp(root: HTMLElement, content: Content): void {
         return introView(content, state, screenActions);
       case 'desk':
         syncDeskUi(state);
-        return deskView(content, state, codexUi, deskUi, deskActions, paperHook);
+        return deskView(content, state, deskUi, deskActions, paperHook);
       case 'summary':
         return summaryView(content, state, screenActions);
       case 'actEnd':
@@ -306,10 +336,7 @@ export function startApp(root: HTMLElement, content: Content): void {
     const active = document.activeElement as HTMLElement | null;
     const key = focusNext ?? active?.dataset.key;
     focusNext = null;
-    const codexScroll = root.querySelector('.codex-list')?.scrollTop ?? 0;
     root.replaceChildren(settingsPanel(), view());
-    const list = root.querySelector('.codex-list');
-    if (list) list.scrollTop = codexScroll;
     let target = key ? root.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`) : null;
     if (target && (target as HTMLButtonElement).disabled) target = null;
     target ??= root.querySelector<HTMLElement>('main button.primary:not([disabled]), main h1');

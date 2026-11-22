@@ -114,7 +114,7 @@ export async function playDay(page: Page, opts: { reloadAfter?: number; answer?:
  * played perfectly: a save in the format of src/core (version 2) is put into
  * localStorage. Follow-ups due that day come first; tools unlocked so far are on.
  */
-export async function startAtDay(page: Page, day: number) {
+export async function startAtDay(page: Page, day: number, opts: { effects?: 'aus' | 'reduziert' | 'voll'; codex?: { lastRuleId: string; seenDay: number } } = {}) {
   const tools: string[] = [];
   for (const d of raw.days) {
     if (d.day > day) continue;
@@ -133,7 +133,9 @@ export async function startAtDay(page: Page, day: number) {
     results: [],
     pendingFollowUps: [],
     tools,
-    settings: { effects: 'voll', volume: 0.7, music: 0.5 },
+    settings: { effects: opts.effects ?? 'voll', volume: 0.7, music: 0.5 },
+    // Without `codex` unless given: like a save from before SPEC 0.3.2.
+    ...(opts.codex ? { codex: opts.codex } : {}),
   };
   await page.goto('./');
   await page.evaluate((s) => {

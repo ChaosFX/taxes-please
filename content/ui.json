@@ -1,5 +1,5 @@
 {
-  "version": "0.2.1",
+  "version": "0.3.0",
   "title": {
     "heading": "Taxes Please",
     "year": "Veranlagungsjahr {year}",
@@ -58,7 +58,20 @@
     "sourceSeparator": " · ",
     "searchPlaceholder": "Kodex durchsuchen …",
     "hits": "{count} Treffer",
-    "hint": "Hinweis, ohne eigenen Fall"
+    "hint": "Hinweis, ohne eigenen Fall",
+    "coverTitle": "KODEX",
+    "coverSubtitle": "Loseblattausgabe, vereinfachte Fassung",
+    "coverStand": "Stand: Tag {day}",
+    "runningHeadLeft": "Kodex",
+    "runningHeadRight": "Lieferung Tag {day}",
+    "deliveryHeading": "Lieferung Tag {day}",
+    "register": "Inhaltsverzeichnis",
+    "tabRegister": "Inhalt",
+    "lockedSheet": "Noch nicht ausgegeben",
+    "nextPage": "Nächste Seite",
+    "prevPage": "Vorige Seite",
+    "noHits": "Kein Treffer",
+    "searchClear": "Suche löschen"
   },
   "evaluation": {
     "heading": "Tagesauswertung – Tag {day}",
@@ -131,7 +144,7 @@
     "calculator": "Tischrechner",
     "amountInput": "Betrag für {label}",
     "markableLine": "Angabe {label} markieren",
-    "calcDisplay": "Anzeige",
+    "calcDisplay": "Rechneranzeige",
     "calcAdd": "plus",
     "calcSubtract": "minus",
     "calcMultiply": "mal",
@@ -139,6 +152,8 @@
     "calcDecimal": "Komma",
     "calcClear": "Löschen",
     "calcEquals": "ist gleich",
-    "markRemove": "Markierung {no} aufheben"
+    "markRemove": "Markierung {no} aufheben",
+    "codexPage": "Seite {n}",
+    "codexBook": "zugeklappter Kodex, Stand Tag {day}"
   }
 }
