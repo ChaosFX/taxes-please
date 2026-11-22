@@ -145,7 +145,7 @@ test('Screenshots Kodex als Buch', async ({ page }) => {
   await key(page, 'codex-search').fill('abzugsfahig');
   await settle(page);
   await page.screenshot({ path: shot('kodex-05a-suche-treffer') });
-  await page.locator('.hit').nth(1).click();
+  await page.locator('.search-hit').nth(1).click();
   await settle(page);
   await page.screenshot({ path: shot('kodex-05b-suche-markiert') });
   await key(page, 'codex-search-clear').click();

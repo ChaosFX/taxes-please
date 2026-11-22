@@ -550,7 +550,7 @@ html[data-effects='reduziert'] .call .phone { animation: phone-ring 120ms linear
 }
 /* Gold blocking: dark below, light above, as if pressed in. */
 .cover-title, .cover-subtitle, .cover-stand { text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7), 0 -1px 0 rgba(255, 236, 190, 0.25); }
-.cover-title { font: 600 2rem/1 var(--book); letter-spacing: 0.28em; margin: 0.6rem 0 0 0.28em; }
+.cover-title { font: 600 1.7rem/1 var(--book); letter-spacing: 0.2em; margin: 0.6rem 0 0 0.2em; max-width: 100%; }
 .cover-subtitle { font: italic 0.86rem/1.25 var(--book); max-width: 9.5rem; }
 .cover-stand { margin-top: auto; font: 0.95rem var(--book); font-variant: small-caps; letter-spacing: 0.06em; }
 .codex-book .ornament, .page .ornament { width: 7.5rem; height: 0.55rem; fill: currentColor; stroke: currentColor; }
@@ -675,12 +675,12 @@ mark.find {
 }
 
 /* Register and hits */
-.toc-line, .toc-group, .hit {
+.toc-line, .toc-group, .search-hit {
   display: flex; width: 100%; align-items: baseline; gap: 0.45em; padding: 0.08em 0.25em; margin: 0; text-align: left;
   font: inherit; line-height: 1.3; color: inherit; background: none; border: 0; border-radius: 2px;
 }
-.toc-line:hover:not(:disabled), .toc-group:hover:not(:disabled), .hit:hover:not(:disabled) { background: rgba(138, 42, 29, 0.07); border: 0; }
-.toc-line:focus-visible, .toc-group:focus-visible, .hit:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 0; box-shadow: none; background: rgba(255, 191, 71, 0.3); }
+.toc-line:hover:not(:disabled), .toc-group:hover:not(:disabled), .search-hit:hover:not(:disabled) { background: rgba(138, 42, 29, 0.07); border: 0; }
+.toc-line:focus-visible, .toc-group:focus-visible, .search-hit:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 0; box-shadow: none; background: rgba(255, 191, 71, 0.3); }
 .toc-group { break-after: avoid; margin-top: 0.55em; font-variant: small-caps; letter-spacing: 0.05em; font-weight: 600; }
 .toc-id { flex: none; width: 2.5em; font-weight: 600; font-size: 0.88em; color: var(--rubric); }
 .toc-title { flex: 0 1 auto; }
@@ -689,7 +689,7 @@ mark.find {
 .toc-page { flex: none; min-width: 1.4em; text-align: right; font-variant-numeric: oldstyle-nums; }
 .toc-locked { display: flex; align-items: baseline; gap: 0.45em; margin: 0.55em 0 0; padding: 0 0.25em; color: var(--leaf-muted); font-style: italic; }
 .toc-locked .lock { width: 0.75em; height: 0.85em; margin-right: 0.35em; fill: currentColor; stroke: currentColor; vertical-align: -0.05em; }
-.hit { flex-direction: column; align-items: stretch; gap: 0.12em; padding: 0.45em 0.3em; border-bottom: 0.6px solid #d6ccb8; border-radius: 0; }
+.search-hit { flex-direction: column; align-items: stretch; gap: 0.12em; padding: 0.45em 0.3em; border-bottom: 0.6px solid #d6ccb8; border-radius: 0; }
 .hit-head { display: flex; align-items: baseline; gap: 0.4em; font-weight: 600; }
 .hit-head .toc-id { width: auto; }
 .hit-day { font-size: 0.78em; font-variant: small-caps; letter-spacing: 0.05em; color: var(--leaf-muted); }

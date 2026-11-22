@@ -491,7 +491,7 @@ export class CodexBook {
       out.push(
         h(
           'button',
-          { class: 'blk hit', 'data-key': `hit-${hit.id}`, onclick: () => this.goRule(hit.id, true) },
+          { class: 'blk search-hit', 'data-key': `hit-${hit.id}`, onclick: () => this.goRule(hit.id, true) },
           h(
             'span',
             { class: 'hit-head' },

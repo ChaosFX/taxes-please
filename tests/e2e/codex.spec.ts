@@ -181,10 +181,10 @@ test('Suche: „abzugsfahig“ findet „abzugsfähig“, „R12“ findet R12, 
   await key(page, 'codex-search').fill('abzugsfahig');
   const expected = rules.filter((r) => fold(`${r.title} ${r.text}`).includes('abzugsfahig')).map((r) => r.id);
   expect(expected.length).toBeGreaterThan(1);
-  await expect(page.locator('.hit')).toHaveCount(expected.length);
-  expect(await page.locator('.hit').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.key!.slice(4)))).toEqual(expected);
+  await expect(page.locator('.search-hit')).toHaveCount(expected.length);
+  expect(await page.locator('.search-hit').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.key!.slice(4)))).toEqual(expected);
   await expect(page.locator('.book-status')).toHaveText(`${expected.length} Treffer`);
-  await expect(page.locator('.hit').first().locator('mark.find').first()).toBeVisible();
+  await expect(page.locator('.search-hit').first().locator('mark.find').first()).toBeVisible();
 
   // A hit on the first double page (the list itself runs over several pages).
   const target = expected[1]!;
@@ -197,7 +197,7 @@ test('Suche: „abzugsfahig“ findet „abzugsfähig“, „R12“ findet R12, 
   expect(await marks.first().evaluate((m) => getComputedStyle(m).backgroundImage)).toContain('gradient');
 
   await key(page, 'codex-search').fill('R12');
-  await expect(page.locator('.hit').first()).toHaveAttribute('data-key', 'hit-R12');
+  await expect(page.locator('.search-hit').first()).toHaveAttribute('data-key', 'hit-R12');
   await key(page, 'hit-R12').click();
   expect(await fullyVisibleRules(page)).toContain('R12');
   await expect(page.locator('.page.shown [data-rule="R12"] .rule-id mark.find')).toHaveText('R12');
@@ -212,12 +212,12 @@ test('Suche: „abzugsfahig“ findet „abzugsfähig“, „R12“ findet R12, 
 test('Suche vor Tag 4: „R12“ findet nichts, gesperrte Regeln nie', async ({ page }) => {
   await openAtDesk(page, 3);
   await key(page, 'codex-search').fill('R12');
-  await expect(page.locator('.hit')).toHaveCount(0);
+  await expect(page.locator('.search-hit')).toHaveCount(0);
   await expect(page.locator('.book-status')).toHaveText('Kein Treffer');
   await key(page, 'codex-search').fill('einkunftsarten');
-  await expect(page.locator('.hit')).toHaveCount(0);
+  await expect(page.locator('.search-hit')).toHaveCount(0);
   await key(page, 'codex-search').fill('STRASSE');
-  for (const k of await page.locator('.hit').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.key!.slice(4)))) expect(ruleById(k).day).toBeLessThanOrEqual(3);
+  for (const k of await page.locator('.search-hit').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.key!.slice(4)))) expect(ruleById(k).day).toBeLessThanOrEqual(3);
 });
 
 test('Effekte aus: beim Blättern läuft keine Animation', async ({ page }) => {
@@ -386,4 +386,28 @@ test('Kodex mit Screenreader-Struktur: Dialog, Seiten als Regionen, Griffregiste
   await page.keyboard.press('Escape');
   await page.keyboard.press('k');
   await expect(page.locator('.ribbon')).toHaveClass(/lying/);
+});
+
+test('Titel bleibt auf dem Buchdeckel, Kodex-Klassen stören den Stempelabdruck nicht', async ({ page }) => {
+  await freshStart(page);
+  await key(page, 'new-game').click();
+  await key(page, 'begin').click();
+  await page.evaluate(() => document.fonts.ready);
+  const inside = await page.locator('.cover-title').evaluate((el) => {
+    const frame = el.closest('.cover-frame')!.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const text = range.getBoundingClientRect();
+    return text.left >= frame.left && text.right <= frame.right;
+  });
+  expect(inside).toBe(true);
+
+  await key(page, 'stack').click();
+  await key(page, 'pos-p1-anerkennen').click();
+  await key(page, 'pos-p2-streichen').click();
+  await key(page, 'stamp-bescheid').click();
+  const imprint = page.locator('.stamp-imprint');
+  await expect(imprint).toHaveClass(/hit/);
+  const { w, paper } = await imprint.evaluate((el) => ({ w: (el as HTMLElement).offsetWidth, paper: el.parentElement!.clientWidth }));
+  expect(w).toBeLessThan(paper / 2);
 });
