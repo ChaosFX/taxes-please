@@ -351,6 +351,8 @@ html[data-effects='reduziert'] dialog.zoom[open] .paper { animation: zoom-in 80m
   .verdicts button { padding: 0.4rem 0.55rem; }
   .pruefvermerk { padding-right: 1.1rem; }
   .positions td { padding-right: 0.3rem; }
+  /* Wide system fonts (e.g. DejaVu Sans): headings and position names may break so the table fits. */
+  .positions th, .positions td:first-child { hyphens: auto; -webkit-hyphens: auto; overflow-wrap: anywhere; }
   .start, .summary, .finished { padding: 1.2rem; }
 }
 

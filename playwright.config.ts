@@ -21,7 +21,9 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'], viewport }, testIgnore: /screenshots\.spec\.ts/ },
-    { name: 'webkit', use: { ...devices['Desktop Safari'], viewport }, testIgnore: /screenshots\.spec\.ts/ },
+    // WebKit paints without GPU on Linux (box-shadows are expensive): every click
+    // waits up to half a second for a frame, so tests get three times the default time.
+    { name: 'webkit', timeout: 90_000, use: { ...devices['Desktop Safari'], viewport }, testIgnore: /screenshots\.spec\.ts/ },
   ],
   webServer: {
     command: `npm run build && npx vite preview --port 4173 --strictPort --base ${BASE_PATH}`,
