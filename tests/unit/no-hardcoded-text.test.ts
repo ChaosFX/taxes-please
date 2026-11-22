@@ -79,9 +79,7 @@ const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1
  * Keys already in ui.json for a later stage of the current Auftrag, with the
  * step that will use them. Kept short; the list must be empty when the Auftrag is done.
  */
-const PENDING: Record<string, string> = {
-  'desk.stampTaken': 'Auftrag 05, Etappe B1: Stempel aufnehmen und aufdrücken',
-};
+const PENDING: Record<string, string> = {};
 
 describe('ui.json und Code passen zusammen', () => {
   const entries = uiEntries();

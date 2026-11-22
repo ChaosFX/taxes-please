@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { freshStart, key, openAkte, pullOut } from './helpers';
+import { freshStart, key, openAkte, pullOut, stampAkte } from './helpers';
 
 /** Auftrag 01: Ziehen, Zoom, Stempel-Effekt, Einstellungen; auf dem Arbeitstisch aus Auftrag 05. */
 
@@ -96,7 +96,7 @@ test('Effekte aus: Ziehen geht, aber ohne Animation; Stempel ohne Animation', as
   expect((await settled(a)).x - before.x).toBeGreaterThan(70);
   expect(await a.evaluate((el) => el.getAnimations().length)).toBe(0);
   expect(await a.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0s');
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   const anims = await page.locator('.stamp-imprint').evaluate((el) => el.getAnimations().length);
   expect(anims).toBe(0);
   await expect(page.locator('.folder.open')).not.toHaveClass(/shake/);
@@ -106,7 +106,7 @@ test('Effekte voll: Stempel schlägt auf und die Arbeitsfläche wackelt', async 
   await setEffects(page, 'voll');
   await page.locator('.settings summary').click();
   await toDeskWithAkte(page);
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   await expect(page.locator('.stamp-imprint')).toHaveClass(/hit/);
   await expect(page.locator('.folder.open')).toHaveClass(/shake/);
   expect(await page.locator('.stamp-imprint').evaluate((el) => el.getAnimations().length)).toBeGreaterThan(0);

@@ -264,7 +264,7 @@ export function pressObject(e: PointerEvent, spec: DragSpec): void {
 }
 
 /** After a drag the browser may still send a click to the element under the pointer: it is dropped. */
-function swallowClick(): void {
+export function swallowClick(): void {
   const stop = (ev: Event) => {
     ev.stopPropagation();
     ev.preventDefault();

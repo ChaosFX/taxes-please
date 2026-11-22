@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -107,37 +107,139 @@ export async function markPair(page: Page, akteId: string, m: { a: LineRef; b: L
   }
 }
 
-/** Closes the open folder (papers fly back) and puts it into the outbox. */
+/**
+ * Takes a stamp from the holder, chooses the question if given, and presses it
+ * onto the stamp field of the open folder (SPEC 7.3).
+ */
+export async function stampAkte(page: Page, stamp: string, inquiry?: string) {
+  await key(page, `stamp-${stamp}`).click();
+  if (inquiry) await key(page, `inq-${inquiry}`).click();
+  await key(page, 'stamp-field').click();
+  await expect(page.locator('.stamp-imprint')).toBeVisible();
+}
+
+/** Closes the open folder (papers fly back) and puts it into the outbox with the button on its cover. */
 export async function fileAkte(page: Page) {
   await key(page, 'close-akte').click();
   await expect(page.locator('.folder.on-desk')).toBeVisible();
-  await key(page, 'outbox').click();
+  await key(page, 'folder-outbox').click();
+}
+
+/**
+ * How the player works (SPEC 11, Auftrag 05 B5):
+ * - `click`: clicks only, the shortest way;
+ * - `drag`: with the mouse by dragging – Akte from the inbox onto the pad, papers out
+ *   of the pocket, the closed Akte into the outbox;
+ * - `keys`: keyboard only – Enter, Space and typing on the focused element.
+ */
+export type Way = 'click' | 'drag' | 'keys';
+
+/** Mouse drag from the middle (or `from`) of an element to a point. */
+export async function dragTo(page: Page, l: Locator, to: { x: number; y: number }, from?: { x: number; y: number }) {
+  const b = (await l.boundingBox())!;
+  const a = from ?? { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+  await page.mouse.move(a.x, a.y);
+  await page.mouse.down();
+  await page.mouse.move((a.x + to.x) / 2, (a.y + to.y) / 2, { steps: 4 });
+  await page.mouse.move(to.x, to.y, { steps: 4 });
+  await page.mouse.up();
+}
+
+/** Focus by keyboard target and press a key: the element is activated with the keyboard, not the mouse. */
+async function press(page: Page, k: string, keyName = 'Enter') {
+  await key(page, k).focus();
+  await page.keyboard.press(keyName);
+}
+
+async function openWith(page: Page, way: Way): Promise<string> {
+  if (way === 'click') return openAkte(page);
+  if (way === 'keys') await press(page, 'stack');
+  else {
+    const pad = (await page.locator('.stage .pad').boundingBox())!;
+    await dragTo(page, key(page, 'stack'), { x: pad.x + 300, y: pad.y + 120 });
+  }
+  await expect(page.locator('.folder.open .pruefvermerk')).toBeVisible();
+  return (await page.locator('.pruefvermerk').getAttribute('data-akte'))!;
+}
+
+async function pullOutWith(page: Page, way: Way, doc: number) {
+  const paper = key(page, `paper-${doc}`);
+  if (await paper.evaluate((el) => el.classList.contains('loose'))) return;
+  if (way === 'click') return pullOut(page, doc);
+  if (way === 'keys') await press(page, `paper-${doc}`);
+  else {
+    // Grabbed at its title strip in the pocket, dropped on the pad right of the folder.
+    const b = (await paper.boundingBox())!;
+    const pad = (await page.locator('.stage .pad').boundingBox())!;
+    const folder = (await page.locator('.folder.open').boundingBox())!;
+    const x = Math.min(pad.x + pad.width - 180, folder.x + folder.width + 60 + (doc % 2) * 60);
+    await dragTo(page, paper, { x, y: pad.y + 60 + doc * 70 }, { x: b.x + 40, y: b.y + 6 });
+  }
+  await expect(paper).toHaveClass(/loose/);
+  await paper.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
 }
 
 /** Enters a solution for the Akte on the desk, stamps and files it. */
-export async function enter(page: Page, id: string, s: Solution) {
-  for (const [pid, v] of Object.entries(s.positions)) await key(page, `pos-${pid}-${v}`).click();
-  if (s.option) await key(page, `opt-${s.option}`).click();
-  for (const [d, v] of Object.entries(s.decisions)) await key(page, `dec-${d}-${v}`).click();
-  for (const [d, v] of Object.entries(s.amounts)) await key(page, `amt-${d}`).fill(v);
-  for (const m of s.marks) await markPair(page, id, m);
-  await key(page, `stamp-${s.stamp}`).click();
-  if (s.stamp === 'ergaenzung' && caseOf(id).inquiry && !id.endsWith('/folge')) await key(page, `inq-${s.inquiry}`).click();
-  await fileAkte(page);
+export async function enter(page: Page, id: string, s: Solution, way: Way = 'click') {
+  const act = (k: string) => (way === 'keys' ? press(page, k) : key(page, k).click());
+  for (const [pid, v] of Object.entries(s.positions)) await act(`pos-${pid}-${v}`);
+  if (s.option) await act(`opt-${s.option}`);
+  for (const [d, v] of Object.entries(s.decisions)) await act(`dec-${d}-${v}`);
+  for (const [d, v] of Object.entries(s.amounts)) {
+    if (way === 'keys') {
+      await key(page, `amt-${d}`).focus();
+      await page.keyboard.type(v);
+    } else await key(page, `amt-${d}`).fill(v);
+  }
+  if (way === 'click') for (const m of s.marks) await markPair(page, id, m);
+  else if (s.marks.length) {
+    const docs = documentsOf(id);
+    for (const m of s.marks) for (const r of [m.a, m.b]) await pullOutWith(page, way, docs.findIndex((d) => d.title === r.document));
+    await act('mark-mode');
+    // Mark lines by keyboard in both ways: papers may lie on top of each other.
+    for (const m of s.marks) for (const r of [m.a, m.b]) await press(page, markKey(id, r));
+  }
+  const inquiry = s.stamp === 'ergaenzung' && caseOf(id).inquiry && !id.endsWith('/folge') ? s.inquiry : undefined;
+  if (way === 'keys') {
+    // Tab to the stamp, Enter takes it, Enter presses it (after choosing the question, focus is on the stamp field).
+    await press(page, `stamp-${s.stamp}`);
+    if (inquiry) await press(page, `inq-${inquiry}`);
+    await expect(key(page, 'stamp-field')).toHaveClass(/ready/);
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.stamp-imprint')).toBeVisible();
+    await expect(key(page, 'close-akte')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(key(page, 'folder-outbox')).toBeFocused();
+    await page.keyboard.press('Enter');
+  } else {
+    await stampAkte(page, s.stamp, inquiry);
+    if (way === 'click') await fileAkte(page);
+    else {
+      await key(page, 'close-akte').click();
+      const folder = page.locator('.desk-folder');
+      await expect(folder).toBeVisible();
+      // Measured once the cover has closed.
+      await folder.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+      const out = (await page.locator('.outbox-zone').boundingBox())!;
+      const f = (await folder.boundingBox())!;
+      await dragTo(page, folder, { x: out.x + out.width / 2, y: out.y + out.height / 2 }, { x: f.x + f.width / 2, y: f.y + 40 });
+    }
+  }
+  await expect(page.locator('.folder.open, .desk-folder')).toHaveCount(0);
 }
 
-/** Draws the next Akte and solves it by mouse. Returns its id. */
-export async function solveNext(page: Page, answer: (id: string) => Solution = solutionFor): Promise<string> {
-  const id = await openAkte(page);
-  await enter(page, id, answer(id));
+/** Draws the next Akte and solves it. Returns its id. */
+export async function solveNext(page: Page, answer: (id: string) => Solution = solutionFor, way: Way = 'click'): Promise<string> {
+  const id = await openWith(page, way);
+  await enter(page, id, answer(id), way);
   return id;
 }
 
-export async function playDay(page: Page, opts: { reloadAfter?: number; answer?: (id: string) => Solution } = {}) {
+export async function playDay(page: Page, opts: { reloadAfter?: number; answer?: (id: string) => Solution; way?: Way } = {}) {
   await key(page, 'begin').click();
   let n = 0;
   while (await page.locator('.screen.desk').isVisible()) {
-    await solveNext(page, opts.answer);
+    await solveNext(page, opts.answer, opts.way);
     n++;
     if (opts.reloadAfter === n) {
       await page.reload();

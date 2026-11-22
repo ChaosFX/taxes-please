@@ -697,9 +697,10 @@ mark.find {
   --manila: #d8b874;
   --manila-dark: #c49d55;
 }
-.screen.desk { position: fixed; inset: 0; padding: 0; margin: 0; max-width: none; overflow: hidden; }
+/* `clip`, not `hidden`: neither the screen nor the stage can be scrolled, not even by a script. */
+.screen.desk { position: fixed; inset: 0; padding: 0; margin: 0; max-width: none; overflow: clip; }
 .stage {
-  position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; border-radius: 8px;
+  position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: clip; border-radius: 8px;
   background-color: var(--wood-2);
   background-image:
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 9px),
@@ -728,7 +729,7 @@ mark.find {
 }
 .stage .inbox .slot-label { left: auto; right: 2px; }
 .desk-message {
-  position: absolute; left: 725px; top: 30px; z-index: 9500; transform: translateX(-50%); max-width: 600px; pointer-events: none;
+  position: absolute; left: 725px; bottom: 34px; z-index: 9500; transform: translateX(-50%); max-width: 600px; pointer-events: none;
   background: rgba(20, 16, 10, 0.9); color: #f6efe0; font: 15px/1.35 var(--ui); padding: 8px 14px; border-radius: 6px; text-align: center;
   opacity: 0;
 }
@@ -867,11 +868,6 @@ html[data-effects='reduziert'] .folder.open.opening .folder-body { animation: fa
 .outbox-count { margin-left: 0.5em; padding: 0 6px; border-radius: 9px; background: rgba(255, 236, 200, 0.85); color: #3a2c18; font-size: 12px; }
 .outbox-pile { position: absolute; left: 0; right: 0; top: 40px; height: 230px; pointer-events: none; }
 .outbox-pile .folder.closed { transform-origin: 50% 0; }
-.stage .outbox {
-  position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 20; font: 700 13px var(--ui); padding: 0.55rem 0.4rem;
-  background: #c9b27b; border: 2px solid #6e5a2c; color: #1d1b17; box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.12);
-}
-.stage .outbox:hover:not(:disabled) { background: #d6c18c; border-color: #6e5a2c; }
 .desk-phone { position: absolute; display: grid; place-items: center; }
 
 /* Tools in the rail and on the pad (SPEC 7.4) */
@@ -931,3 +927,25 @@ html[data-effects='reduziert'] .folder.open.opening .folder-body { animation: fa
 .tool-calculator.open { width: 236px; cursor: grab; }
 .tool-calculator.open .calculator { cursor: default; }
 .tool-calculator.open .put-back { position: absolute; top: 8px; right: 8px; }
+
+/* Stamp in the hand (SPEC 7.3) */
+.stamp-ghost { display: none; position: absolute; left: 0; top: 0; z-index: 9600; pointer-events: none; filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.45)); }
+.stamp-ghost.on { display: block; }
+.stamp-ghost.bescheid .stamp-handle { --rubber: #24448a; }
+.stamp-ghost.ergaenzung .stamp-handle { --rubber: #a3261b; }
+.stamp-ghost .stamp-handle { display: block; background: linear-gradient(90deg, transparent 23px, #8a5d36 23px 33px, transparent 33px) 0 20px / 100% 32px no-repeat; }
+.stage.carrying, .stage.carrying * { cursor: crosshair !important; }
+.rack .stamp-btn.carried { background: rgba(255, 191, 71, 0.18); }
+.rack .stamp-btn.carried .stamp-handle { opacity: 0.18; }
+.stamp-field.ready { border-color: var(--red-ink); color: var(--red-ink); background: rgba(163, 38, 27, 0.06); border-style: solid; }
+.stamp-field.ready.waiting { border-style: dashed; color: #9a8d73; background: none; }
+.inquiry .option[aria-pressed='true'] { background: var(--ink); color: #fff; }
+
+/* Closed folder on the desk with the button for the outbox (SPEC 7.2) */
+.desk-folder { display: grid; justify-items: start; gap: 6px; cursor: grab; }
+.desk-folder .folder.closed { position: relative; }
+.lid-outbox {
+  font: 700 12px var(--ui); padding: 4px 10px; min-height: 28px; margin-left: 6px;
+  background: #c9b27b; border: 1.5px solid #6e5a2c; color: #1d1b17; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+.desk-folder .lid-outbox:hover:not(:disabled):not([aria-pressed='true']) { background: #d6c18c; border-color: #6e5a2c; }

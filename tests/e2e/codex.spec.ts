@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { freshStart, key, openAkte, raw, startAtDay } from './helpers';
+import { freshStart, key, openAkte, raw, startAtDay, stampAkte } from './helpers';
 
 /**
  * Auftrag 04: der Kodex als Buch (SPEC 6). Most tests run with „Effekte aus“,
@@ -416,7 +416,7 @@ test('Titel bleibt auf dem Buchdeckel, Kodex-Klassen stören den Stempelabdruck 
   await openAkte(page);
   await key(page, 'pos-p1-anerkennen').click();
   await key(page, 'pos-p2-streichen').click();
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   const imprint = page.locator('.stamp-imprint');
   await expect(imprint).toHaveClass(/hit/);
   const { w, paper } = await imprint.evaluate((el) => ({ w: (el as HTMLElement).offsetWidth, paper: el.parentElement!.clientWidth }));

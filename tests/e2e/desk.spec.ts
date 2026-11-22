@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { documentsOf, freshStart, inboxCount, key, openAkte, pullOut, raw, startAtDay } from './helpers';
+import { documentsOf, freshStart, inboxCount, key, openAkte, pullOut, raw, startAtDay, stampAkte } from './helpers';
 
 /** Auftrag 05, Etappe A: Tischplan, Mappe, Werkzeuge, Kalender (SPEC 7.1 bis 7.5, 11). */
 
@@ -109,7 +109,7 @@ test('Ausgangskorb: offene und ungestempelte Akte werden abgewiesen, gestempelte
   await key(page, 'folder').click();
   await key(page, 'pos-p1-anerkennen').click();
   await key(page, 'pos-p2-streichen').click();
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   await key(page, 'stamp-bescheid').click();
   await expect(message(page)).toHaveText('Die Akte ist schon gestempelt. Der Stempel ist endgültig.');
   await key(page, 'close-akte').click();
@@ -251,7 +251,7 @@ for (const [w, h] of [
     expect(stage.y + stage.height).toBeLessThanOrEqual(h + 0.5);
     expect(await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.scrollHeight])).toEqual([w, h]);
     // Every control of the rails is inside the window.
-    for (const k of ['stack', 'codex-book', 'calendar-tool', 'stamp-bescheid', 'outbox']) {
+    for (const k of ['stack', 'codex-book', 'calendar-tool', 'stamp-bescheid']) {
       const b = await box(key(page, k));
       expect(b.x + b.width, k).toBeLessThanOrEqual(w);
       expect(b.y + b.height, k).toBeLessThanOrEqual(h);
@@ -286,6 +286,16 @@ test('Effekte aus: Aufschlagen, Zurückfliegen und Ablegen ohne Animation', asyn
   await key(page, 'close-akte').click();
   expect(await anims()).toBe(0);
   await expect(page.locator('.paper.loose')).toHaveCount(0);
+  await key(page, 'folder').click();
+  await key(page, 'pos-p1-anerkennen').click();
+  await key(page, 'pos-p2-streichen').click();
+  await stampAkte(page, 'bescheid');
+  expect(await anims()).toBe(0);
+  await expect(page.locator('.folder.open')).not.toHaveClass(/shake/);
+  await key(page, 'close-akte').click();
+  await key(page, 'folder-outbox').click();
+  expect(await anims()).toBe(0);
+  await expect(page.locator('.outbox-count')).toHaveText('1');
 });
 
 test('Effekte voll: Mappe klappt auf, Papiere fliegen zurück', async ({ page }) => {

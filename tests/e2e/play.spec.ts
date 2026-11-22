@@ -1,11 +1,16 @@
 import { expect, test, type Page } from '@playwright/test';
-import { drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, startAtDay } from './helpers';
+import { drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, stampAkte, startAtDay } from './helpers';
 
 const FOLLOW_UP_DAYS: Record<number, string> = { 4: '3-4/folge', 5: '4-1/folge', 6: '5-3/folge', 7: '6-3/folge', 8: '7-3/folge', 10: '9-2/folge' };
 const eventsOf = (day: number): { type: string; feature?: string }[] => raw.days.find((d: { day: number }) => d.day === day).storyEvents;
 
-test('Akt I richtig durchspielen mit Neuladen: null Fehler an allen zehn Tagen, dann „Ende von Akt I“', async ({ page }) => {
-  longTest(240_000);
+/**
+ * Akt I all the way through (SPEC 11): once with the mouse by dragging (Akte onto the
+ * pad, papers out of the pocket, Akte into the outbox), once with the keyboard only.
+ */
+for (const way of ['drag', 'keys'] as const) {
+test(`Akt I richtig durchspielen (${way === 'drag' ? 'Maus mit Ziehen' : 'nur Tastatur'}) mit Neuladen: null Fehler an allen zehn Tagen, dann „Ende von Akt I“`, async ({ page }) => {
+  longTest(300_000);
   await freshStart(page);
   await key(page, 'new-game').click();
   for (let day = 1; day <= 10; day++) {
@@ -16,7 +21,7 @@ test('Akt I richtig durchspielen mit Neuladen: null Fehler an allen zehn Tagen, 
     await expect(page.locator('.day-card .call')).toHaveCount(events.filter((e) => e.type === 'call').length);
     await expect(page.locator('.day-card .calculator-unlock')).toHaveCount(events.some((e) => e.type === 'unlock' && e.feature === 'calculator') ? 1 : 0);
 
-    await playDay(page, { reloadAfter: day % 3 === 0 ? 2 : undefined });
+    await playDay(page, { reloadAfter: day % 3 === 0 ? 2 : undefined, way });
     await expect(page.getByTestId('errors-total')).toHaveText('Keine Fehler.');
     await expect(page.locator('.result')).toHaveCount(raw.days[day - 1].cases.length + (FOLLOW_UP_DAYS[day] ? 1 : 0));
     if (FOLLOW_UP_DAYS[day]) await expect(page.locator('.result').first()).toHaveAttribute('data-akte', FOLLOW_UP_DAYS[day]!);
@@ -31,6 +36,7 @@ test('Akt I richtig durchspielen mit Neuladen: null Fehler an allen zehn Tagen, 
   await key(page, 'continue').click();
   await expect(page.locator('.screen.finished h1')).toHaveText('Ende von Akt I');
 });
+}
 
 /** Plays the day starting at `day`, `wrong` for one Akte; returns the error lines of that Akte. */
 async function oneWrong(page: Page, day: number, akteId: string, wrong: (s: ReturnType<typeof solutionFor>) => ReturnType<typeof solutionFor>) {
@@ -143,37 +149,68 @@ test('Markieren und Nachfrage mit der Tastatur', async ({ page }) => {
   await press(markKey('9-2', s.marks[0]!.b));
   await expect(page.locator('.mark-list li')).toHaveCount(1);
   await press('stamp-ergaenzung');
-  // The choice of questions opens before the stamp and has focus.
+  // Taken: the choice of questions opens before the stamp and has focus.
+  await expect(page.locator('.desk-message')).toHaveText('Stempel aufgenommen. Aufs Stempelfeld drücken, Escape legt ihn zurück.');
   await expect(page.locator('.inquiry')).toBeVisible();
+  await expect(key(page, 'inq-q1')).toBeFocused();
+  // Enter before a question is chosen does not stamp.
+  await key(page, 'stamp-ergaenzung').focus();
+  await page.keyboard.press('Enter');
   await expect(page.locator('.stamp-imprint')).toHaveCount(0);
   await expect(key(page, 'inq-q1')).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(key(page, 'inq-q1')).toHaveAttribute('aria-pressed', 'true');
+  await expect(key(page, 'stamp-field')).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('.stamp-imprint')).toBeVisible();
   await expect(key(page, 'close-akte')).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(key(page, 'folder')).toBeFocused();
-  await press('outbox');
+  await expect(key(page, 'folder-outbox')).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(key(page, 'stack')).toBeFocused();
   while (await page.locator('.screen.desk').isVisible()) await solveNext(page);
   await expect(page.getByTestId('errors-total')).toHaveText('Keine Fehler.');
 });
 
-test('Nachfrage: erst nach der Wahl wird gestempelt, erneuter Klick schließt die Auswahl', async ({ page }) => {
+test('Nachfrage: Auswahl beim Aufnehmen, das Stempelfeld nimmt erst nach der Wahl an, Zurücklegen schließt sie', async ({ page }) => {
   await startAtDay(page, 6);
   await drawUntil(page, '6-3');
+  // Not stamped yet: the outbox refuses the folder.
+  await key(page, 'close-akte').click();
+  await key(page, 'folder-outbox').click();
+  await expect(page.locator('.desk-message')).toHaveText('Erst stempeln, dann ablegen.');
+  await key(page, 'folder').click();
   await key(page, 'stamp-ergaenzung').click();
+  await expect(key(page, 'stamp-ergaenzung')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.inquiry h3')).toHaveText('Nachfrage');
   await expect(page.locator('.inquiry-prompt')).toHaveText('Was wollen Sie klären?');
   await expect(page.locator('.inquiry .option')).toHaveCount(3);
-  // Not stamped yet: the outbox refuses the folder.
-  await key(page, 'close-akte').click();
-  await key(page, 'outbox').click();
-  await expect(page.locator('.desk-message')).toHaveText('Erst stempeln, dann ablegen.');
-  await key(page, 'folder').click();
-  await expect(page.locator('.inquiry')).toBeVisible();
+  // The stamp field does not take the stamp before a question is chosen.
+  await key(page, 'stamp-field').click();
+  await expect(page.locator('.stamp-imprint')).toHaveCount(0);
+  await expect(key(page, 'stamp-ergaenzung')).toHaveAttribute('aria-pressed', 'true');
+  // A second click on the holder puts it back; the choice closes.
   await key(page, 'stamp-ergaenzung').click();
   await expect(page.locator('.inquiry')).toHaveCount(0);
+  await expect(key(page, 'stamp-ergaenzung')).toHaveAttribute('aria-pressed', 'false');
+  // Escape, a right click and a click beside the stamp field put it back as well.
+  for (const back of [() => page.keyboard.press('Escape'), () => page.locator('.pocket').click({ button: 'right' }), () => page.locator('.pocket').click()]) {
+    await key(page, 'stamp-ergaenzung').click();
+    await expect(page.locator('.inquiry')).toBeVisible();
+    await back();
+    await expect(page.locator('.inquiry')).toHaveCount(0);
+    await expect(page.locator('.stage')).not.toHaveClass(/carrying/);
+  }
+  // While carried, nothing can be dragged.
   await key(page, 'stamp-ergaenzung').click();
-  await key(page, 'inq-q1').click();
+  const bar = (await page.locator('.folder-bar').boundingBox())!;
+  await page.mouse.move(bar.x + 100, bar.y + 10);
+  await page.mouse.down();
+  await page.mouse.move(bar.x + 300, bar.y + 200, { steps: 4 });
+  await page.mouse.up();
+  await expect(page.locator('.folder.open')).toBeVisible();
+  expect(Math.abs((await page.locator('.folder-bar').boundingBox())!.x - bar.x)).toBeLessThan(2);
+  await stampAkte(page, 'ergaenzung', 'q1');
   await expect(page.locator('.stamp-imprint')).toHaveText('Ergänzungsersuchen');
   await expect(page.locator('.inquiry')).toHaveCount(0);
 });
@@ -296,10 +333,17 @@ test('eine Akte vollständig mit der Tastatur', async ({ page }) => {
   await expect(key(page, 'pruefvermerk')).toBeFocused();
   const s = solutionFor('1-1');
   for (const [pid, v] of Object.entries(s.positions)) await press(`pos-${pid}-${v}`);
+  // Tab to the stamp, Enter takes it, Enter presses it.
   await press('stamp-bescheid');
-  await press('close-akte');
-  await press('outbox');
+  await expect(key(page, 'stamp-field')).toHaveClass(/ready/);
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.stamp-imprint')).toBeVisible();
+  await expect(key(page, 'close-akte')).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(key(page, 'folder-outbox')).toBeFocused();
+  await page.keyboard.press('Enter');
   await expect(inboxCount(page)).toHaveText('Eingang (2)');
+  await expect(key(page, 'stack')).toBeFocused();
   await press('stack');
   await press('pos-p1-anerkennen');
   await expect(key(page, 'pos-p1-anerkennen')).toHaveAttribute('aria-pressed', 'true');

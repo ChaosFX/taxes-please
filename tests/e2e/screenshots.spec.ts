@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { drawUntil, enter, freshStart, key, markKey, openAkte, playDay, pullOut, solutionFor, startAtDay } from './helpers';
+import { drawUntil, enter, freshStart, key, markKey, openAkte, playDay, pullOut, solutionFor, startAtDay, stampAkte } from './helpers';
 
 /** Screenshots of the main views (SPEC section 10.3). Output: screenshots/. */
 const shot = (name: string) => `screenshots/${name}.png`;
@@ -100,12 +100,18 @@ test('Screenshots Arbeitstisch', async ({ page }) => {
   await page.screenshot({ path: shot('tisch-03-drei-papiere-kodex') });
   await key(page, 'pos-p1-anerkennen').click();
   await key(page, 'pos-p2-streichen').click();
+  // A stamp taken from the holder, hovering over the stamp field.
   await key(page, 'stamp-bescheid').click();
+  const field = (await page.locator('.stamp-field').boundingBox())!;
+  await page.mouse.move(field.x + field.width / 2 + 10, field.y + field.height / 2 + 6, { steps: 4 });
+  await calm(page);
+  await page.screenshot({ path: shot('tisch-04-stempel-aufgenommen') });
+  await key(page, 'stamp-field').click();
   await key(page, 'close-akte').click();
   await expect(page.locator('.folder.on-desk')).toBeVisible();
   await calm(page);
   await page.screenshot({ path: shot('tisch-05-zugeklappt-gestempelt') });
-  await key(page, 'outbox').click();
+  await key(page, 'folder-outbox').click();
 
   // Day 8: calendar and calculator open next to an Akte.
   await startAtDay(page, 8);
@@ -148,7 +154,7 @@ test('Screenshots Effekte und Einstellungen', async ({ page }) => {
   await openAkte(page);
   await key(page, 'pos-p1-anerkennen').click();
   await key(page, 'pos-p2-streichen').click();
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   await page.waitForTimeout(600);
   await page.screenshot({ path: shot('16-gestempelt') });
   await page.locator('.settings summary').click();

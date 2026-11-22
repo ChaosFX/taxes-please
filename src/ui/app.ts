@@ -6,7 +6,7 @@ import { CodexBook, loadBookFonts, type BookEnv } from './codex';
 import { deskView, type DeskActions, type DeskUi } from './desk';
 import { h } from './dom';
 import { EFFECT_LEVELS, applyEffects, defaultSettings, loadSavedGame, loadSettings, saveSettings } from './settings';
-import { fitStage } from './stage';
+import { fitStage, stageScale } from './stage';
 import { Table } from './table';
 import { t, type UiKey } from './text';
 import { actEndView, introView, startView, summaryView, type ScreenActions } from './views';
@@ -36,7 +36,7 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
   const book = new CodexBook('reader');
   /** The small open codex on the desk (SPEC 6.1a); kept across renders while it lies there. */
   const deskBook = new CodexBook('desk');
-  const deskUi: DeskUi = { akteId: null, markMode: false, pending: null, inquiryOpen: false, calc: core.CALC_INITIAL };
+  const deskUi: DeskUi = { akteId: null, markMode: false, pending: null, inquiryOpen: false, inquiryChoice: null, carrying: null, calc: core.CALC_INITIAL };
   /** A render asked for while an object is dragged waits for the drop. */
   let renderWaiting = false;
 
@@ -164,6 +164,8 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
       if (deskBook.isOpen) rememberPlace(deskBook.unmount());
     },
     openReader: openCodex,
+    pressStamp: () => pressStamp(),
+    putStampBack: () => putStampBack(),
   });
 
   const deskActions: DeskActions = {
@@ -175,9 +177,14 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
       state = core.enterAmount(state, id, raw);
       core.saveGame(store, state);
     },
-    stamp: (s) => {
+    stamp: (s, byKeyboard = false) => {
       if (!state) return;
-      // Stamps go on the stamp field of an open folder (SPEC 7.3).
+      // A second click on the holder puts the stamp back (SPEC 7.3).
+      if (deskUi.carrying === s) {
+        putStampBack();
+        return;
+      }
+      // Stamps go on the stamp field of an open folder.
       if (!state.current || !table.ui.folderOpen) {
         table.say('desk.noOpenAkte');
         return;
@@ -186,30 +193,26 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
         table.say('desk.alreadyStamped');
         return;
       }
-      // An Ergänzungsersuchen with inquiry first asks what to ask (SPEC 4.4); pressing it again closes the choice.
-      if (core.needsInquiry(content, state, s)) {
-        deskUi.inquiryOpen = !deskUi.inquiryOpen;
-        if (deskUi.inquiryOpen) {
-          const akte = core.getAkte(content, state.current!.akteId);
-          const first = akte.kind.type === 'entscheidungen' ? akte.kind.inquiry?.options[0]?.id : undefined;
-          focusNext = first ? `inq-${first}` : null;
-        }
-        render();
-        return;
+      deskUi.carrying = s;
+      deskUi.inquiryChoice = null;
+      // An Ergänzungsersuchen with inquiry first asks what to ask (SPEC 4): the choice opens now.
+      deskUi.inquiryOpen = core.needsInquiry(content, state, s);
+      table.carry(s, byKeyboard);
+      table.say('desk.stampTaken');
+      if (deskUi.inquiryOpen) {
+        const akte = core.getAkte(content, state.current.akteId);
+        const first = akte.kind.type === 'entscheidungen' ? akte.kind.inquiry?.options[0]?.id : undefined;
+        focusNext = first ? `inq-${first}` : null;
       }
-      deskUi.inquiryOpen = false;
-      const next = core.applyStamp(content, state, s);
-      stampFx = next !== state;
-      focusNext = 'close-akte';
-      update(next);
+      render();
     },
+    pressStamp,
     inquiry: (id) => {
-      if (!state) return;
-      const next = core.applyStamp(content, state, 'ergaenzung', id);
-      deskUi.inquiryOpen = false;
-      stampFx = next !== state;
-      focusNext = 'close-akte';
-      update(next);
+      if (!state || !deskUi.carrying) return;
+      deskUi.inquiryChoice = deskUi.inquiryChoice === id ? null : id;
+      // Next by keyboard: the stamp field, where Enter presses the stamp.
+      if (deskUi.inquiryChoice) focusNext = 'stamp-field';
+      render();
     },
     toggleMarkMode: () => {
       deskUi.markMode = !deskUi.markMode;
@@ -240,6 +243,37 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     },
     file: () => table.file(),
   };
+
+  /** Puts the carried stamp back into the holder; the question choice closes again. */
+  function putStampBack(): void {
+    if (!deskUi.carrying) return;
+    deskUi.carrying = null;
+    deskUi.inquiryOpen = false;
+    deskUi.inquiryChoice = null;
+    table.carry(null);
+    render();
+  }
+
+  /** The carried stamp onto the stamp field. With an inquiry only once a question is chosen (SPEC 4). */
+  function pressStamp(): void {
+    const s = deskUi.carrying;
+    if (!state?.current || !s || !table.ui.folderOpen) return;
+    if (deskUi.inquiryOpen && !deskUi.inquiryChoice) {
+      const akte = core.getAkte(content, state.current.akteId);
+      const first = akte.kind.type === 'entscheidungen' ? akte.kind.inquiry?.options[0]?.id : undefined;
+      focusNext = first ? `inq-${first}` : null;
+      render();
+      return;
+    }
+    const next = core.applyStamp(content, state, s, deskUi.inquiryChoice ?? undefined);
+    deskUi.carrying = null;
+    deskUi.inquiryOpen = false;
+    deskUi.inquiryChoice = null;
+    table.carry(null);
+    stampFx = next !== state;
+    focusNext = 'close-akte';
+    update(next);
+  }
 
   /**
    * Opens the codex in reading mode (SPEC 6.2), at the place of the book on the
@@ -318,6 +352,9 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
       deskUi.markMode = false;
       deskUi.pending = null;
       deskUi.inquiryOpen = false;
+      deskUi.inquiryChoice = null;
+      deskUi.carrying = null;
+      table.carry(null);
     }
     if (s.current?.answer.stamp !== undefined) {
       deskUi.markMode = false;
@@ -335,12 +372,25 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
         return introView(content, state, screenActions);
       case 'desk':
         syncDeskUi(state);
-        return deskView({ content, calendar, state, ui: deskUi, table: table.ui, a: deskActions, hooks: table, deskBook: deskBook.element, live: table.live });
+        return deskView({ content, calendar, state, ui: deskUi, table: table.ui, a: deskActions, hooks: table, deskBook: deskBook.element, live: table.live, ghost: table.ghost });
       case 'summary':
         return summaryView(content, state, screenActions);
       case 'actEnd':
         return actEndView(content, state, screenActions);
     }
+  }
+
+  /** Scrolls the Prüfvermerk (only it, never the stage) so `el` and, with the question choice, the whole choice are visible. */
+  function revealInPruefvermerk(el: HTMLElement): void {
+    const box = el.closest<HTMLElement>('.pv-scroll');
+    if (!box) return;
+    const show = el.closest<HTMLElement>('.inquiry') ?? el;
+    const b = box.getBoundingClientRect();
+    const r = show.getBoundingClientRect();
+    // Screen pixels of the scaled stage to CSS pixels of the box.
+    const k = stageScale();
+    if (r.bottom > b.bottom) box.scrollTop += (r.bottom - b.bottom) / k + 8;
+    else if (r.top < b.top) box.scrollTop -= (b.top - r.top) / k + 8;
   }
 
   /** Stamp hit: imprint scales in, the folder shakes slightly (effects „voll“ only). Transform only. */
@@ -386,10 +436,17 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     if (target && (target as HTMLButtonElement).disabled) target = null;
     target ??= root.querySelector<HTMLElement>('main button.primary:not([disabled]), main h1');
     target?.focus({ preventScroll: true });
+    // Inside the Prüfvermerk, which scrolls in itself, the focused control comes into view.
+    if (target) revealInPruefvermerk(target);
     playStampFx();
     ringIfCalled();
   }
 
+  // Web fonts change the size of papers (the newspaper): keep everything on the pad once they are there.
+  document.fonts?.addEventListener('loadingdone', () => {
+    const stage = root.querySelector<HTMLElement>('.stage');
+    if (stage && !table.dragging) table.afterRender(stage);
+  });
   window.addEventListener('resize', () => {
     const stage = root.querySelector<HTMLElement>('.stage');
     if (stage) fitStage(stage);

@@ -37,7 +37,11 @@ export interface DeskActions {
   decideE(decisionId: string, value: string | undefined): void;
   /** Stores a typed amount without re-rendering, so typing keeps focus and caret. */
   amount(decisionId: string, raw: string): void;
-  stamp(stamp: Stamp): void;
+  /** Takes the stamp from the holder, or puts it back if it is the one carried (SPEC 7.3). */
+  stamp(stamp: Stamp, byKeyboard?: boolean): void;
+  /** Presses the carried stamp onto the stamp field of the open folder. */
+  pressStamp(): void;
+  /** Chooses the question of the Ergänzungsersuchen; the stamp is pressed afterwards (SPEC 4). */
   inquiry(questionId: string): void;
   toggleMarkMode(): void;
   markLine(doc: number, line: string): void;
@@ -54,6 +58,10 @@ export interface DeskUi {
   /** First line chosen in mark mode, waiting for its partner in another paper. */
   pending: { doc: number; line: string } | null;
   inquiryOpen: boolean;
+  /** Question chosen for the Ergänzungsersuchen while its stamp is carried. */
+  inquiryChoice: string | null;
+  /** Stamp taken from the holder, following the pointer. */
+  carrying: Stamp | null;
   calc: CalcState;
 }
 
@@ -326,7 +334,7 @@ function markPanel(answer: Answer, ui: DeskUi, locked: boolean, a: DeskActions):
   );
 }
 
-function inquiryPanel(akte: Akte, a: DeskActions): HTMLElement | null {
+function inquiryPanel(akte: Akte, chosen: string | null, a: DeskActions): HTMLElement | null {
   if (akte.kind.type !== 'entscheidungen' || !akte.kind.inquiry) return null;
   const q = akte.kind.inquiry;
   return h(
@@ -337,7 +345,7 @@ function inquiryPanel(akte: Akte, a: DeskActions): HTMLElement | null {
     h(
       'div',
       { class: 'inquiry-options' },
-      q.options.map((o) => h('button', { class: 'option', 'data-key': `inq-${o.id}`, onclick: () => a.inquiry(o.id) }, o.label)),
+      q.options.map((o) => h('button', { class: 'option', 'data-key': `inq-${o.id}`, 'aria-pressed': String(chosen === o.id), onclick: () => a.inquiry(o.id) }, o.label)),
     ),
     h('p', { class: 'hint' }, t('desk.inquiryRequired')),
   );
@@ -414,11 +422,18 @@ function pruefvermerk(content: Content, akte: Akte, answer: Answer, ui: DeskUi, 
       h('header', {}, h('h2', {}, t('desk.pruefvermerk')), h('p', {}, akteHeading(akte))),
       pruefvermerkBody(content, akte, answer, locked, a),
       markPanel(answer, ui, locked, a),
-      ui.inquiryOpen && !locked ? inquiryPanel(akte, a) : null,
+      ui.inquiryOpen && !locked ? inquiryPanel(akte, ui.inquiryChoice, a) : null,
     ),
     h(
       'div',
-      { class: `stamp-field${answer.stamp ? ' stamped' : ''}`, role: 'group', 'aria-label': t('desk.stampField') },
+      {
+        class: `stamp-field${answer.stamp ? ' stamped' : ''}${ui.carrying && !locked ? ' ready' : ''}${ui.carrying && ui.inquiryOpen && !ui.inquiryChoice ? ' waiting' : ''}`,
+        'data-key': 'stamp-field',
+        tabindex: ui.carrying && !locked ? 0 : null,
+        role: 'group',
+        onclick: () => a.pressStamp(),
+        'aria-label': t('desk.stampField'),
+      },
       answer.stamp
         ? h('div', { class: `stamp-imprint ${answer.stamp}`, role: 'status' }, stampLabel(content, answer.stamp))
         : h('span', { class: 'stamp-field-label', 'aria-hidden': 'true' }, t('desk.stampField')),
@@ -519,6 +534,7 @@ function inbox(content: Content, state: GameState, hooks: TableHooks): HTMLEleme
 const slotStyle = (r: { x: number; y: number; w: number; h: number }) => `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px`;
 
 function rack(content: Content, state: GameState, ui: DeskUi, akte: Akte | null, a: DeskActions): HTMLElement {
+  const stamped = state.current?.answer.stamp !== undefined;
   const stamps = dayInfo(content, state.day).stamps;
   const hasInquiry = akte?.kind.type === 'entscheidungen' && !!akte.kind.inquiry;
   return h(
@@ -529,10 +545,11 @@ function rack(content: Content, state: GameState, ui: DeskUi, akte: Akte | null,
       h(
         'button',
         {
-          class: `stamp-btn ${s}`,
+          class: `stamp-btn ${s}${ui.carrying === s ? ' carried' : ''}`,
           'data-key': `stamp-${s}`,
-          'aria-expanded': s === 'ergaenzung' && hasInquiry ? String(ui.inquiryOpen) : null,
-          onclick: () => a.stamp(s),
+          'aria-pressed': String(ui.carrying === s),
+          'aria-expanded': s === 'ergaenzung' && hasInquiry && !stamped ? String(ui.inquiryOpen && ui.carrying === s) : null,
+          onclick: (e: Event) => a.stamp(s, (e as MouseEvent).detail === 0),
         },
         h('span', { class: 'stamp-handle', 'aria-hidden': 'true' }),
         h('span', { class: 'stamp-name' }, stampLabel(content, s)),
@@ -541,7 +558,7 @@ function rack(content: Content, state: GameState, ui: DeskUi, akte: Akte | null,
   );
 }
 
-function outbox(content: Content, state: GameState, a: DeskActions): HTMLElement {
+function outbox(content: Content, state: GameState): HTMLElement {
   const filed = resultsOfDay(state, state.day);
   return h(
     'div',
@@ -557,7 +574,6 @@ function outbox(content: Content, state: GameState, a: DeskActions): HTMLElement
         return place(el, { x: 3 + (k % 3) * 2, y: 104 - k * 6 }, k % 2 ? 2 : -2, k + 1);
       }),
     ),
-    h('button', { class: 'outbox', 'data-key': 'outbox', disabled: !state.current, onclick: a.file }, t('desk.outboxButton')),
   );
 }
 
@@ -639,6 +655,8 @@ function openTool(tool: ToolId, at: Placed, env: ToolEnv): HTMLElement | null {
 export interface DeskEnv extends ToolEnv {
   /** Live region for short messages (kept across renders). */
   live: HTMLElement;
+  /** The carried stamp following the pointer (kept across renders). */
+  ghost: HTMLElement;
 }
 
 export function deskView(env: DeskEnv): HTMLElement {
@@ -663,9 +681,17 @@ export function deskView(env: DeskEnv): HTMLElement {
         objects.push(place(grabbable(el, { kind: 'paper', index: i }, hooks), at, paperRotation(paperSeed(akte.id, i)), at.z));
       });
     } else {
-      const f = closedFolder(content, akte, answer.stamp, { 'data-key': 'folder', 'data-fx': `akte-${akte.id}`, class: 'on-desk' });
+      // The closed folder with the button on its cover for the outbox (SPEC 7.2).
+      const f = closedFolder(content, akte, answer.stamp, { 'data-key': 'folder', class: 'on-desk' });
+      f.classList.remove('obj');
       activatable(f, () => hooks.activate({ kind: 'folder' }));
-      objects.push(place(grabbable(f, { kind: 'folder' }, hooks), table.folder ?? { x: PAD.x + 40, y: PAD.y + 40 }, -1, table.folder?.z ?? 0));
+      const lid = h(
+        'div',
+        { class: 'obj desk-folder', 'data-fx': `akte-${akte.id}` },
+        f,
+        h('button', { class: 'lid-outbox', 'data-key': 'folder-outbox', onclick: a.file }, t('desk.outboxButton')),
+      );
+      objects.push(place(grabbable(lid, { kind: 'folder' }, hooks), table.folder ?? { x: PAD.x + 40, y: PAD.y + 40 }, -1, table.folder?.z ?? 0));
     }
   }
   for (const e of dayInfo(content, state.day).storyEvents.map((ev, i) => ({ ev, i }))) {
@@ -700,9 +726,11 @@ export function deskView(env: DeskEnv): HTMLElement {
     inbox(content, state, hooks),
     tools.map((tool) => (table.tools[tool] ? h('div', { class: `slot tool-slot slot-${tool}`, style: slotStyle(SLOTS[tool]), 'aria-hidden': 'true' }) : closedTool(tool, env))),
     phone(),
-    rack(content, state, ui, akte, a),
-    outbox(content, state, a),
+    outbox(content, state),
+    // After the objects: Tab goes from the Prüfvermerk and the papers on to the stamps.
     objects,
+    rack(content, state, ui, akte, a),
+    env.ghost,
     env.live,
   );
   return h('main', { class: 'screen desk' }, stage);

@@ -14,6 +14,8 @@ import {
   playFx,
   pressObject,
   rectOn,
+  swallowClick,
+  toStage,
   zoneAt,
   type Motion,
   type Point,
@@ -40,6 +42,10 @@ export interface TableHost {
   unmountBook(): void;
   /** Opens the reading mode (SPEC 6.2). */
   openReader(): void;
+  /** Presses the carried stamp onto the stamp field. */
+  pressStamp(): void;
+  /** Puts the carried stamp back into the holder. */
+  putStampBack(): void;
 }
 
 /** Sizes used to find a free spot before an element exists. */
@@ -62,6 +68,12 @@ export class Table implements TableHooks {
   readonly ui: TableUi;
   /** Live region for short messages on the stage, kept across renders. */
   readonly live: HTMLElement;
+  /** The stamp in the hand: follows the pointer while carried (kept across renders). */
+  readonly ghost: HTMLElement;
+  /** Stamp carried, or null. */
+  carrying: string | null = null;
+  /** Taken by keyboard: the stamp hovers over the stamp field until the pointer moves. */
+  private ghostAtField = false;
   /** True while an object is dragged: renders wait until it is dropped. */
   dragging = false;
   /** True while papers fly back and the folder closes. */
@@ -79,6 +91,8 @@ export class Table implements TableHooks {
   constructor(private readonly host: TableHost) {
     this.ui = { folderOpen: false, folder: null, papers: {}, tools: {}, newspapers: {}, calendar: { ...core.calendarStart(host.content.meta), sel: [] }, opening: false };
     this.live = h('div', { class: 'desk-message', role: 'status', 'aria-live': 'polite' });
+    this.ghost = h('div', { class: 'stamp-ghost', 'aria-hidden': 'true' }, h('span', { class: 'stamp-handle' }));
+    this.watchStamp();
     // The view hands these on as plain callbacks.
     this.press = this.press.bind(this);
     this.activate = this.activate.bind(this);
@@ -152,10 +166,89 @@ export class Table implements TableHooks {
         el.style.transform = el.style.transform.replace(/translate\([^)]*\)/, `translate(${p.x}px, ${p.y}px)`);
       }
     };
-    fit(stage.querySelector<HTMLElement>('.folder.open, .folder.on-desk'), this.ui.folder, this.ui.folderOpen ? FOLDER_ROTATION : -1);
+    fit(stage.querySelector<HTMLElement>('.folder.open, .desk-folder'), this.ui.folder, this.ui.folderOpen ? FOLDER_ROTATION : -1);
     for (const [i, at] of Object.entries(this.ui.papers)) fit(stage.querySelector(`[data-key="paper-${i}"]`), at, this.paperRot(Number(i)));
     for (const [tool, at] of Object.entries(this.ui.tools)) fit(stage.querySelector(`[data-fx="tool-${tool}"]`), at, TOOL_ROTATION[tool as ToolId]);
     for (const [k, at] of Object.entries(this.ui.newspapers)) fit(stage.querySelector(`[data-key="${k}"]`), at, 0);
+    stage.classList.toggle('carrying', !!this.carrying);
+    if (this.carrying && this.ghostAtField) this.ghostToField(stage);
+  }
+
+  // ---------- The stamp in the hand (SPEC 7.3) ----------
+
+  /** Shows (or hides with null) the carried stamp. `byKeyboard`: it hovers over the stamp field. */
+  carry(stamp: string | null, byKeyboard = false): void {
+    if (!stamp && this.carrying) this.hush();
+    this.carrying = stamp;
+    this.ghost.className = `stamp-ghost${stamp ? ` on ${stamp}` : ''}`;
+    this.ghostAtField = byKeyboard;
+  }
+
+  private ghostToField(stage: HTMLElement): void {
+    const field = stage.querySelector('.folder.open .stamp-field');
+    if (!field) return;
+    const r = rectOn(stage, field);
+    this.placeGhost({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+  }
+
+  /** The rubber of the stamp is at the pointer. */
+  private placeGhost(p: Point): void {
+    this.ghost.style.transform = `translate(${p.x - 28}px, ${p.y - 74}px)`;
+  }
+
+  /**
+   * While a stamp is carried: it follows the pointer; a click on the stamp field
+   * presses it, a click on a question chooses it, a click on the holder is handled
+   * there; a click anywhere else, a right click or Escape put it back.
+   */
+  private watchStamp(): void {
+    window.addEventListener('pointermove', (e) => {
+      const stage = this.stage();
+      if (!this.carrying || !stage) return;
+      this.ghostAtField = false;
+      this.placeGhost(toStage(stage, e));
+    });
+    window.addEventListener(
+      'pointerdown',
+      (e) => {
+        if (!this.carrying) return;
+        const target = e.target as HTMLElement;
+        if (target.closest('.settings, dialog')) return;
+        if (e.button === 2) return; // the contextmenu event puts it back
+        // The holder, the questions and the stamp field handle their own clicks.
+        if (target.closest('.rack .stamp-btn, .inquiry .option, .folder.open .stamp-field')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        swallowClick();
+        this.host.putStampBack();
+      },
+      { capture: true },
+    );
+    window.addEventListener('contextmenu', (e) => {
+      if (!this.carrying) return;
+      e.preventDefault();
+      this.host.putStampBack();
+    });
+    window.addEventListener(
+      'keydown',
+      (e) => {
+        if (!this.carrying || document.querySelector('dialog[open]')) return;
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          this.host.putStampBack();
+          return;
+        }
+        // Enter presses the stamp, unless it chooses a question or confirms a typed amount.
+        const target = e.target as HTMLElement;
+        if (e.key === 'Enter' && !target.closest('.inquiry .option, input, textarea, select')) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.host.pressStamp();
+        }
+      },
+      { capture: true },
+    );
   }
 
   private raiseZ(): number {
@@ -184,6 +277,13 @@ export class Table implements TableHooks {
     });
     clearTimeout(this.messageTimer);
     this.messageTimer = setTimeout(() => live.classList.remove('show'), MESSAGE_MS);
+  }
+
+  /** Clears the message at once (its reason is gone). */
+  hush(): void {
+    clearTimeout(this.messageTimer);
+    this.live.classList.remove('show');
+    this.live.textContent = '';
   }
 
   // ---------- Animated changes ----------
@@ -235,7 +335,8 @@ export class Table implements TableHooks {
   press(e: PointerEvent, what: Grab): void {
     const stage = this.stage();
     const el = e.currentTarget as HTMLElement | null;
-    if (!stage || !el || this.busy || this.dragging) return;
+    // While a stamp is carried nothing can be dragged (SPEC 7.3).
+    if (!stage || !el || this.busy || this.dragging || this.carrying) return;
     // Grabbed while still gliding: it is where it is going.
     for (const a of el.getAnimations()) a.finish();
     const from = this.spotOf(what, el, stage);
@@ -331,7 +432,8 @@ export class Table implements TableHooks {
         this.ui.folderOpen = false;
         if (this.ui.folder) this.ui.folder = { ...this.ui.folder, x: this.ui.folder.x + 24, y: this.ui.folder.y + 24 };
         this.busy = false;
-        this.host.focus('folder');
+        // Stamped: on to the button for the outbox (SPEC 7.2); else the cover, to open it again.
+        this.host.focus(this.host.state()?.current?.answer.stamp ? 'folder-outbox' : 'folder');
       });
     });
     // With effects off everything above is synchronous.
@@ -453,7 +555,7 @@ export class Table implements TableHooks {
       const el = at ? stage.querySelector<HTMLElement>(sel) : null;
       if (el && at) out.push({ x: at.x, y: at.y, w: el.offsetWidth, h: el.offsetHeight });
     };
-    add('.folder.open, .folder.on-desk', this.ui.folder);
+    add('.folder.open, .desk-folder', this.ui.folder);
     for (const [i, at] of Object.entries(this.ui.papers)) add(`[data-key="paper-${i}"]`, at);
     for (const [tool, at] of Object.entries(this.ui.tools)) add(`[data-fx="tool-${tool}"]`, at);
     return out;

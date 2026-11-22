@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { BASE_PATH } from './base-path';
-import { fileAkte, freshStart, key, openAkte, solveNext } from './helpers';
+import { fileAkte, freshStart, key, openAkte, solveNext, stampAkte } from './helpers';
 
 /**
  * Auftrag 02, Aufgabe 5: The build works under the GitHub Pages sub-path.
@@ -47,7 +47,7 @@ test('Unterpfad: alle Dateien gefunden, Schrift und Ton geladen, Neuladen am Sch
   await key(page, 'continue').click();
   await openAkte(page);
   await expect(page.locator('.pruefvermerk')).toHaveAttribute('data-akte', '1-1');
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   await fileAkte(page);
   await solveNext(page);
   await page.reload();

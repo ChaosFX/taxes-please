@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { drawUntil, enter, fileAkte, freshStart, key, longTest, markKey, playDay, pullOut, solutionFor, solveNext, startAtDay } from './helpers';
+import { drawUntil, enter, fileAkte, freshStart, key, longTest, markKey, playDay, pullOut, solutionFor, solveNext, startAtDay, stampAkte } from './helpers';
 
 /**
  * Auftrag 02: Jeder Text, den der Spieler sieht oder ein Screenreader vorliest,
@@ -153,7 +153,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
     // Verdicts flipped; the first position of the first Akte stays undecided („–“ in the summary).
     const answers = Object.entries(s.positions).slice(first ? 1 : 0);
     for (const [pid, v] of answers) await key(page, `pos-${pid}-${flip(v)}`).click();
-    await key(page, `stamp-${s.stamp}`).click();
+    await stampAkte(page, s.stamp);
     await check(page, `gestempelt ${id}`);
     await fileAkte(page);
   }
@@ -178,7 +178,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
       await key(page, other!).click();
     }
     await check(page, `Tag 3 ${id}`);
-    await key(page, `stamp-${s.stamp}`).click();
+    await stampAkte(page, s.stamp);
     await fileAkte(page);
   }
   await check(page, 'Auswertung Tag 3');
@@ -188,7 +188,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await key(page, 'stack').click();
   await check(page, 'Nachreichung');
   const s = solutionFor((await page.locator('.pruefvermerk').getAttribute('data-akte'))!);
-  await key(page, `stamp-${s.stamp}`).click();
+  await stampAkte(page, s.stamp);
   await fileAkte(page);
   // Day 4: Entscheidungen with options as text and as objects, wrong answers everywhere.
   for (;;) {
@@ -200,7 +200,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
       const other = await page.locator(`[data-decision="${d}"] .option[aria-pressed="false"]`).last().getAttribute('data-key');
       await key(page, other!).click();
     }
-    await key(page, `stamp-${sol.stamp === 'bescheid' ? 'ergaenzung' : 'bescheid'}`).click();
+    await stampAkte(page, sol.stamp === 'bescheid' ? 'ergaenzung' : 'bescheid');
     await fileAkte(page);
     if (!(await page.locator('.screen.desk').isVisible())) break;
   }
@@ -230,6 +230,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await key(page, 'stamp-ergaenzung').click();
   await check(page, 'Nachfrage-Auswahl');
   await key(page, 'inq-q3').click();
+  await key(page, 'stamp-field').click();
   await fileAkte(page);
   while (await page.locator('.screen.desk').isVisible()) await solveNext(page);
   await check(page, 'Auswertung Nachfrage');
