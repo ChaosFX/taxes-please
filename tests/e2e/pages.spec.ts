@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { BASE_PATH } from './base-path';
-import { freshStart, key, solveNext } from './helpers';
+import { fileAkte, freshStart, key, openAkte, solveNext } from './helpers';
 
 /**
  * Auftrag 02, Aufgabe 5: The build works under the GitHub Pages sub-path.
@@ -40,14 +40,15 @@ test('Unterpfad: alle Dateien gefunden, Schrift und Ton geladen, Neuladen am Sch
   // Content came with the script: the desk shows an Akte from the JSON.
   await expect(page.locator('.pruefvermerk')).toContainText('Akte 1-1');
 
-  // Reload on the desk, then continue where we were.
+  // Reload on the desk, then continue where we were: the open Akte lies on top of the inbox again (SPEC 9).
   await page.keyboard.press('Escape');
   await page.reload();
   expect(new URL(page.url()).pathname).toBe(BASE_PATH);
   await key(page, 'continue').click();
+  await openAkte(page);
   await expect(page.locator('.pruefvermerk')).toHaveAttribute('data-akte', '1-1');
   await key(page, 'stamp-bescheid').click();
-  await key(page, 'outbox').click();
+  await fileAkte(page);
   await solveNext(page);
   await page.reload();
   await key(page, 'continue').click();

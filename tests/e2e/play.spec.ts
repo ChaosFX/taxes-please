@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { drawUntil, enter, freshStart, key, longTest, markKey, playDay, raw, solutionFor, solveNext, startAtDay } from './helpers';
+import { drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, startAtDay } from './helpers';
 
 const FOLLOW_UP_DAYS: Record<number, string> = { 4: '3-4/folge', 5: '4-1/folge', 6: '5-3/folge', 7: '6-3/folge', 8: '7-3/folge', 10: '9-2/folge' };
 const eventsOf = (day: number): { type: string; feature?: string }[] => raw.days.find((d: { day: number }) => d.day === day).storyEvents;
@@ -61,7 +61,7 @@ test('falsche Nachfrage: genau ein Fehler, die Folgeakte kommt trotzdem', async 
   await expect(result).toContainText('Richtige Frage: Wo steht die Küchenmaschine und wofür wird sie genutzt?');
   await key(page, 'advance').click();
   await key(page, 'begin').click();
-  await key(page, 'stack').click();
+  await openAkte(page);
   await expect(page.locator('.pruefvermerk')).toHaveAttribute('data-akte', '6-3/folge');
 });
 
@@ -71,7 +71,7 @@ test('Bescheid statt Ergänzungsersuchen: keine Folgeakte am nächsten Tag', asy
   await expect(page.getByTestId('errors-total')).toHaveText('Fehler heute: 1');
   await key(page, 'advance').click();
   await key(page, 'begin').click();
-  await key(page, 'stack').click();
+  await openAkte(page);
   await expect(page.locator('.pruefvermerk')).toHaveAttribute('data-akte', '6-1');
 });
 
@@ -79,37 +79,42 @@ test('Markierungen: auf Papier und im Prüfvermerk, aufheben, nur zwischen zwei 
   await startAtDay(page, 5);
   await drawUntil(page, '5-3');
   const w = solutionFor('5-3').marks[0]!;
+  // Papers in the pocket cannot be marked: lines become buttons only on papers taken out (SPEC 4).
+  await key(page, 'mark-mode').click();
+  await expect(page.locator('.mark-line')).toHaveCount(0);
+  await key(page, 'mark-mode').click();
+  for (let i = 0; i < 6; i++) await pullOut(page, i);
   await key(page, 'mark-mode').click();
   await expect(key(page, 'mark-mode')).toHaveAttribute('aria-pressed', 'true');
   // Two lines in the same paper make no pair: the second choice replaces the first.
-  await key(page, 'mark-0-0').click();
-  await key(page, 'mark-0-1').click();
+  await key(page, 'mark-0-0').press('Enter');
+  await key(page, 'mark-0-1').press('Enter');
   await expect(key(page, 'mark-0-1')).toHaveAttribute('aria-pressed', 'true');
   await expect(key(page, 'mark-0-0')).toHaveAttribute('aria-pressed', 'false');
-  await key(page, 'mark-0-1').click();
+  await key(page, 'mark-0-1').press('Enter');
   await expect(page.locator('.mark-list li')).toHaveCount(0);
 
-  await key(page, markKey('5-3', w.a)).click();
-  await key(page, markKey('5-3', w.b)).click();
+  await key(page, markKey('5-3', w.a)).press('Enter');
+  await key(page, markKey('5-3', w.b)).press('Enter');
   await expect(page.locator('.mark-count')).toHaveText('Markierte Widersprüche: 1');
   await expect(page.locator('.mark-list li .mark-pair')).toHaveText('Eintrittskarte Gastro-Messe Wien: Gültig ↔ Hotelrechnung Wien: Aufenthalt');
   await expect(page.locator('.paper.doc tr.marked')).toHaveCount(2);
   await expect(page.locator('.paper.doc tr.marked .mark-no')).toHaveText(['1', '1']);
   await key(page, 'mark-remove-0').click();
   await expect(page.locator('.paper.doc tr.marked')).toHaveCount(0);
-  await key(page, markKey('5-3', w.a)).click();
-  await key(page, markKey('5-3', w.b)).click();
+  await key(page, markKey('5-3', w.a)).press('Enter');
+  await key(page, markKey('5-3', w.b)).press('Enter');
   await key(page, 'mark-clear').click();
   await expect(page.locator('.mark-list')).toHaveCount(0);
   // Mode off: marks stay visible, lines are no buttons any more.
-  await key(page, markKey('5-3', w.a)).click();
-  await key(page, markKey('5-3', w.b)).click();
+  await key(page, markKey('5-3', w.a)).press('Enter');
+  await key(page, markKey('5-3', w.b)).press('Enter');
   await key(page, 'mark-mode').click();
   await expect(page.locator('.mark-line')).toHaveCount(0);
   await expect(page.locator('.paper.doc tr.marked')).toHaveCount(2);
   // Mark mode is there for every Akte, also without contradictions.
   await enter(page, '5-3', { ...solutionFor('5-3'), marks: [] });
-  await key(page, 'stack').click();
+  await openAkte(page);
   await expect(key(page, 'mark-mode')).toBeEnabled();
 });
 
@@ -128,7 +133,10 @@ test('Markieren und Nachfrage mit der Tastatur', async ({ page }) => {
     }
     throw new Error(`${dataKey} nicht per Tastatur erreichbar`);
   };
-  await key(page, 'stack').focus();
+  // Take the two papers out with Enter in the pocket.
+  const docs = (await import('./helpers')).documentsOf('9-2');
+  for (const r of [s.marks[0]!.a, s.marks[0]!.b]) await press(`paper-${docs.findIndex((d) => d.title === r.document)}`);
+  await key(page, 'pruefvermerk').focus();
   for (const [d, v] of Object.entries(s.decisions)) await press(`dec-${d}-${v}`);
   await press('mark-mode');
   await press(markKey('9-2', s.marks[0]!.a), ' ');
@@ -141,8 +149,10 @@ test('Markieren und Nachfrage mit der Tastatur', async ({ page }) => {
   await expect(key(page, 'inq-q1')).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('.stamp-imprint')).toBeVisible();
-  await expect(key(page, 'outbox')).toBeFocused();
+  await expect(key(page, 'close-akte')).toBeFocused();
   await page.keyboard.press('Enter');
+  await expect(key(page, 'folder')).toBeFocused();
+  await press('outbox');
   while (await page.locator('.screen.desk').isVisible()) await solveNext(page);
   await expect(page.getByTestId('errors-total')).toHaveText('Keine Fehler.');
 });
@@ -154,7 +164,12 @@ test('Nachfrage: erst nach der Wahl wird gestempelt, erneuter Klick schließt di
   await expect(page.locator('.inquiry h3')).toHaveText('Nachfrage');
   await expect(page.locator('.inquiry-prompt')).toHaveText('Was wollen Sie klären?');
   await expect(page.locator('.inquiry .option')).toHaveCount(3);
-  await expect(key(page, 'outbox')).toBeDisabled();
+  // Not stamped yet: the outbox refuses the folder.
+  await key(page, 'close-akte').click();
+  await key(page, 'outbox').click();
+  await expect(page.locator('.desk-message')).toHaveText('Erst stempeln, dann ablegen.');
+  await key(page, 'folder').click();
+  await expect(page.locator('.inquiry')).toBeVisible();
   await key(page, 'stamp-ergaenzung').click();
   await expect(page.locator('.inquiry')).toHaveCount(0);
   await key(page, 'stamp-ergaenzung').click();
@@ -177,10 +192,14 @@ test('Betragsfeld: verschiedene Schreibweisen, Format nach dem Verlassen', async
   await field.blur();
   await expect(field).toHaveValue('viel');
   await expect(field).toHaveAttribute('aria-invalid', 'true');
+  // An open Akte without stamp is not kept: after a reload it lies on top of the inbox again, empty (SPEC 9).
   await field.fill('4236,7');
   await page.reload();
   await key(page, 'continue').click();
-  await expect(key(page, 'amt-d3')).toHaveValue('4.236,70 €');
+  await expect(page.locator('.folder.open')).toHaveCount(0);
+  await expect(key(page, 'stack')).toHaveAttribute('aria-label', /^Akte 9-5,/);
+  await openAkte(page);
+  await expect(key(page, 'amt-d3')).toHaveValue('');
 });
 
 test('Morgenzeitung und Anruf an den Tagen laut JSON, Zeitung liegt am Tisch', async ({ page }) => {
@@ -188,14 +207,14 @@ test('Morgenzeitung und Anruf an den Tagen laut JSON, Zeitung liegt am Tisch', a
   await expect(page.locator('.day-card .newspaper .masthead')).toHaveText('Donau-Kurier');
   await expect(page.locator('.day-card .call')).toHaveCount(0);
   await key(page, 'begin').click();
-  const paper = page.locator('.worksurface .paper.newspaper');
+  const paper = page.locator('.stage .paper.newspaper');
   await expect(paper).toHaveCount(1);
   await expect(paper).toHaveAttribute('aria-roledescription', 'Morgenzeitung');
   await paper.dblclick();
   await expect(page.locator('dialog.zoom .newspaper')).toBeVisible();
   await page.keyboard.press('Escape');
   // Still there with an Akte on the desk.
-  await key(page, 'stack').click();
+  await openAkte(page);
   await expect(paper).toHaveCount(1);
 
   await startAtDay(page, 9);
@@ -207,10 +226,14 @@ test('Tischrechner ab Tag 8: Maus und Tastatur, Fehler bei Division durch null',
   await startAtDay(page, 7);
   await key(page, 'begin').click();
   await expect(page.locator('.calculator')).toHaveCount(0);
+  await expect(key(page, 'calc-tool')).toHaveCount(0);
 
   await startAtDay(page, 8);
   await expect(page.locator('.day-card .calculator-unlock')).toHaveText('Neben dem Kodex steht ab heute ein Tischrechner.');
   await key(page, 'begin').click();
+  // In the rail, closed; a click lays it open on the pad (SPEC 7.4).
+  await expect(page.locator('.calculator')).toHaveCount(0);
+  await key(page, 'calc-tool').click();
   const display = page.locator('.calc-display');
   await expect(display).toHaveText('0');
   for (const k of ['1', '8', 'comma', '5', 'mul', '4', 'eq']) await key(page, `calc-${k}`).click();
@@ -225,7 +248,7 @@ test('Tischrechner ab Tag 8: Maus und Tastatur, Fehler bei Division durch null',
   await expect(display).toHaveText('0');
   // Nothing is carried into the Prüfvermerk.
   await solveNext(page); // 7-3/folge
-  await key(page, 'stack').click();
+  await openAkte(page);
   await expect(page.locator('.pruefvermerk')).toHaveAttribute('data-akte', '8-1');
   await key(page, 'calc').focus();
   await page.keyboard.type('300=');
@@ -269,11 +292,14 @@ test('eine Akte vollständig mit der Tastatur', async ({ page }) => {
   await press('new-game');
   await press('begin');
   await press('stack');
+  // Focus goes to the Prüfvermerk of the open folder.
+  await expect(key(page, 'pruefvermerk')).toBeFocused();
   const s = solutionFor('1-1');
   for (const [pid, v] of Object.entries(s.positions)) await press(`pos-${pid}-${v}`);
   await press('stamp-bescheid');
+  await press('close-akte');
   await press('outbox');
-  await expect(page.locator('[data-key="stack"]')).toHaveText('Aktenstapel (2)');
+  await expect(inboxCount(page)).toHaveText('Eingang (2)');
   await press('stack');
   await press('pos-p1-anerkennen');
   await expect(key(page, 'pos-p1-anerkennen')).toHaveAttribute('aria-pressed', 'true');
@@ -310,7 +336,7 @@ test('Spielstand vom Ende des Prototyps (0.2) geht mit Tag 4 weiter', async ({ p
   await key(page, 'continue').click();
   await expect(page.locator('.day-card h1')).toHaveText('Tag 4');
   await key(page, 'begin').click();
-  await expect(key(page, 'stack')).toHaveText('Aktenstapel (6)');
-  await key(page, 'stack').click();
+  await expect(inboxCount(page)).toHaveText('Eingang (6)');
+  await openAkte(page);
   await expect(page.locator('.pruefvermerk')).toHaveAttribute('data-akte', '3-4/folge');
 });

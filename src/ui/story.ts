@@ -41,7 +41,9 @@ export function storyEvent(e: StoryEvent): HTMLElement | null {
         h('div', { class: 'dialog' }, h('figcaption', {}, t('intro.call', { from: e.from })), h('blockquote', {}, e.text)),
       );
     case 'unlock':
-      return e.feature === 'calculator' ? h('p', { class: 'unlock calculator-unlock' }, t('intro.unlockCalculator')) : null;
+      if (e.feature === 'calculator') return h('p', { class: 'unlock calculator-unlock' }, t('intro.unlockCalculator'));
+      if (e.feature === 'calendar') return h('p', { class: 'unlock calendar-unlock' }, t('intro.unlockCalendar'));
+      return null;
     case 'event':
     case 'actSummary':
       return null;

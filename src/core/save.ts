@@ -99,14 +99,24 @@ function readSave(store: KeyValueStore | null): StoredState | null {
   }
 }
 
+/**
+ * An open Akte without stamp is not kept (SPEC 9): after loading it lies closed
+ * on top of the inbox again, its input empty. A stamped Akte stays on the desk.
+ */
+export function shelveUnstamped(state: GameState): GameState {
+  const cur = state.current;
+  if (!cur || cur.answer.stamp !== undefined) return state;
+  return { ...state, current: null, queue: [cur.akteId, ...state.queue] };
+}
+
 /** Loads the save, taking over saves from 0.2. Returns null if there is none or it is broken. */
 export function loadGame(store: KeyValueStore | null, content: Content): GameState | null {
   const saved = readSave(store);
   if (!saved) return null;
   try {
-    if (saved.version === 1) return migrateV1(content, saved);
+    if (saved.version === 1) return shelveUnstamped(migrateV1(content, saved));
     // A save without `codex` (before SPEC 0.3.2) keeps everything else (SPEC 9).
-    return { ...(saved as Omit<GameState, 'codex'>), codex: codexProgress(saved.codex) } as GameState;
+    return shelveUnstamped({ ...(saved as Omit<GameState, 'codex'>), codex: codexProgress(saved.codex) } as GameState);
   } catch {
     return null;
   }

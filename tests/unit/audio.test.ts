@@ -55,12 +55,14 @@ describe('Einstellungen und alte Spielstände (SPEC 9)', () => {
     const { loadSavedGame } = await import('../../src/ui/settings');
     const core = await import('../../src/core');
     const { MemoryStore, realContent } = await import('./helpers');
-    // A game in progress: day 1, first Akte drawn and partly decided.
+    // A game in progress: day 1, first Akte drawn, decided and stamped (an Akte without
+    // stamp goes back to the inbox on loading, SPEC 9).
     const content = realContent();
     let state = core.beginWork(core.newGame(content, { ...full }));
     state = core.drawNext(state);
-    const pid = Object.keys(state.current?.answer.positions ?? {})[0];
-    if (pid) state = core.decidePosition(state, pid, 'anerkennen');
+    state = core.decidePosition(state, 'p1', 'anerkennen');
+    state = core.applyStamp(content, state, 'bescheid');
+    expect(state.current?.answer.stamp).toBe('bescheid');
 
     for (const field of ['music', 'effects', 'volume'] as const) {
       const store = new MemoryStore();

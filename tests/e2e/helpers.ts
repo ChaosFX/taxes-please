@@ -73,11 +73,45 @@ export async function freshStart(page: Page) {
 
 export const key = (page: Page, k: string) => page.locator(`[data-key="${k}"]`);
 
-/** Marks a pair of lines in mark mode (mouse). */
+/** Takes the top Akte from the inbox: it opens on the desk (SPEC 7.2). Returns its id. */
+export async function openAkte(page: Page): Promise<string> {
+  await key(page, 'stack').click();
+  await expect(page.locator('.folder.open .pruefvermerk')).toBeVisible();
+  return (await page.locator('.pruefvermerk').getAttribute('data-akte'))!;
+}
+
+/** Inbox counter („Eingang (3)“). */
+export const inboxCount = (page: Page) => page.getByTestId('inbox-count');
+
+/** Clicks a paper in the pocket on its title strip (the papers overlap there); it lands next to the folder. */
+export async function pullOut(page: Page, doc: number) {
+  const paper = key(page, `paper-${doc}`);
+  if (await paper.evaluate((el) => el.classList.contains('loose'))) return;
+  await paper.click({ position: { x: 40, y: 7 } });
+  await expect(paper).toHaveClass(/loose/);
+  await paper.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+}
+
+/** Marks a pair of lines in mark mode (mouse). Both papers are taken out of the pocket first. */
 export async function markPair(page: Page, akteId: string, m: { a: LineRef; b: LineRef }) {
-  if ((await key(page, 'mark-mode').getAttribute('aria-pressed')) !== 'true') await key(page, 'mark-mode').click();
-  await key(page, markKey(akteId, m.a)).click();
-  await key(page, markKey(akteId, m.b)).click();
+  const docs = documentsOf(akteId);
+  const on = (await key(page, 'mark-mode').getAttribute('aria-pressed')) === 'true';
+  if (on) await key(page, 'mark-mode').click();
+  for (const r of [m.a, m.b]) await pullOut(page, docs.findIndex((d) => d.title === r.document));
+  await key(page, 'mark-mode').click();
+  for (const r of [m.a, m.b]) {
+    const line = key(page, markKey(akteId, r));
+    // The paper may lie under another one: bring it to the top by its title first.
+    await line.evaluate((el) => el.closest<HTMLElement>('.paper')!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await line.click();
+  }
+}
+
+/** Closes the open folder (papers fly back) and puts it into the outbox. */
+export async function fileAkte(page: Page) {
+  await key(page, 'close-akte').click();
+  await expect(page.locator('.folder.on-desk')).toBeVisible();
+  await key(page, 'outbox').click();
 }
 
 /** Enters a solution for the Akte on the desk, stamps and files it. */
@@ -89,13 +123,12 @@ export async function enter(page: Page, id: string, s: Solution) {
   for (const m of s.marks) await markPair(page, id, m);
   await key(page, `stamp-${s.stamp}`).click();
   if (s.stamp === 'ergaenzung' && caseOf(id).inquiry && !id.endsWith('/folge')) await key(page, `inq-${s.inquiry}`).click();
-  await key(page, 'outbox').click();
+  await fileAkte(page);
 }
 
 /** Draws the next Akte and solves it by mouse. Returns its id. */
 export async function solveNext(page: Page, answer: (id: string) => Solution = solutionFor): Promise<string> {
-  await key(page, 'stack').click();
-  const id = (await page.locator('.pruefvermerk').getAttribute('data-akte'))!;
+  const id = await openAkte(page);
   await enter(page, id, answer(id));
   return id;
 }
@@ -156,8 +189,7 @@ export async function startAtDay(page: Page, day: number, opts: { effects?: 'aus
 export async function drawUntil(page: Page, id: string) {
   await key(page, 'begin').click();
   for (;;) {
-    await key(page, 'stack').click();
-    const current = (await page.locator('.pruefvermerk').getAttribute('data-akte'))!;
+    const current = await openAkte(page);
     if (current === id) return;
     await enter(page, current, solutionFor(current));
   }

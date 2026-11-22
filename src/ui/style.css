@@ -127,46 +127,6 @@ button[aria-pressed='true']:hover:not(:disabled) { background: #3a362f; }
 }
 .dialog figcaption { font-weight: 700; margin-bottom: 0.2rem; }
 
-/* ---------- Desk ---------- */
-.desk { padding-top: 0.6rem; }
-.stack-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; padding-right: 9rem; }
-.day-label {
-  font-family: var(--type); font-weight: 700; background: var(--paper); padding: 0.3rem 0.8rem; white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35); transform: rotate(-1.5deg);
-}
-.stack {
-  font-weight: 700; background: #e9d9aa; border: 1px solid #8a7444; padding: 0.55rem 1rem;
-  /* A pile of folders. */
-  box-shadow: 2px 2px 0 #d9c58f, 4px 4px 0 #cdb57a, 6px 6px 0 #bea468, 7px 8px 10px rgba(0, 0, 0, 0.4);
-}
-.stack:hover:not(:disabled) { background: #f1e3b9; border-color: #6b5631; }
-.stack:disabled { opacity: 0.75; box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.35); }
-
-.desk-grid { display: grid; grid-template-columns: minmax(260px, 340px) 1fr 210px; gap: 1.2rem; align-items: start; }
-
-/* Left column: closed codex and calculator */
-.left-col {
-  position: sticky; top: 0.5rem; max-height: calc(100vh - 5rem);
-  display: flex; flex-direction: column; gap: 1.4rem; min-height: 0; align-items: center;
-}
-
-/* Green desk pad */
-.worksurface {
-  position: relative; overflow: hidden;
-  background-color: var(--pad);
-  background-image: radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.07), transparent 70%), var(--grain);
-  border: 6px solid var(--pad-edge); border-radius: 6px;
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08), 0 6px 16px rgba(0, 0, 0, 0.4);
-  padding: 1.2rem; min-height: 72vh; display: grid; gap: 1.4rem; align-content: start;
-  /* minmax(0, …): papers never grow wider than the pad, whatever their content. */
-  grid-template-columns: minmax(0, 1fr);
-}
-.empty-desk {
-  justify-self: center; margin-top: 4rem; color: #fff; font-size: 1.05rem;
-  background: rgba(0, 0, 0, 0.3); padding: 0.6rem 1rem; border-radius: 4px;
-}
-.papers { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.4rem; align-items: start; }
-
 /* Paper */
 .paper {
   position: relative;
@@ -238,30 +198,6 @@ button[aria-pressed='true']:hover:not(:disabled) { background: #3a362f; }
 .stamp-imprint.bescheid { color: var(--blue-ink); }
 .stamp-imprint.ergaenzung { color: var(--red-ink); }
 
-/* Stamps and outbox */
-.tools {
-  position: sticky; top: 0.5rem; display: flex; flex-direction: column; gap: 0.6rem;
-  background: linear-gradient(180deg, #4a2e1a, #3c2414); border: 1px solid #22140a; border-radius: 6px;
-  padding: 0.9rem; color: #fff; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
-}
-.tools h2 { font-size: 0.95rem; margin: 0.3rem 0 0; color: #f3e6c8; text-transform: uppercase; letter-spacing: 0.08em; }
-.stamp-btn {
-  font: 700 0.84rem var(--type); text-transform: uppercase; letter-spacing: 0; overflow-wrap: break-word; hyphens: auto;
-  background: linear-gradient(180deg, #2a2a2a, #121212); color: #fff; border: 0; border-bottom: 6px solid #6b1d16;
-  border-radius: 8px 8px 3px 3px; padding: 0.7rem 0.3rem;
-}
-.stamp-btn.bescheid { border-bottom-color: #4d6fc0; }
-.stamp-btn.ergaenzung { border-bottom-color: #d0483a; }
-.tools .stamp-btn:hover:not(:disabled) { background: linear-gradient(180deg, #3a3a3a, #1c1c1c); border-color: transparent; }
-.tools .stamp-btn[aria-expanded='true'] { outline: 3px solid #d0483a; outline-offset: 2px; }
-.outbox {
-  font-weight: 700; background: #c9b27b; border: 2px solid #6e5a2c; color: #1d1b17; padding: 0.9rem 0.5rem;
-  box-shadow: inset 0 -10px 0 rgba(0, 0, 0, 0.12);
-}
-.tools .outbox:hover:not(:disabled) { background: #d6c18c; border-color: #6e5a2c; }
-.tools .hint { color: #f3e6c8; margin: 0; }
-.tools button:disabled { opacity: 0.45; }
-
 /* Zoom */
 dialog.zoom {
   border: 0; padding: 0; background: transparent; max-width: min(92vw, 760px); width: 100%;
@@ -298,9 +234,7 @@ details summary { cursor: pointer; margin-top: 0.3rem; }
 .error pre { white-space: pre-wrap; background: #fff; border: 1px solid var(--danger); padding: 1rem; }
 
 /* ---------- Motion (only with effects) ---------- */
-html[data-effects='voll'] .paper.doc.dropping { transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1.25); }
 html[data-effects='voll'] .paper::after { transition: opacity 180ms ease-out; }
-html[data-effects='reduziert'] .paper.doc.dropping { transition: transform 90ms ease-out; }
 html[data-effects='reduziert'] .paper::after { transition: opacity 90ms linear; }
 
 @keyframes stamp-hit {
@@ -312,12 +246,13 @@ html[data-effects='reduziert'] .paper::after { transition: opacity 90ms linear; 
   0% { transform: rotate(-8deg) scale(1.15); opacity: 0; }
   100% { transform: rotate(-8deg) scale(1); opacity: 0.88; }
 }
+/* `translate`, not `transform`: the folder keeps its place on the desk while it shakes. */
 @keyframes desk-shake {
-  0%, 100% { transform: translate(0, 0); }
-  20% { transform: translate(-2px, 1px); }
-  40% { transform: translate(2px, -1px); }
-  60% { transform: translate(-1px, 1px); }
-  80% { transform: translate(1px, 0); }
+  0%, 100% { translate: 0 0; }
+  20% { translate: -2px 1px; }
+  40% { translate: 2px -1px; }
+  60% { translate: -1px 1px; }
+  80% { translate: 1px 0; }
 }
 @keyframes zoom-in {
   from { transform: scale(0.82); }
@@ -325,48 +260,15 @@ html[data-effects='reduziert'] .paper::after { transition: opacity 90ms linear; 
 }
 html[data-effects='voll'] .stamp-imprint.hit { animation: stamp-hit 260ms cubic-bezier(0.3, 0.7, 0.4, 1) both; }
 html[data-effects='reduziert'] .stamp-imprint.hit { animation: stamp-hit-soft 120ms ease-out both; }
-html[data-effects='voll'] .worksurface.shake { animation: desk-shake 220ms ease-out 120ms; }
+html[data-effects='voll'] .folder.open.shake { animation: desk-shake 220ms ease-out 120ms; }
 html[data-effects='voll'] dialog.zoom[open] .paper { animation: zoom-in 180ms ease-out; }
 html[data-effects='reduziert'] dialog.zoom[open] .paper { animation: zoom-in 80ms ease-out; }
-
-/* ---------- Narrow screens ---------- */
-@media (max-width: 1000px) {
-  .screen { padding: 1rem; }
-  .stack-bar { padding-right: 3rem; }
-  .settings summary { font-size: 0; padding: 0.35rem 0.6rem; }
-  .settings summary::before { font-size: 1.2rem; }
-  .settings[open] summary { font-size: 0.9rem; }
-  .desk-grid { grid-template-columns: 1fr; }
-  .worksurface { order: 1; min-height: 0; padding: 0.9rem; }
-  .tools { order: 2; position: static; }
-  .left-col { order: 3; position: static; max-height: none; }
-  .codex-desk { order: 2; }
-  .calculator { order: 1; }
-  .papers { grid-template-columns: minmax(0, 1fr); }
-  /* Touch: the page scrolls vertically over papers; dragging starts on the paper's title. */
-  .paper.doc { touch-action: pan-y; }
-  .paper.doc h3 { touch-action: none; }
-  .positions td:last-child { white-space: normal; }
-  .verdicts { flex-wrap: wrap; }
-  .verdicts button { padding: 0.4rem 0.55rem; }
-  .pruefvermerk { padding-right: 1.1rem; }
-  .positions td { padding-right: 0.3rem; }
-  /* Wide system fonts (e.g. DejaVu Sans): headings and position names may break so the table fits. */
-  .positions th, .positions td:first-child { hyphens: auto; -webkit-hyphens: auto; overflow-wrap: anywhere; }
-  .start, .summary, .finished { padding: 1.2rem; }
-}
 
 /* ---------- Sound ---------- */
 .settings .volume { display: flex; align-items: center; gap: 0.5rem; }
 .settings .volume input { width: 9rem; accent-color: #4a6b3a; }
 
 /* ---------- Akte I additions ---------- */
-
-/* Papers: up to six per Akte, slightly staggered like a fanned pile; every title stays visible. */
-.papers > .paper:nth-child(2n) { margin-top: 0.9rem; }
-.papers > .paper:nth-child(3n) { margin-top: 0.4rem; }
-.papers.count-5, .papers.count-6 { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1.1rem; }
-.papers.count-5 .paper, .papers.count-6 .paper { font-size: 0.9rem; padding: 0.95rem 0.9rem 0.85rem; }
 
 /* Decisions of an `entscheidungen` Akte */
 .decisions { list-style: none; margin: 0; padding: 0; }
@@ -511,7 +413,7 @@ html[data-effects='reduziert'] .call .phone { animation: phone-ring 120ms linear
 }
 
 /* ---------- Closed book on the desk (6.1) ---------- */
-.codex-desk { width: 100%; display: flex; justify-content: center; padding: 0.3rem 0 0.4rem; }
+.codex-desk { display: block; }
 .codex-book {
   --thick: calc(5px + var(--days, 1) * 1.6px);
   position: relative; display: block; width: 196px; height: 262px; padding: 0; border: 0; border-radius: 3px 6px 6px 3px;
@@ -785,3 +687,247 @@ mark.find {
 .book-shell[data-mode='single'] .tab[aria-current='page'] { transform: translateY(-3px); }
 .book-shell[data-mode='single'] .tab-new { margin-left: 0.2em; }
 .book-shell[data-mode='single'] .book-close { padding: 0.35rem 0.7rem; }
+
+/* ==========================================================================
+   Arbeitstisch (SPEC 7.1 bis 7.5): a stage with one logical size, scaled into
+   the window as a whole. Left the inbox and the tools, in the middle the pad,
+   right the phone, the stamps and the outbox. Objects lie at `translate(x, y)`.
+   ========================================================================== */
+:root {
+  --manila: #d8b874;
+  --manila-dark: #c49d55;
+}
+.screen.desk { position: fixed; inset: 0; padding: 0; margin: 0; max-width: none; overflow: hidden; }
+.stage {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; border-radius: 8px;
+  background-color: var(--wood-2);
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 9px),
+    linear-gradient(180deg, var(--wood-3), var(--wood-1) 40%, var(--wood-2));
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+.stage .rail { position: absolute; background: rgba(0, 0, 0, 0.16); }
+.stage .rail.left { box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.2); }
+.stage .rail.right { box-shadow: inset 2px 0 0 rgba(0, 0, 0, 0.2); }
+.stage .pad {
+  position: absolute; border-radius: 6px;
+  background-color: var(--pad);
+  background-image: radial-gradient(ellipse at 45% 30%, #3a6a4b, var(--pad) 60%, #264b34), var(--grain);
+  box-shadow: inset 0 0 0 3px var(--pad-edge), 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+.stage .empty-desk {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); margin: 0; max-width: 28rem; text-align: center;
+  color: #fff; font-size: 1.05rem; background: rgba(0, 0, 0, 0.3); padding: 0.6rem 1rem; border-radius: 4px;
+}
+.stage .slot { position: absolute; border: 1.5px dashed rgba(255, 236, 200, 0.22); border-radius: 8px; }
+.stage .slot-label { position: absolute; top: -21px; left: 2px; font: 600 13px var(--ui); color: rgba(255, 236, 200, 0.85); white-space: nowrap; }
+.stage .day-label {
+  position: absolute; left: 14px; top: 6px; z-index: 1; font: 700 14px var(--type); background: var(--paper); padding: 2px 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35); transform: rotate(-1.5deg);
+}
+.stage .inbox .slot-label { left: auto; right: 2px; }
+.desk-message {
+  position: absolute; left: 725px; top: 30px; z-index: 9500; transform: translateX(-50%); max-width: 600px; pointer-events: none;
+  background: rgba(20, 16, 10, 0.9); color: #f6efe0; font: 15px/1.35 var(--ui); padding: 8px 14px; border-radius: 6px; text-align: center;
+  opacity: 0;
+}
+.desk-message.show { opacity: 1; }
+html[data-effects='voll'] .desk-message, html[data-effects='reduziert'] .desk-message { transition: opacity 120ms linear; }
+
+/* Objects on the stage */
+.obj { position: absolute; left: 0; top: 0; transform-origin: 50% 0; touch-action: none; }
+.obj.lifted { z-index: 9000 !important; cursor: grabbing; }
+.obj:not(.paper).lifted { filter: drop-shadow(0 14px 16px rgba(0, 0, 0, 0.45)); }
+html[data-effects='aus'] .obj:not(.paper).lifted { filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.4)); }
+.obj:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; box-shadow: 0 0 0 7px var(--focus-ring); }
+
+/* Papers on the desk */
+.paper.doc { width: 210px; font-size: 12px; line-height: 1.35; padding: 12px 12px 10px; }
+.paper.doc h3 { font-size: 13px; }
+.paper.doc.has-stamp { padding-bottom: 2.9rem; }
+.paper.doc .office-stamp { font-size: 0.72rem; }
+.paper.doc.newspaper { width: 360px; max-width: none; font-size: 13px; padding: 0.8rem 1rem 1rem; }
+.paper.doc.zoomed { width: auto; font-size: 1.35rem; padding: 2rem 2rem 1.6rem; }
+.paper.doc.zoomed h3 { font-size: 1.45rem; }
+.paper.doc.zoomed.has-stamp { padding-bottom: 4.6rem; }
+.paper.doc.zoomed .office-stamp { font-size: 0.82rem; }
+.paper.doc.newspaper.zoomed { width: auto; font-size: 1.2rem; }
+.paper.in-pocket { cursor: pointer; }
+.paper.in-pocket:hover { translate: 0 -5px; }
+html[data-effects='voll'] .paper.in-pocket { transition: translate 120ms ease-out; }
+
+/* Folder, closed: cardboard with a tab */
+.folder.closed {
+  width: 160px; height: 112px; padding: 22px 10px 8px; border-radius: 3px 6px 6px 6px; cursor: grab;
+  background: linear-gradient(160deg, var(--manila), var(--manila-dark));
+  box-shadow: inset 0 0 0 1px rgba(80, 55, 20, 0.35), 0 5px 8px rgba(0, 0, 0, 0.35);
+  font: 12px/1.3 var(--type); color: #3a2c18;
+}
+.folder.closed .folder-tab {
+  position: absolute; top: -13px; left: 10px; padding: 1px 8px; border-radius: 4px 4px 0 0; white-space: nowrap;
+  background: var(--manila); font-weight: 700; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.folder.closed .folder-name { display: block; font-size: 14px; margin-bottom: 2px; }
+.folder.in-inbox:not(.top), .folder.in-outbox { pointer-events: none; }
+.folder.in-outbox { position: absolute; }
+.folder-imprint {
+  position: absolute; right: 8px; bottom: 8px; transform: rotate(-8deg); padding: 1px 4px; border: 2px solid currentColor;
+  font: 700 10px var(--type); text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.85;
+}
+.folder-imprint.bescheid { color: var(--blue-ink); }
+.folder-imprint.ergaenzung { color: var(--red-ink); }
+
+/* Folder, open: Prüfvermerk left, pocket with the papers right (SPEC 7.2) */
+.folder.open {
+  width: 520px; max-height: 770px; display: flex; flex-direction: column; border-radius: 6px;
+  background: var(--manila-dark); box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4); perspective: 1400px;
+}
+.folder-bar {
+  flex: none; height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 10px; cursor: grab;
+  background: linear-gradient(var(--manila), var(--manila-dark)); border-radius: 6px 6px 0 0;
+  font: 700 13px var(--type); color: #3a2c18;
+}
+.folder-bar .folder-tab { background: rgba(255, 255, 255, 0.35); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+.folder-bar .folder-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.close-akte { font: 13px var(--ui); padding: 4px 10px; min-height: 28px; border-color: #6b5028; background: #f3e6c4; color: #3a2c18; }
+.folder-body { position: relative; flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 296px 206px; gap: 6px; padding: 0 6px 6px; }
+.folder .pruefvermerk {
+  display: flex; flex-direction: column; min-height: 0; padding: 0; transform: none; font-size: 13px; line-height: 1.35; cursor: default;
+}
+.folder .pruefvermerk:focus { outline: none; }
+.folder .pruefvermerk:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.pv-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 12px 8px; }
+.folder .pruefvermerk h2 { font-size: 15px; margin-bottom: 0.2rem; }
+.folder .pruefvermerk header p { font-size: 12px; margin-bottom: 0.4rem; }
+.folder .pruefvermerk button { padding: 0.3rem 0.6rem; font-size: 12.5px; }
+.folder .amount-input { width: 100%; font-size: 13px; }
+/* Positions as rows: label and amount, the two verdicts below. */
+.folder .positions thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.folder .positions tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 0.5rem; padding: 0.35rem 0; border-bottom: 1px dotted var(--line); }
+.folder .positions td { display: block; padding: 0; border: 0; }
+.folder .positions td:last-child { grid-column: 1 / -1; width: auto; margin-top: 0.25rem; }
+.folder .positions .verdicts { justify-content: flex-start; }
+.stamp-field {
+  position: relative; flex: none; height: 84px; margin: 0 10px 10px; display: grid; place-items: center;
+  border: 1.5px dashed #b9ad93; border-radius: 4px; color: #9a8d73; font: 12px var(--ui);
+}
+.stamp-field.stamped { border-color: transparent; }
+.stamp-field .stamp-imprint { position: static; font-size: 1rem; }
+.pocket {
+  position: relative; min-height: 404px; overflow: hidden; border-radius: 2px;
+  background: linear-gradient(#b98f47, #a77f3c); box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.pocket-label { position: absolute; right: 8px; bottom: 4px; font: 11px var(--ui); color: rgba(40, 25, 5, 0.7); }
+.pocket .paper.doc { box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25), 0 2px 5px rgba(0, 0, 0, 0.3); }
+/* The cover turns over to the left when the folder opens (effects „voll“). */
+.folder-cover { display: none; }
+html[data-effects='voll'] .folder.open.opening .folder-cover {
+  display: block; position: absolute; top: 38px; left: 308px; right: 0; bottom: 0; z-index: 30; pointer-events: none;
+  background: linear-gradient(160deg, var(--manila), var(--manila-dark)); box-shadow: inset 0 0 0 1px rgba(80, 55, 20, 0.35);
+  border-radius: 2px 6px 6px 2px; transform-origin: left center; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  animation: cover-open 500ms cubic-bezier(0.3, 0.6, 0.25, 1) forwards;
+}
+@keyframes cover-open { to { transform: rotateY(-180deg); } }
+html[data-effects='reduziert'] .folder.open.opening .folder-body { animation: fade-in 120ms linear; }
+@keyframes fade-in { from { opacity: 0; } }
+
+/* Stamp holder */
+.rack {
+  position: absolute; display: grid; gap: 10px; align-content: start; padding: 30px 12px 12px; border-radius: 8px;
+  background: linear-gradient(#4a2e19, #3a2312); box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.rack h2, .outbox-zone h2 {
+  position: absolute; top: 7px; left: 12px; margin: 0; font: 600 13px var(--ui); color: rgba(255, 236, 200, 0.8);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.stamp-btn {
+  position: relative; display: grid; justify-items: center; gap: 4px; padding: 6px 4px 8px; border: 0; border-radius: 8px;
+  background: transparent; color: #f6efe0; font: 700 12px var(--type); text-transform: uppercase; overflow-wrap: anywhere; hyphens: auto;
+}
+.rack .stamp-btn:hover:not(:disabled):not([aria-pressed='true']) { background: rgba(255, 255, 255, 0.07); border: 0; }
+.stamp-btn[aria-expanded='true'] { background: rgba(255, 191, 71, 0.18); outline: 2px solid #d0483a; }
+/* Wooden stamp: knob, stem, block with coloured rubber. */
+.stamp-handle { position: relative; width: 56px; height: 76px; }
+.stamp-handle::before {
+  content: ''; position: absolute; left: 16px; top: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #a5774b, #5c3a1d);
+}
+.stamp-handle::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 26px; border-radius: 3px;
+  background: linear-gradient(90deg, transparent 23px, #7b5330 23px 33px, transparent 33px) 0 -30px / 100% 40px no-repeat, linear-gradient(#7b5330, #4c2f17);
+  box-shadow: inset 0 -6px 0 var(--rubber, #6b1d16);
+}
+.stamp-btn.bescheid .stamp-handle { --rubber: #24448a; }
+.stamp-btn.ergaenzung .stamp-handle { --rubber: #a3261b; }
+.stamp-btn .stamp-handle { background: linear-gradient(90deg, transparent 23px, #8a5d36 23px 33px, transparent 33px) 0 20px / 100% 32px no-repeat; }
+
+/* Outbox */
+.outbox-zone { position: absolute; border: 1.5px dashed rgba(255, 236, 200, 0.28); border-radius: 8px; background: rgba(0, 0, 0, 0.12); }
+.outbox-count { margin-left: 0.5em; padding: 0 6px; border-radius: 9px; background: rgba(255, 236, 200, 0.85); color: #3a2c18; font-size: 12px; }
+.outbox-pile { position: absolute; left: 0; right: 0; top: 40px; height: 230px; pointer-events: none; }
+.outbox-pile .folder.closed { transform-origin: 50% 0; }
+.stage .outbox {
+  position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 20; font: 700 13px var(--ui); padding: 0.55rem 0.4rem;
+  background: #c9b27b; border: 2px solid #6e5a2c; color: #1d1b17; box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.12);
+}
+.stage .outbox:hover:not(:disabled) { background: #d6c18c; border-color: #6e5a2c; }
+.desk-phone { position: absolute; display: grid; place-items: center; }
+
+/* Tools in the rail and on the pad (SPEC 7.4) */
+.tool.closed { cursor: grab; }
+.tool-codex.closed { width: 126px; height: 172px; }
+.tool-codex.closed .codex-desk { width: 196px; transform: scale(0.6); transform-origin: 0 0; }
+.tool-codex.closed .codex-book { cursor: grab; }
+.put-back, .book-tool { font: 12.5px var(--ui); padding: 3px 9px; min-height: 26px; }
+.desk-book { width: var(--book-w); }
+.desk-book:focus { outline: none; }
+.desk-book:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.book-tools { display: flex; justify-content: flex-end; gap: 6px; margin-bottom: 4px; cursor: grab; }
+.book-tool { background: var(--leaf); border-color: #8c7d61; }
+.desk-book .book { box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.4); }
+.desk-book .page { padding: 1em 1.5em 0.5em 1.9em; }
+.desk-book .page.left { padding: 1em 1.9em 0.5em 1.5em; }
+.desk-book .corner { width: 1.9rem; height: 1.9rem; }
+.desk-book .ribbon { bottom: -24px; height: 34px; }
+
+/* Desk calendar (SPEC 7.5) */
+.calendar-closed {
+  width: 132px; height: 100px; padding-top: 14px; display: grid; place-content: center; text-align: center; cursor: grab;
+  background: #fbf7ee; border-radius: 4px; color: #3b2f22; font: 600 13px/1.2 var(--book);
+  box-shadow: 0 0 0 1px #cdbf9f, 0 6px 0 -2px #ddd2b8, 0 8px 10px rgba(0, 0, 0, 0.4);
+}
+.cal-rings { position: absolute; top: -5px; left: 20px; right: 20px; height: 10px; background: radial-gradient(circle, #777 0 3px, transparent 4px) 0 0 / 16px 10px repeat-x; }
+.cal-month { display: block; font-size: 22px; color: var(--red-ink); }
+.calendar-open {
+  width: 300px; padding: 10px 12px; border-radius: 4px; background: #fbf7ee; color: #2a2118; font: 13px/1.3 var(--ui);
+  box-shadow: 0 0 0 1px #cdbf9f, 0 10px 16px rgba(0, 0, 0, 0.4); cursor: grab;
+}
+.cal-label { margin: 0 0 2px; font: 600 11px var(--ui); letter-spacing: 0.08em; text-transform: uppercase; color: #8a7a62; }
+.cal-head { display: flex; align-items: center; gap: 2px; margin-bottom: 6px; }
+.cal-title { flex: 1; margin: 0; text-align: center; font: 600 18px var(--book); }
+.cal-nav { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; background: transparent; color: #5b4c39; }
+.cal-head .cal-nav:hover:not(:disabled):not([aria-pressed='true']) { background: #efe6d3; border: 0; }
+.cal-head .put-back { margin-left: 4px; }
+.cal-nav .chevron { width: 14px; height: 14px; vertical-align: middle; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.cal-wd { font-size: 11px; color: #7b6c58; padding: 2px 0; }
+.cal-day { height: 30px; padding: 0; border: 0; border-radius: 4px; background: transparent; font: 14px var(--ui); color: #2a2118; }
+.cal-day.weekend { background: #efe6d3; }
+.cal-day.sunday, .cal-day.holiday { color: var(--red-ink); font-weight: 600; }
+.cal-grid .cal-day:hover:not(:disabled):not([aria-pressed='true']) { outline: 1px solid #b9a682; background: #f4ecda; border: 0; }
+.cal-day.between { background: #e9d6a8; }
+.cal-day[aria-pressed='true'] { background: #3b2f22; color: #fbf7ee; }
+.cal-count { margin: 8px 0 0; min-height: 34px; font-size: 12.5px; color: #4c3f2f; }
+
+/* Calculator: closed as a small device, open as before (SPEC 7) */
+.tool-calculator.closed, .calc-tool-closed { cursor: grab; }
+.tool-calculator.closed {
+  width: 116px; height: 160px; padding: 10px; border-radius: 10px; display: grid; grid-template-rows: 30px 1fr; gap: 8px;
+  background: linear-gradient(180deg, #3a3833, #2a2824); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.mini-display { background: #c8d3b4; border-radius: 3px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4); }
+.mini-keys { background: radial-gradient(circle, #ece6d6 0 7px, transparent 8px) 0 0 / 24px 24px; opacity: 0.85; }
+.tool-calculator.open { width: 236px; cursor: grab; }
+.tool-calculator.open .calculator { cursor: default; }
+.tool-calculator.open .put-back { position: absolute; top: 8px; right: 8px; }

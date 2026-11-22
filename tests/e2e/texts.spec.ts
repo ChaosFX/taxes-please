@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { drawUntil, enter, freshStart, key, longTest, markKey, playDay, solutionFor, solveNext, startAtDay } from './helpers';
+import { drawUntil, enter, fileAkte, freshStart, key, longTest, markKey, playDay, pullOut, solutionFor, solveNext, startAtDay } from './helpers';
 
 /**
  * Auftrag 02: Jeder Text, den der Spieler sieht oder ein Screenreader vorliest,
@@ -25,6 +25,8 @@ const collect = (v: unknown, field = '') => {
   else if (v && typeof v === 'object') Object.entries(v).forEach(([k, x]) => collect(x, k));
 };
 collect(content);
+// Names of holidays in the desk calendar come from kalender.json (SPEC 3).
+collect(JSON.parse(readFileSync(join(dir, 'kalender.json'), 'utf8')).holidays);
 // Option objects ({ value, label }) are shown by label; plain string options by texts.optionLabels.
 for (const k of content.cases) for (const d of [...(k.decisions ?? []), ...(k.followUp?.decisions ?? [])]) for (const o of d.options ?? []) if (typeof o !== 'string') atoms.add(o.label);
 
@@ -51,11 +53,19 @@ const NUMBER = /^\d+$/;
 const CALC_NUMBER = /^−?\d{1,3}(\.\d{3})*(,\d*)?$/;
 /** Act numbers on the end screen. */
 const ROMAN = /^[IVXLCDM]+$/;
+/** Names of months and weekdays come from Intl.DateTimeFormat with de-AT (SPEC 3), as do whole dates in the calendar. */
+const intl = (o: Intl.DateTimeFormatOptions, d: Date) => new Intl.DateTimeFormat('de-AT', { ...o, timeZone: 'UTC' }).format(d);
+for (let m = 0; m < 12; m++) atoms.add(intl({ month: 'long' }, new Date(Date.UTC(2026, m, 1))));
+for (let d = 1; d <= 7; d++) atoms.add(intl({ weekday: 'short' }, new Date(Date.UTC(2024, 0, d))));
+const LONG_DATE = (s: string) => {
+  const m = /^(\S+) (\d{1,2})\. (\S+) (\d{4})$/.exec(s);
+  return !!m && atoms.has(m[1]!.replace(/\.?,$/, '')) && atoms.has(m[3]!);
+};
 
 /** True if `s` is an allowed atom or a ui.json pattern whose holes are allowed again. */
 function allowed(s: string, depth = 3): boolean {
   s = s.trim();
-  if (s === '' || atoms.has(s) || AMOUNT.test(s) || NUMBER.test(s) || CALC_NUMBER.test(s) || ROMAN.test(s)) return true;
+  if (s === '' || atoms.has(s) || AMOUNT.test(s) || NUMBER.test(s) || CALC_NUMBER.test(s) || ROMAN.test(s) || LONG_DATE(s)) return true;
   if (depth === 0) return false;
   for (const p of patterns) {
     for (const re of [p.re, new RegExp(p.re.source.replaceAll('(.+?)', '(.+)'))]) {
@@ -112,11 +122,17 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await check(page, 'leerer Tisch');
   await key(page, 'stack').click();
   await check(page, 'Akte offen');
+  await key(page, 'stack').click();
+  await expect(page.locator('.desk-message')).toHaveText('Es liegt schon eine Akte am Tisch. Erst ablegen.');
+  await check(page, 'Meldung: nur eine Akte');
+  await pullOut(page, 0);
   await key(page, 'paper-0').dblclick();
   await check(page, 'Zoom');
   await page.keyboard.press('Escape');
   await check(page, 'Kodex zu');
   await key(page, 'codex-book').click();
+  await check(page, 'Kodex am Tisch');
+  await key(page, 'codex-read').click();
   await check(page, 'Kodex offen');
   await key(page, 'codex-search').fill('werbungskosten');
   await check(page, 'Kodex-Suche');
@@ -127,6 +143,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await page.keyboard.press('ArrowRight');
   await check(page, 'Kodex gesperrte Seite');
   await page.keyboard.press('Escape');
+  await key(page, 'codex-putback').click();
 
   // Day 1 wrong: flipped verdicts, one left open, wrong stamp → reprimand and every error line.
   for (let first = true; await page.locator('.screen.desk').isVisible(); first = false) {
@@ -138,7 +155,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
     for (const [pid, v] of answers) await key(page, `pos-${pid}-${flip(v)}`).click();
     await key(page, `stamp-${s.stamp}`).click();
     await check(page, `gestempelt ${id}`);
-    await key(page, 'outbox').click();
+    await fileAkte(page);
   }
   await check(page, 'Auswertung Tag 1 mit Ermahnung');
 
@@ -162,7 +179,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
     }
     await check(page, `Tag 3 ${id}`);
     await key(page, `stamp-${s.stamp}`).click();
-    await key(page, 'outbox').click();
+    await fileAkte(page);
   }
   await check(page, 'Auswertung Tag 3');
   await key(page, 'advance').click();
@@ -172,7 +189,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await check(page, 'Nachreichung');
   const s = solutionFor((await page.locator('.pruefvermerk').getAttribute('data-akte'))!);
   await key(page, `stamp-${s.stamp}`).click();
-  await key(page, 'outbox').click();
+  await fileAkte(page);
   // Day 4: Entscheidungen with options as text and as objects, wrong answers everywhere.
   for (;;) {
     await key(page, 'stack').click();
@@ -184,7 +201,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
       await key(page, other!).click();
     }
     await key(page, `stamp-${sol.stamp === 'bescheid' ? 'ergaenzung' : 'bescheid'}`).click();
-    await key(page, 'outbox').click();
+    await fileAkte(page);
     if (!(await page.locator('.screen.desk').isVisible())) break;
   }
   await check(page, 'Auswertung Tag 4 mit Entscheidungsfehlern');
@@ -196,10 +213,12 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await key(page, 'newspaper-0').dblclick();
   await check(page, 'Zeitung gezoomt');
   await page.keyboard.press('Escape');
+  await pullOut(page, 0);
+  await pullOut(page, 1);
   await key(page, 'mark-mode').click();
   await check(page, 'Markiermodus');
-  await key(page, 'mark-0-0').click();
-  await key(page, 'mark-1-0').click();
+  await key(page, 'mark-0-0').press('Enter');
+  await key(page, 'mark-1-0').press('Enter');
   await check(page, 'Markierung gesetzt');
   await enter(page, '5-3', { ...solutionFor('5-3'), marks: [] });
   while (await page.locator('.screen.desk').isVisible()) await solveNext(page);
@@ -211,7 +230,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await key(page, 'stamp-ergaenzung').click();
   await check(page, 'Nachfrage-Auswahl');
   await key(page, 'inq-q3').click();
-  await key(page, 'outbox').click();
+  await fileAkte(page);
   while (await page.locator('.screen.desk').isVisible()) await solveNext(page);
   await check(page, 'Auswertung Nachfrage');
 
@@ -219,6 +238,15 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await startAtDay(page, 8);
   await check(page, 'Tag 8 Freischaltung Rechner');
   await drawUntil(page, '8-1');
+  await key(page, 'calendar-tool').click();
+  await key(page, 'cal-prev').click();
+  await key(page, 'cal-2026-3-21').click();
+  await check(page, 'Kalender Beginn');
+  await key(page, 'cal-next').click();
+  await key(page, 'cal-2026-4-3').click();
+  await check(page, 'Kalender Abstand');
+  await key(page, 'cal-putback').click();
+  await key(page, 'calc-tool').click();
   for (const k of ['1', 'comma', '5', 'div', '0', 'eq']) await key(page, `calc-${k}`).click();
   await check(page, 'Rechner Fehler');
   await key(page, 'calc-clear').click();
