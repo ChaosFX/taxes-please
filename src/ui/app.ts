@@ -2,7 +2,7 @@ import { createSound } from '../audio';
 import * as core from '../core';
 import type { Content, EffectsLevel, GameState, Settings } from '../core';
 import * as atmosphere from './atmosphere';
-import { CodexBook } from './codex';
+import { CodexBook, loadBookFonts } from './codex';
 import { deskView, type DeskActions, type DeskUi, type PaperHook } from './desk';
 import { h } from './dom';
 import { DeskLayout, makeDraggable, openZoom, paperRotation } from './paper-interaction';
@@ -20,6 +20,8 @@ const EFFECT_LABELS = {
 
 /** Holds the core state, wires DOM events to core actions and re-renders. */
 export function startApp(root: HTMLElement, content: Content): void {
+  // The codex measures its pages with the book font: have all its faces ready early.
+  void loadBookFonts();
   const store = core.browserStorage();
   let screen: Screen = 'start';
   let state: GameState | null = null;

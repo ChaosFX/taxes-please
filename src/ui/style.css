@@ -642,8 +642,7 @@ dialog.codex-dialog::backdrop { background: rgba(14, 8, 4, 0.74); }
 
 /* Blocks */
 .blk { break-inside: avoid; }
-.delivery-head { break-before: column; break-after: avoid; text-align: center; margin: 0.1em 0 1em; color: #5a4a36; }
-.page-body > .delivery-head:first-child { break-before: auto; }
+.delivery-head { break-after: avoid; text-align: center; margin: 0.1em 0 1em; color: #5a4a36; }
 .delivery-head h2 { font: 500 1.3em/1.2 var(--book); font-variant: small-caps; letter-spacing: 0.1em; margin: 0 0 0.15em; color: var(--leaf-ink); }
 .front-title { font: 500 1.35em/1.2 var(--book); font-variant: small-caps; letter-spacing: 0.12em; text-align: center; margin: 0.1em 0 0.7em; }
 

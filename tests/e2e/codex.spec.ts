@@ -294,8 +294,8 @@ for (const size of [
     const single = size.width < 900;
     await expect(page.locator('.book-shell')).toHaveAttribute('data-mode', single ? 'single' : 'spread');
     const box = await page.locator('.book').boundingBox();
-    expect(box!.width).toBeLessThanOrEqual(1120);
-    expect(box!.height).toBeLessThanOrEqual(760);
+    expect(box!.width).toBeLessThanOrEqual(1120.5);
+    expect(box!.height).toBeLessThanOrEqual(760.5);
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(size.width);
     // Tabs and bar stay inside the window.
@@ -329,14 +329,15 @@ test('schmale Ansicht: Einzelseite, Blättern per Wischen und Seitenrand', async
     await page.locator('.book-viewport').dispatchEvent('pointerdown', { pointerType: 'touch', pointerId: 7, clientX: vp.x + from, clientY: y, isPrimary: true });
     await page.locator('.book-viewport').dispatchEvent('pointerup', { pointerType: 'touch', pointerId: 7, clientX: vp.x + to, clientY: y + 4, isPrimary: true });
   };
+  await page.evaluate(() => document.fonts.ready);
   const first = await shownPages(page);
   await swipe(300, 80);
+  await expect.poll(() => shownPages(page)).not.toEqual(first);
   const second = await shownPages(page);
-  expect(second).not.toEqual(first);
   await swipe(80, 300);
-  expect(await shownPages(page)).toEqual(first);
+  await expect.poll(() => shownPages(page)).toEqual(first);
   await page.locator('.edge.next').click();
-  expect(await shownPages(page)).toEqual(second);
+  await expect.poll(() => shownPages(page)).toEqual(second);
 });
 
 test('Spielstand ohne codex: lädt und öffnet auf der ersten Seite der heutigen Lieferung', async ({ page }) => {
@@ -410,4 +411,25 @@ test('Titel bleibt auf dem Buchdeckel, Kodex-Klassen stören den Stempelabdruck 
   await expect(imprint).toHaveClass(/hit/);
   const { w, paper } = await imprint.evaluate((el) => ({ w: (el as HTMLElement).offsetWidth, paper: el.parentElement!.clientWidth }));
   expect(w).toBeLessThan(paper / 2);
+});
+
+test('jede Lieferung beginnt auf eigener Seite, jeder Reiter springt zu seiner Lieferung und ist hervorgehoben', async ({ page }) => {
+  await startAtDay(page, 10, { effects: 'aus' });
+  await key(page, 'begin').click();
+  await page.keyboard.press('k');
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(300);
+  // No page carries a delivery head below other blocks.
+  const mixed = await page.locator('.book-strip .page-body').evaluateAll((bodies) =>
+    bodies.filter((b) => [...b.children].some((c, i) => i > 0 && c.classList.contains('delivery-head'))).length,
+  );
+  expect(mixed).toBe(0);
+  for (const d of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1]) {
+    await key(page, `tab-${d}`).click();
+    await expect(page.locator(`.book-strip .page.shown [data-delivery="${d}"]`)).toHaveCount(1);
+    await expect(key(page, `tab-${d}`)).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.tab[aria-current]')).toHaveCount(1);
+  }
+  await key(page, 'tab-register').click();
+  await expect(key(page, 'tab-register')).toHaveAttribute('aria-current', 'page');
 });

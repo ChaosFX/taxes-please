@@ -171,6 +171,23 @@ function overflows(body: HTMLElement): boolean {
 const isTyping = (el: EventTarget | null) =>
   el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
 
+/** Styles of the book font the pages use (regular, italic, semibold, bold); the family is `--book`. */
+const BOOK_STYLES = ['400', 'italic 400', '600', '700'];
+let bookFonts: Promise<unknown> | null = null;
+
+/**
+ * Loads every face of the book font once. Called at start, so the pages are measured
+ * with the final metrics when the book opens (browsers load a face only on first use).
+ */
+export function loadBookFonts(): Promise<unknown> {
+  if (!bookFonts) {
+    const fonts = typeof document !== 'undefined' ? document.fonts : undefined;
+    const family = fonts ? getComputedStyle(document.documentElement).getPropertyValue('--book').trim() : '';
+    bookFonts = fonts && family ? Promise.all(BOOK_STYLES.map((st) => fonts.load(`${st} 16px ${family}`))).catch(() => undefined) : Promise.resolve();
+  }
+  return bookFonts;
+}
+
 export class CodexBook {
   private env: BookEnv | null = null;
   private dialog: HTMLDialogElement | null = null;
@@ -229,8 +246,18 @@ export class CodexBook {
     const onResize = () => this.queueRelayout();
     window.addEventListener('resize', onResize);
     this.cleanup.push(() => window.removeEventListener('resize', onResize));
-    // Web fonts change line breaks: lay out again once they are there.
-    document.fonts?.ready.then(() => this.queueRelayout()).catch(() => undefined);
+    // Web fonts change line breaks: lay out again once they are there. Firefox loads a face
+    // only when text first uses it, so all faces of the book are asked for explicitly, and
+    // any face that still arrives later (`loadingdone`) lays the book out again.
+    const fonts = document.fonts;
+    if (fonts) {
+      Promise.all([fonts.ready, loadBookFonts()])
+        .then(() => this.queueRelayout())
+        .catch(() => undefined);
+      const onFonts = () => this.queueRelayout();
+      fonts.addEventListener('loadingdone', onFonts);
+      this.cleanup.push(() => fonts.removeEventListener('loadingdone', onFonts));
+    }
   }
 
   close(): void {
@@ -557,7 +584,22 @@ export class CodexBook {
    * Breaks `blocks` into pages: a hidden column box with the size of a page
    * body places them; the start column of each block is its page.
    */
+  /**
+   * Distributes blocks onto pages. Every delivery starts on a new page (SPEC 6.3); the
+   * break is forced here, because not every browser honours `break-before: column`
+   * in a multi-column box (Firefox puts two short deliveries on one page).
+   */
   private paginate(blocks: HTMLElement[], side: 'left' | 'right'): HTMLElement[][] {
+    const runs: HTMLElement[][] = [];
+    for (const b of blocks) {
+      if (runs.length === 0 || b.classList.contains('delivery-head')) runs.push([]);
+      runs[runs.length - 1]!.push(b);
+    }
+    return runs.flatMap((run) => this.paginateRun(run, side));
+  }
+
+  /** Pages for blocks that may share pages, measured in a probe page with CSS columns. */
+  private paginateRun(blocks: HTMLElement[], side: 'left' | 'right'): HTMLElement[][] {
     const probe = this.pageShell(side, false);
     this.measureBox.replaceChildren(probe);
     const body = probe.querySelector('.page-body') as HTMLElement;
@@ -827,8 +869,24 @@ export class CodexBook {
   /** Jumps to an anchor and keeps it as the place to hold across a new layout. */
   private jump(anchor: Anchor): void {
     this.target = anchor;
-    this.goSpread(this.spreadOf(this.pageOf(anchor)));
+    const spread = this.spreadOf(this.pageOf(anchor));
+    if (spread === this.spread) this.flashAnchor(anchor);
+    else this.goSpread(spread);
     this.updateTabs();
+  }
+
+  /** The place jumped to is already open: let its heading blink once, so the click visibly did something. */
+  private flashAnchor(anchor: Anchor): void {
+    if (this.env!.effects() === 'aus' || anchor.kind === 'rule') return;
+    const page = this.pages[this.pageOf(anchor)]?.el;
+    const el =
+      anchor.kind === 'delivery'
+        ? page?.querySelector<HTMLElement>(`[data-delivery="${anchor.day}"]`)
+        : anchor.kind === 'locked'
+          ? page?.querySelector<HTMLElement>('.locked-sheet')
+          : page?.querySelector<HTMLElement>('.front-title');
+    if (!el || typeof el.animate !== 'function') return;
+    this.track(el.animate([{ opacity: 1 }, { opacity: 0.25 }, { opacity: 1 }], { duration: 420, easing: 'ease-in-out' }));
   }
 
   private goRule(id: string, fromSearch = false): void {
@@ -917,9 +975,11 @@ export class CodexBook {
     const t = this.target;
     const targetDay = t?.kind === 'delivery' ? t.day : t?.kind === 'rule' ? env.content.rules.find((r) => r.id === t.id)?.day : undefined;
     const days = pages.filter((p) => !p.front && p.day !== null && !p.blank && !p.locked).map((p) => p.day!);
-    const day = targetDay !== undefined && days.includes(targetDay) ? targetDay : (days[0] ?? null);
+    // A delivery jumped to wins over the register sharing its spread (Tag 1 often faces the last register page).
+    const jumped = targetDay !== undefined && days.includes(targetDay) && t?.kind !== 'front';
+    const day = jumped ? targetDay : front ? null : (days[0] ?? null);
     for (const tab of this.tabs.querySelectorAll<HTMLElement>('.tab')) {
-      const current = tab.classList.contains('tab-register') ? front : !front && tab.dataset.day === String(day) && !tab.classList.contains('locked');
+      const current = tab.classList.contains('tab-register') ? day === null && front : tab.dataset.day === String(day) && !tab.classList.contains('locked');
       if (current) tab.setAttribute('aria-current', 'page');
       else tab.removeAttribute('aria-current');
     }
