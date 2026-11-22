@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "title": {
     "heading": "Taxes Please",
     "year": "Veranlagungsjahr {year}",
@@ -14,18 +14,19 @@
     "begin": "An den Schreibtisch",
     "newspaper": "Morgenzeitung",
     "call": "Anruf von {from}",
-    "unlockCalculator": "Neben dem Kodex steht ab heute ein Tischrechner."
+    "unlockCalculator": "Neben dem Kodex steht ab heute ein Tischrechner.",
+    "unlockCalendar": "Neben dem Kodex liegt ab heute ein Tischkalender."
   },
   "desk": {
     "day": "Tag {day}",
-    "stack": "Aktenstapel ({count})",
+    "stack": "Eingang ({count})",
     "pruefvermerk": "Prüfvermerk",
     "akte": "Akte {id} · {name}, {job}",
     "followUpId": "{id} (Nachreichung)",
     "colPosition": "Position",
     "colAmount": "Betrag",
     "colDecision": "Entscheidung",
-    "emptyDesk": "Der Tisch ist leer. Nehmen Sie die nächste Akte vom Stapel.",
+    "emptyDesk": "Der Tisch ist leer. Ziehen Sie die nächste Akte aus dem Eingang.",
     "stamps": "Stempel",
     "outbox": "Ausgangskorb",
     "outboxButton": "In den Ausgangskorb",
@@ -41,7 +42,16 @@
     "akteNoJob": "Akte {id} · {name}",
     "markPair": "{a} ↔ {b}",
     "markSide": "{document}: {line}",
-    "markRemove": "aufheben"
+    "markRemove": "aufheben",
+    "closeAkte": "Akte schließen",
+    "pocket": "Unterlagen",
+    "stampField": "Stempelfeld",
+    "oneAkteOnly": "Es liegt schon eine Akte am Tisch. Erst ablegen.",
+    "closeFirst": "Erst die Akte schließen. Die Unterlagen kommen dabei zurück in die Mappe.",
+    "stampTaken": "Stempel aufgenommen. Aufs Stempelfeld drücken, Escape legt ihn zurück.",
+    "alreadyStamped": "Die Akte ist schon gestempelt. Der Stempel ist endgültig.",
+    "noOpenAkte": "Zum Stempeln muss eine Akte offen am Tisch liegen.",
+    "putBack": "Zurücklegen"
   },
   "verdict": {
     "anerkennen": "anerkennen",
@@ -71,7 +81,8 @@
     "nextPage": "Nächste Seite",
     "prevPage": "Vorige Seite",
     "noHits": "Kein Treffer",
-    "searchClear": "Suche löschen"
+    "searchClear": "Suche löschen",
+    "readMode": "Lesemodus"
   },
   "evaluation": {
     "heading": "Tagesauswertung – Tag {day}",
@@ -117,6 +128,16 @@
     "multiply": "×",
     "divide": "÷"
   },
+  "calendar": {
+    "heading": "Tischkalender",
+    "prevMonth": "Voriger Monat",
+    "nextMonth": "Nächster Monat",
+    "monthYear": "{month} {year}",
+    "countHint": "Zum Zählen Beginn und Ende anklicken.",
+    "countStart": "Beginn: {date}. Jetzt das Ende anklicken.",
+    "countResult": "{from} bis {to}: {days} Tage Abstand.",
+    "countResultOne": "{from} bis {to}: 1 Tag Abstand."
+  },
   "settings": {
     "heading": "Einstellungen",
     "effects": "Effekte",
@@ -154,6 +175,12 @@
     "calcEquals": "ist gleich",
     "markRemove": "Markierung {no} aufheben",
     "codexPage": "Seite {n}",
-    "codexBook": "zugeklappter Kodex, Stand Tag {day}"
+    "codexBook": "zugeklappter Kodex, Stand Tag {day}",
+    "calendar": "Tischkalender, {month} {year}",
+    "calendarDay": "{date}",
+    "calendarHoliday": "{date}, {name}",
+    "inbox": "Eingang mit {count} Akten",
+    "folder": "Akte {id}, {name}",
+    "folderStamped": "Akte {id}, {name}, gestempelt mit {stamp}"
   }
 }

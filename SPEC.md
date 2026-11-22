@@ -1,10 +1,16 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 21.11.2026 · Version 0.3.2 · passt zu `content/akt1.json` Version 0.3.1 und `content/ui.json` ab Version 0.2.1 (Auftrag 04 hebt sie auf 0.3.0)
+Stand: 22.11.2026 · Version 0.4.0 · passt zu `content/akt1.json` Version 0.3.2, `content/ui.json` Version 0.4.0 und `content/kalender.json` Version 0.1.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
 Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakten und 54 Kodexregeln (davon 5 Hinweise ohne eigenen Fall). Inhalt und Lösungen stehen in `content/akt1.json`, einer Datei für den ganzen Akt. Spätere Akte bekommen je eine eigene Datei (`akt2.json` usw.).
+
+Änderungen gegenüber 0.3.2:
+- Der Arbeitstisch wird zum Ablauf mit den Händen (Abschnitt 7.1 bis 7.5, Auftrag 05): links Eingang und Werkzeuge, in der Mitte die Unterlage, rechts Stempelhalter und Ausgangskorb. Die Akte ist eine Mappe, die man auf die Unterlage zieht und aufschlägt. Unterlagen werden herausgezogen und fliegen beim Schließen zurück. Stempel werden aufgenommen und aufgedrückt, die zugeklappte Akte wird in den Ausgangskorb gezogen. Es liegt immer nur eine Akte am Tisch.
+- Der Kodex lässt sich auf die Unterlage ziehen und liegt dort aufgeschlagen neben der Akte. Das große Buch aus Auftrag 04 bleibt als Lesemodus (Taste K, Abschnitt 6).
+- Neues Werkzeug Tischkalender ab Tag 4 (`unlock: calendar`) mit gesetzlichen Feiertagen aus der neuen Datei `content/kalender.json` (Abschnitte 3 und 7.5). `meta.kalenderStart` gibt den Monat an, mit dem der Kalender aufschlägt.
+- Die Regel „Papiere im Raster, nicht übereinander“ entfällt. Der Spieler ordnet die Papiere selbst (Abschnitt 7).
 
 Änderungen gegenüber 0.3.1:
 - Der Kodex wird zu einem Buch: zugeklappt auf dem Tisch, aufgeschlagen als Doppelseite mit Inhaltsverzeichnis, Griffregister, Lesezeichenband, Blättern und Suche (Abschnitt 6, Auftrag 04). Neu im Spielstand: zuletzt gelesene Regel und gesehene Lieferung (Abschnitt 9).
@@ -34,7 +40,7 @@ Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakte
 ## 2. Technischer Rahmen
 
 - Vite mit TypeScript (strict), kein UI-Framework. Eine kleine eigene Render-Schicht genügt.
-- GSAP für Animationen ist erlaubt, ebenso reine CSS-Transitions. Kein Three.js; die Atmosphäre-Ebene (Abschnitt 8) bleibt als leeres Modul vorbereitet.
+- GSAP für Animationen ist erlaubt (kostenlos unter der GSAP Standard License, alle Plugins einschließlich Flip), ebenso reine CSS-Transitions und die Web Animations API. Das Ziehen bleibt eigene Logik mit Pointer Events (Abschnitt 7). Kein Three.js; die Atmosphäre-Ebene (Abschnitt 8) bleibt als leeres Modul vorbereitet.
 - Vitest für Unit-Tests von `core` und für die Inhaltsvalidierung.
 - Playwright für Screenshots der Hauptansichten (siehe Abschnitt 10) und für die e2e-Tests.
 - Spielstand in `localStorage`, Zugriffe in `try/catch` gekapselt.
@@ -61,8 +67,8 @@ Die Typen folgen exakt dem JSON in `content/`. Alles, was hier nicht als optiona
 
 ### Zusammenführen der Inhaltsdateien
 
-- Der Loader liest alle `content/*.json` außer `ui.json`, sortiert nach Dateinamen, und führt sie zu einem Inhalt zusammen.
-- Je Akt gibt es eine Datei (`akt1.json`, später `akt2.json` usw.). `meta` hat `version`, `akt`, `veranlagungsjahr` und `hinweis`.
+- Der Loader liest alle `content/*.json` außer `ui.json` und `kalender.json`, sortiert nach Dateinamen, und führt sie zu einem Inhalt zusammen.
+- Je Akt gibt es eine Datei (`akt1.json`, später `akt2.json` usw.). `meta` hat `version`, `akt`, `veranlagungsjahr`, `hinweis` und optional `kalenderStart` (Monat im Format `JJJJ-MM`, mit dem der Tischkalender in diesem Akt aufschlägt; ohne Angabe Jänner des Jahres nach `veranlagungsjahr`).
 - `meta` kommt aus der ersten Datei. Jede Datei hat ein eigenes `meta.version`, die Versionen aller Dateien werden im Fehlerfall mit ausgegeben.
 - `rules`, `days` und `cases` werden aneinandergehängt. Doppelte Regel-IDs, Akten-IDs oder Tagesnummern sind ein Fehler.
 - `texts` wird schlüsselweise zusammengeführt. `texts.optionLabels` ist die Vereinigung aller Dateien. Kommt ein Schlüssel (auch in `optionLabels`) in zwei Dateien mit verschiedenem Wert vor, ist das ein Fehler. Pflichtschlüssel (`stampLabels`, `unnecessaryDelay`, `warning`, `emptyDay`) müssen nach dem Zusammenführen vorhanden sein, egal in welcher Datei.
@@ -96,7 +102,7 @@ Jedes Ereignis hat ein `type`. Die Felder je Typ:
 | `dialog` | `from`, `text` | Sprechblase (wie bisher) |
 | `newspaper` | `from` (Name der Zeitung), `headline`, `text` | Zeitungsblatt mit Kopf `from`, Schlagzeile und kurzem Text |
 | `call` | `from`, `text` | Telefonhörer mit „Anruf von {from}“ und Text |
-| `unlock` | `feature`: `calculator`, `pinboard` oder `drawer` | `calculator` schaltet ab diesem Tag den Tischrechner frei und zeigt `ui.intro.unlockCalculator`. `pinboard` und `drawer` werden geprüft, aber in dieser Version nicht dargestellt. |
+| `unlock` | `feature`: `calculator`, `calendar`, `pinboard` oder `drawer` | `calculator` schaltet ab diesem Tag den Tischrechner frei und zeigt `ui.intro.unlockCalculator`, `calendar` den Tischkalender mit `ui.intro.unlockCalendar`. `pinboard` und `drawer` werden geprüft, aber in dieser Version nicht dargestellt. |
 | `event` | `id`, `text`, `options` (je `text`, `effects` mit `time`, `rating`, `gerri`, `home` als ganze Zahlen, `sets` als Liste von Merkern), optional `provisional: true` | Ereigniskarte des Metagames. In dieser Version nur geprüft, nicht dargestellt. |
 | `actSummary` | `act` (Zahl) | Nach der Tagesauswertung dieses Tages erscheint der Schlussbildschirm des Akts (Abschnitt 4). |
 
@@ -135,6 +141,15 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
 - `variantOf` zeigt auf eine existierende Akte.
 - Jeder Schlüssel in `texts.optionLabels` kommt in einer Entscheidung vor, und jede Option als Zeichenkette hat einen Schlüssel.
 
+### Tischkalender (`content/kalender.json`)
+
+- Eigene Datei mit eigener Versionsnummer (`meta.version`), wie `ui.json` unabhängig von den Akt-Dateien. `meta` hat zusätzlich `quelle` und `hinweis` (nur für Autoren, wird nicht angezeigt).
+- `holidays.fixed`: feste Feiertage, je `date` im Format `MM-TT` und `name`.
+- `holidays.easter`: bewegliche Feiertage, je `offset` (Tage nach Ostersonntag, ganze Zahl) und `name`.
+- Inhalt: die gesetzlichen Feiertage nach § 7 Abs. 2 ARG (Fassung BGBl. I Nr. 22/2019). Karfreitag und 24. Dezember stehen bewusst nicht drin: Sie sind keine gesetzlichen Feiertage, zählen aber für das Fristende nach § 108 BAO. Das soll der Spieler aus Regel R14 wissen, nicht vom Kalender ablesen.
+- Das Datum des Ostersonntags rechnet `core` mit einer reinen Funktion (gregorianischer Kalender). Das ist Kalenderrechnung, keine Steuerregel. Welche Tage Feiertage sind, steht nur im JSON.
+- Der Loader prüft die Datei mit einem Schema: gültige Monats- und Tageswerte, Namen nicht leer, keine doppelten Daten.
+
 ### Oberflächentexte (`content/ui.json`)
 
 - Eigene Datei mit eigener Versionsnummer, unabhängig von den Akt-Dateien, weil die Texte an keinem Spieltag hängen.
@@ -143,20 +158,20 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
 - Der Loader prüft `ui.json` mit einem Schema. Fehlt ein Schlüssel oder ist einer zu viel, bricht der Start mit einer klaren Fehlermeldung ab.
 - Leerzeichen am Anfang oder Ende eines Textes gehören zur Darstellung und bleiben erhalten.
 - `ui.json` enthält keine Rechtsaussagen. Kodextexte, Regeln und Erklärungen bleiben in den Inhaltsdateien.
-- Das Betragsformat (`1.200,00 €`) und das Einlesen eingegebener Beträge bleiben im Code.
+- Das Betragsformat (`1.200,00 €`) und das Einlesen eingegebener Beträge bleiben im Code. Ebenso die Namen von Monaten und Wochentagen im Tischkalender: Sie kommen aus `Intl.DateTimeFormat` mit `de-AT` („Jänner“), nicht als Textliteral.
 
 ## 4. Spielablauf
 
 1. **Startbildschirm:** Titel, Hinweis auf Fiktion und Vereinfachung, Buttons „Neues Spiel“ und „Fortsetzen“.
 2. **Tagesbeginn:** Karte mit „Tag N“ und `intro`-Text. Ein Spieldatum gibt es nicht, der Tag heißt nur „Tag N“. Daten in Belegen und Fristfällen sind Inhalt der Papiere und haben keine Wirkung auf den Ablauf. Danach die Story-Ereignisse des Tages in ihrer Reihenfolge (Abschnitt 3).
-3. **Schreibtisch:** Links liegt der Kodex als zugeklapptes Buch (Abschnitt 6), in der Mitte die Arbeitsfläche, rechts Stempel und Ausgangskorb. Oben ein Akten-Stapel mit Zähler. Ab dem Tag mit `unlock: calculator` steht neben dem Kodex der Tischrechner.
+3. **Schreibtisch:** Aufbau nach Abschnitt 7.1. Links der Eingang mit dem Aktenstapel und Zähler, darunter die Werkzeuge: Kodex (Abschnitt 6), ab `unlock: calendar` der Tischkalender, ab `unlock: calculator` der Tischrechner. In der Mitte die Unterlage. Rechts Stempelhalter und Ausgangskorb.
 4. **Akte bearbeiten:**
-   - Klick auf den Stapel legt die nächste Akte auf den Tisch. Die Dokumente erscheinen als einzelne Papiere, die gezogen werden können.
+   - Der Spieler zieht die oberste Akte aus dem Eingang auf die Unterlage (oder klickt sie an, oder Enter bei Fokus). Sie schlägt sich auf: innen links der Prüfvermerk, rechts die Unterlagen in der Tasche (Abschnitt 7.2). Es liegt immer nur eine Akte am Tisch.
    - Der Prüfvermerk listet je nach Typ die Positionen (anerkennen, streichen), die Frage mit Optionen oder die Entscheidungen. Bei `entscheidungen` hat jede Zeile entweder Schaltflächen für die Optionen oder ein Eingabefeld für den Betrag. Das Eingabefeld akzeptiert Eingaben wie `4236,7`, `4.236,70` und `4236.70` und zeigt den Betrag nach dem Verlassen des Felds im Format `4.236,70 €`.
    - Bei Entscheidungen oder Positionen mit `offen` ist keine Option richtig. Der Spieler lässt sie unentschieden und stempelt das Ergänzungsersuchen.
-   - **Widerspruch markieren:** Ein Schalter „Widerspruch markieren“ im Prüfvermerk schaltet einen Markiermodus ein. Darin wählt der Spieler eine Zeile in einem Papier und dann eine Zeile in einem anderen Papier derselben Akte. Das Paar erscheint als Markierung im Prüfvermerk und auf beiden Papieren. Markierungen lassen sich aufheben. Der Markiermodus ist bei jeder Akte verfügbar, auch ohne `discrepancies`, damit er nichts verrät. Die Zeilen sind nur im Markiermodus anklickbar, damit das Ziehen der Papiere nicht gestört wird. Im Prüfvermerk steht eine Liste der Paare mit „aufheben“ je Paar und „Markierungen aufheben“ für alle. Auch per Tastatur bedienbar.
-   - **Nachfrage:** Hat die Akte eine `inquiry` und wählt der Spieler den Stempel „Ergänzungsersuchen“, erscheint vor dem Aufschlag die Auswahl der Fragen (`prompt`, `options[].label`). Erst nach der Wahl wird gestempelt. Ein zweiter Klick auf „Ergänzungsersuchen“ schließt die Auswahl wieder. Akten ohne `inquiry` stempeln wie bisher.
-   - Der Spieler stempelt die Akte mit einem der verfügbaren Stempel und legt sie in den Ausgangskorb. Erst dann kommt die nächste Akte. Der Stempel ist endgültig, danach sind Prüfvermerk, Markierungen und Nachfrage gesperrt.
+   - **Widerspruch markieren:** Ein Schalter „Widerspruch markieren“ im Prüfvermerk schaltet einen Markiermodus ein. Darin wählt der Spieler eine Zeile in einem herausgezogenen Papier und dann eine Zeile in einem anderen herausgezogenen Papier derselben Akte. Papiere in der Tasche sind im Markiermodus nicht anklickbar. Das Paar erscheint als Markierung im Prüfvermerk und auf beiden Papieren. Markierungen lassen sich aufheben. Der Markiermodus ist bei jeder Akte verfügbar, auch ohne `discrepancies`, damit er nichts verrät. Die Zeilen sind nur im Markiermodus anklickbar, damit das Ziehen der Papiere nicht gestört wird. Im Prüfvermerk steht eine Liste der Paare mit „aufheben“ je Paar und „Markierungen aufheben“ für alle. Auch per Tastatur bedienbar.
+   - **Nachfrage:** Hat die Akte eine `inquiry` und nimmt der Spieler den Stempel „Ergänzungsersuchen“ auf, erscheint im Prüfvermerk über dem Stempelfeld die Auswahl der Fragen (`prompt`, `options[].label`). Das Stempelfeld nimmt den Stempel erst nach der Wahl an. Legt der Spieler den Stempel zurück, schließt sich die Auswahl wieder. Akten ohne `inquiry` stempeln wie bisher.
+   - Der Spieler nimmt einen der verfügbaren Stempel aus dem Halter und drückt ihn auf das Stempelfeld des Prüfvermerks (Abschnitt 7.3). Dann schließt er die Akte, die Unterlagen kommen dabei zurück in die Mappe, und zieht sie in den Ausgangskorb. Erst dann lässt sich die nächste Akte aus dem Eingang nehmen. Der Stempel ist endgültig, danach sind Prüfvermerk, Markierungen und Nachfrage gesperrt.
 5. **Tagesende:** Wenn der Stapel leer ist, erscheint die Auswertung.
 6. **Folgeakten:** Eine Akte mit `followUp` kommt am angegebenen Tag zusätzlich in den Stapel, aber nur wenn der Spieler das Ergänzungsersuchen gestempelt hat. Sie kommt immer mit den Unterlagen aus `followUp.documents`, auch wenn die Nachfrage falsch gewählt war (der Fehler ist dann schon gezählt). Hat der Spieler einen Bescheid erlassen, kommt sie nicht. Folgeakten liegen im Stapel vor den Akten des Tages.
 7. **Leere Tage:** Ist der Stapel eines Tages leer, zeigt das Spiel `texts.emptyDay` und geht direkt zur Auswertung.
@@ -181,15 +196,24 @@ Leitidee: Der Kodex ist eine Loseblattsammlung im Leinenband, wie sie in Amtsstu
 
 ### 6.1 Zugeklappt (auf dem Schreibtisch)
 
-- Der Kodex liegt links auf dem Tisch, um wenige Grad gedreht. Der Einband ist dunkelrotes Leinen mit Goldprägung: Titel „KODEX“ (`ui.codex.coverTitle`), darunter `ui.codex.coverSubtitle` und `ui.codex.coverStand` („Stand: Tag {day}“). Am Rücken sind Bünde angedeutet, am Schnitt sind die Blätter als feine Linien zu sehen.
+- Der Kodex liegt zugeklappt auf seinem Platz in der linken Werkzeugleiste (Abschnitt 7.1), um wenige Grad gedreht. Der Einband ist dunkelrotes Leinen mit Goldprägung: Titel „KODEX“ (`ui.codex.coverTitle`), darunter `ui.codex.coverSubtitle` und `ui.codex.coverStand` („Stand: Tag {day}“). Am Rücken sind Bünde angedeutet, am Schnitt sind die Blätter als feine Linien zu sehen.
 - Die Dicke des Buchblocks wächst mit der Zahl der freigeschalteten Tage. Das ist ein reiner CSS-Wert aus der Anzahl, keine Bilddatei.
 - Solange der Spieler die heutige Lieferung noch nicht aufgeschlagen hat, ragt ein Zettel „neu“ (`ui.codex.new`) aus dem Buch. Er verschwindet, sobald die erste Seite der heutigen Lieferung gesehen wurde.
-- Öffnen per Klick, Enter, Leertaste oder Taste K. Die Schaltfläche trägt `ui.codex.open`.
+- Klick, Enter, Leertaste oder Ziehen auf die Unterlage legen das Buch aufgeschlagen auf den Tisch (6.1a). Die Schaltfläche trägt `ui.codex.open`. Taste K öffnet von überall den Lesemodus (6.2).
 
-### 6.2 Aufgeschlagen
+### 6.1a Am Tisch aufgeschlagen
 
-- Das Buch erscheint als Doppelseite, zentriert über dem Tisch, höchstens 1120 × 760 Pixel und mit dem Fenster skaliert. Der Tisch dahinter ist abgedunkelt. Beim Aufschlagen klappt der Einband auf (Effekte „voll“, etwa 400 ms), bei „reduziert“ blendet das Buch ein, bei „aus“ steht es sofort da.
-- Schließen mit Escape, Klick neben das Buch, Taste K oder der Schaltfläche `ui.codex.close`. Der Fokus kehrt zum zugeklappten Buch zurück.
+- Wird der Kodex auf die Unterlage gezogen, klappt beim Loslassen der Einband auf und das Buch liegt als kleine Doppelseite an der Stelle, an der es abgelegt wurde (Effekte „voll“: Einband dreht sich um den Rücken, etwa 500 ms; „reduziert“: Überblendung bis 120 ms; „aus“: sofort). Wird es angeklickt statt gezogen, gleitet es an einen freien Platz der Unterlage.
+- Größe am Tisch etwa ein Drittel des Lesemodus, sodass Akte und Buch nebeneinander Platz haben (Richtwert im Prototyp: zwei Seiten zu je 230 × 300 Pixel auf einer Unterlage von 760 × 700). Der Seitenumbruch (6.8) läuft für diese Größe eigens, die Leseposition bleibt über die Regel-ID dieselbe wie im Lesemodus.
+- Am Tisch: Blättern (Eckenschaltflächen, Pfeiltasten bei Fokus), Sprung aus dem Inhaltsverzeichnis, Lesezeichenband, Fußnote mit „vereinfacht“ und Fundstelle. Suche und Griffregister gibt es nur im Lesemodus.
+- Schaltflächen am Buch: `ui.codex.readMode` öffnet den Lesemodus an derselben Stelle, `ui.desk.putBack` klappt das Buch zu und legt es auf seinen Platz zurück. Zurückziehen auf die linke Leiste tut dasselbe.
+- Das Buch am Tisch lässt sich wie ein Papier verschieben und liegt nach dem Anfassen oben. Es darf die Akte überdecken.
+- Gesperrte Regeln stehen auch am Tisch nirgends im DOM (6.4).
+
+### 6.2 Lesemodus
+
+- Taste K oder `ui.codex.readMode` öffnet das Buch als große Doppelseite, zentriert über dem Tisch, höchstens 1120 × 760 Pixel und mit dem Fenster skaliert. Der Tisch dahinter ist abgedunkelt. Beim Aufschlagen klappt der Einband auf (Effekte „voll“, etwa 400 ms), bei „reduziert“ blendet das Buch ein, bei „aus“ steht es sofort da.
+- Schließen mit Escape, Klick neben das Buch, Taste K oder der Schaltfläche `ui.codex.close`. Der Fokus kehrt dorthin zurück, wo er vorher war (Buch in der Leiste, Buch am Tisch oder Akte). Lag das Buch am Tisch, liegt es danach weiter dort, an der zuletzt gelesenen Stelle.
 - Unter 900 Pixel Fensterbreite zeigt das Buch eine Einzelseite statt einer Doppelseite. Blättern geht dann auch per Wischen.
 - Hinter dem Buch steht der Tisch. Zum Vergleichen mit der Akte öffnet und schließt man das Buch schnell mit K, die Seite bleibt erhalten (6.7).
 
@@ -246,10 +270,10 @@ Leitidee: Der Kodex ist eine Loseblattsammlung im Leinenband, wie sie in Amtsstu
 Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibunterlage, Papiere in leicht gebrochenem Weiß mit Schreibmaschinenschrift (Courier Prime, OFL, lokal eingebunden).
 
 - **Ziehen:** Pointer Events für Maus und Touch. Beim Aufnehmen leicht vergrößern, Schatten weicher und länger, Neigung je nach Zugrichtung. Beim Loslassen kurze Ablege-Animation. Das zuletzt angefasste Papier liegt oben. Nur `transform` animieren. Ein Papier lässt sich nie so weit ablegen, dass ein Teil seiner Fläche, auch gedreht, vom Rand der Unterlage abgeschnitten wird.
-- **Ziehen per Tastatur:** Ein fokussiertes Papier lässt sich mit den Pfeiltasten verschieben. Ziehen ist für keine Entscheidung nötig.
+- **Ziehen per Tastatur:** Ein fokussiertes Papier lässt sich mit den Pfeiltasten verschieben. Ziehen ist für keine Entscheidung nötig: Jeder Schritt des Ablaufs hat auch einen Weg per Klick und per Tastatur (Abschnitt 7.1 bis 7.5).
 - **Papier:** feine Papierstruktur (SVG-Rauschfilter oder kleine Textur), zufällige Drehung von ein bis zwei Grad, Büroklammern bei Belegen.
-- **Viele Papiere:** Akten haben bis zu sechs Papiere. Sie liegen im Raster, nur leicht versetzt und nicht übereinander, sodass jeder Titel sichtbar bleibt und beim Markieren nichts verdeckt ist. Bei fünf oder sechs Papieren sind sie etwas kleiner.
-- **Stempel:** Aufschlag mit kurzer Skalierungs-Animation und leichtem Wackeln der Arbeitsfläche (nur bei „voll“). Der Abdruck bleibt auf dem Prüfvermerk sichtbar.
+- **Viele Papiere:** Akten haben bis zu sechs Papiere. In der Tasche der Mappe liegen sie leicht versetzt, sodass jeder Titel zu sehen ist. Herausgezogen ordnet der Spieler sie selbst, sie dürfen sich überdecken. Das zuletzt angefasste Papier liegt oben.
+- **Stempel:** Aufschlag mit kurzer Skalierungs-Animation und leichtem Wackeln der Mappe (nur bei „voll“). Der Abdruck bleibt auf dem Stempelfeld des Prüfvermerks sichtbar, an der zugeklappten Mappe als kleiner Abdruck auf dem Deckel.
 - **Kanzleistempel:** Dokumente mit `stamp` zeigen unten links einen blassen Kanzleistempel.
 - **Morgenzeitung:** ein schmales Zeitungsblatt mit Kopfzeile in Antiqua-Anmutung (lokal eingebundene freie Schrift, Lizenz in `QUELLEN.md`), Schlagzeile groß, Text in Spalten. Es liegt beim Tagesbeginn auf dem Tisch und lässt sich wie ein Papier ziehen und zoomen, bis der Tag endet.
 - **Anruf:** kurzes Klingeln (CC0, Quelle in `QUELLEN.md`), dann der Text als Sprechblase neben einem Telefon.
@@ -259,7 +283,49 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - **Sound:** Stempel (3 Varianten), Papierrascheln (2), Ablage (2, auch beim Ausgangskorb), Telefonklingeln und leises Büro-Ambiente. Das Blättern im Kodex nutzt das Papierrascheln, das Zuklappen den Ablageton. Alle Klangdateien sind CC0, Quellen und Bearbeitungen stehen in `public/audio/QUELLEN.md`. Ton startet erst nach der ersten Nutzeraktion. Fällt der Ton aus, läuft das Spiel unverändert weiter.
 - **Musik (Akt 1):** Ein eigenes, synthetisch erzeugtes 16-Bit-Arrangement des Walzers Nr. 1 aus „G'schichten aus dem Wienerwald“ von Johann Strauß (Sohn, gemeinfrei) als nahtlose Schleife. Das Arrangement entsteht aus eigener Notation mit `tools/music/wienerwald16-loop.mjs`, nicht aus einer Aufnahme oder einer geschützten Notenausgabe. Die Musik hat einen eigenen Lautstärkeregler (Standard 0,5, 0 ist aus), getrennt vom Regler für die Effekte. Bei 0 wird sie weder geladen noch dekodiert; wird sie dabei abgeschaltet, blendet sie in 80 ms aus, und beim Wiedereinschalten setzt sie an derselben Stelle fort. Für spätere Akte ist ein eigenes Stück je Akt vorgesehen. Jede Musikquelle steht in `QUELLEN.md`.
 - **Einstellungen:** Effekte aus, reduziert oder voll. `prefers-reduced-motion` setzt automatisch „reduziert“. Dazu Lautstärke (Soundeffekte) und Musiklautstärke. Lautstärke 0 und Musik 0 bedeuten aus.
-- **Bedienbarkeit ohne Maus:** Alle Entscheidungen, Betragsfelder, Markierungen, Nachfragen, der Rechner und die Stempel sind per Tastatur erreichbar. Fokus ist sichtbar.
+- **Bedienbarkeit ohne Maus:** Alle Entscheidungen, Betragsfelder, Markierungen, Nachfragen, der Rechner, der Kalender, die Stempel, das Öffnen, Schließen und Ablegen der Akte sind per Tastatur erreichbar. Fokus ist sichtbar.
+
+### 7.1 Tischplan
+
+- Der Tisch ist eine Bühne mit fester logischer Größe, die als Ganzes auf das Fenster skaliert wird (wie im Prototyp `auftraege/05-prototyp-arbeitstisch.html`). Bei 1280 × 720 passt der ganze Tisch ohne Scrollen ins Fenster. Wo die Schrift dadurch klein wird, hilft der Zoom (Doppelklick).
+- **Links, Werkzeugleiste:** oben der Eingang (Aktenstapel mit Zähler `ui.desk.stack`), darunter die Plätze für Kodex, Kalender und Rechner. Ein Werkzeug, das noch nicht freigeschaltet ist, hat keinen Platz in der Leiste und keinen Eintrag im DOM.
+- **Mitte, Unterlage:** die grüne Schreibunterlage. Hier liegen die offene Akte, herausgezogene Papiere, Kodex, Kalender, Rechner und die Morgenzeitung. Nichts lässt sich so ablegen, dass es über den Rand der Unterlage ragt.
+- **Rechts:** oben das Telefon für Anrufe, darunter der Stempelhalter mit den Stempeln des Tages (`Day.stamps`), unten der Ausgangskorb (`ui.desk.outbox`) mit Zähler.
+- **Ablageflächen als Daten:** Eingang, Werkzeugplätze, Unterlage, Stempelhalter und Ausgangskorb stehen in einer einzigen Tabelle im Code (Name, Lage, was dort angenommen wird). Lade mit Notizbuch (`drawer`, Tag 10) und Pinnwand (`pinboard`, Tag 7) kommen in einem späteren Auftrag als weitere Einträge dazu, ohne dass der Tisch umgebaut werden muss.
+- **Ziehen zwischen Flächen:** Beim Loslassen entscheidet die Fläche unter dem Zeiger. Nimmt sie das Objekt nicht an, gleitet es an seinen letzten gültigen Platz zurück, mit kurzer Meldung, wenn es einen Grund gibt (zum Beispiel `ui.desk.oneAkteOnly`). Meldungen stehen in einer Live-Region.
+
+### 7.2 Akte als Mappe
+
+- **Zugeklappt** ist die Akte ein Aktendeckel aus Karton mit Reiter (Aktenzahl) und Name des Pflichtigen. So liegt sie im Eingang und nach dem Schließen auf der Unterlage.
+- **Öffnen:** Ziehen aus dem Eingang auf die Unterlage, Klick oder Enter. Liegt schon eine Akte am Tisch (offen oder zugeklappt), wird die neue nicht angenommen (`ui.desk.oneAkteOnly`). Folgeakten liegen im Eingang oben (wie bisher).
+- **Aufgeschlagen:** Beim Öffnen dreht sich der Deckel nach links (Effekte „voll“ etwa 500 ms). Innen links liegt der Prüfvermerk mit allen Entscheidungen, Markierungen und dem Stempelfeld (`ui.desk.stampField`) unten. Innen rechts die Tasche mit den Unterlagen (`ui.desk.pocket`), leicht versetzt. Oben am Deckel eine Leiste mit Aktenkopf und der Schaltfläche `ui.desk.closeAkte`. An dieser Leiste lässt sich die offene Mappe verschieben.
+- **Größe:** Die Mappe wächst in der Höhe mit dem Prüfvermerk bis zur Höhe der Unterlage. Ist der Prüfvermerk länger, scrollt er in sich. Das Stempelfeld bleibt dabei immer sichtbar.
+- **Unterlagen herausziehen:** Ziehen aus der Tasche auf die Unterlage, oder Klick (Enter) auf ein Papier in der Tasche legt es an einen freien Platz neben der Mappe. Zurück kommt ein Papier, indem man es auf die Tasche zieht. Enter bei einem herausgezogenen Papier zoomt es wie bisher. Per Tastatur kommen die Papiere mit `ui.desk.closeAkte` alle auf einmal zurück.
+- **Schließen:** `ui.desk.closeAkte` lässt alle herausgezogenen Papiere in die Tasche zurückfliegen (Effekte „voll“ etwa 300 ms, gestaffelt), dann klappt der Deckel zu. Die zugeklappte Akte bleibt an ihrer Stelle auf der Unterlage. Klick oder Enter auf die zugeklappte Akte schlägt sie wieder auf, solange sie nicht im Ausgangskorb liegt.
+- **Ablegen:** Die zugeklappte, gestempelte Akte wird in den Ausgangskorb gezogen. Alternativ trägt sie die Schaltfläche `ui.desk.outboxButton`. Ohne Stempel wird sie nicht angenommen (`ui.desk.stampFirst`). Eine offene Akte wird nicht angenommen (`ui.desk.closeFirst`).
+
+### 7.3 Stempel nehmen und aufdrücken
+
+- Klick oder Enter auf einen Stempel im Halter nimmt ihn auf: Der Stempel folgt dem Zeiger, sein Platz im Halter ist leer, das Stempelfeld ist hervorgehoben, `ui.desk.stampTaken` erscheint in der Live-Region.
+- Klick auf das Stempelfeld drückt ihn auf. Per Tastatur drückt Enter den aufgenommenen Stempel aufs Stempelfeld der offenen Akte.
+- Escape, Rechtsklick, ein Klick neben das Stempelfeld oder ein zweiter Klick auf den Halter legen den Stempel zurück. Während ein Stempel aufgenommen ist, lässt sich nichts ziehen.
+- Ohne offene Akte lässt sich kein Stempel aufnehmen (`ui.desk.noOpenAkte`), bei einer gestempelten Akte auch nicht (`ui.desk.alreadyStamped`).
+
+### 7.4 Werkzeuge
+
+- Kodex, Kalender und Rechner haben je einen festen Platz in der Leiste. Ziehen auf die Unterlage, Klick oder Enter legen das Werkzeug aufgeschlagen auf die Unterlage. Zurückziehen auf die Leiste oder die Schaltfläche `ui.desk.putBack` legt es zugeklappt an seinen Platz zurück.
+- Auf der Unterlage lassen sich Werkzeuge wie Papiere verschieben, das zuletzt angefasste liegt oben.
+- Der Rechner bleibt wie in Abschnitt 7 beschrieben, nur sein Platz ändert sich.
+- Am Tagesende und beim Neuladen liegen alle Werkzeuge wieder zugeklappt auf ihrem Platz.
+
+### 7.5 Tischkalender
+
+- Ab dem Tag mit `unlock: calendar` liegt in der Leiste ein Tischkalender (zugeklappt: Block mit Ringbindung, Jahr und Monat).
+- Aufgeschlagen ein Monatsblatt: Kopf mit Monat und Jahr (`ui.calendar.monthYear`, Namen über `Intl.DateTimeFormat` mit `de-AT`), Schaltflächen `ui.calendar.prevMonth` und `ui.calendar.nextMonth`, Wochen von Montag bis Sonntag. Samstage und Sonntage sind getönt, Sonntage und Feiertage aus `content/kalender.json` haben rote Ziffern. Der Name eines Feiertags steht in der zugänglichen Beschriftung (`aria.calendarHoliday`) und als Tooltip.
+- Es gibt keine Markierung für „heute“, weil das Spiel kein Datum kennt (Abschnitt 4).
+- Der Kalender schlägt mit `meta.kalenderStart` des aktuellen Akts auf. Blättern geht beliebig weit vor und zurück.
+- **Tage zählen:** Ein Klick auf einen Tag setzt den Beginn (`ui.calendar.countStart`), ein Klick auf einen zweiten Tag das Ende. Dazwischen liegende Tage sind hinterlegt, darunter steht der Abstand in Kalendertagen (`ui.calendar.countResult`, bei 1 `ui.calendar.countResultOne`). Ein dritter Klick beginnt neu. Ohne Auswahl steht `ui.calendar.countHint` da. Der Kalender rechnet keine Fristen aus und überträgt nichts in den Prüfvermerk.
+- Monatswechsel und Auswahl werden nicht gespeichert.
 
 ## 8. Atmosphäre (vorbereitet)
 
@@ -271,13 +337,14 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - Gespeichert werden: aktueller Tag, Ergebnisse je Akte (inklusive eingegebener Beträge, Markierungen und gewählter Nachfrage), Fehler je Tag, offene Folgeakten, freigeschaltete Werkzeuge, Einstellungen, Kodex-Lesestand (`codex.lastRuleId`: ID der zuletzt gelesenen Regel oder leer für das Inhaltsverzeichnis, und `codex.seenDay`: höchster Tag, dessen Lieferung der Spieler gesehen hat). Ein älterer Spielstand ohne `codex` bekommt `lastRuleId` leer und `seenDay` 0, der Rest bleibt erhalten.
 - Die Einstellungen sind `effects` (aus, reduziert, voll), Lautstärke (0 = aus) und `music` (Musiklautstärke, Standard 0,5, 0 = aus). Ein älterer Spielstand ohne einzelne Felder bekommt für diese die Standardwerte aus `DEFAULT_SETTINGS`, ohne dass der übrige Spielstand verloren geht.
 - **Spielstände aus Version 0.2:** Ein Spielstand, der an Tag 4 oder danach steht (Ende des Prototyps), wird so übernommen, dass der Spieler mit Tag 4 weiterspielt. Die Ergebnisse von Tag 1 bis 3 bleiben erhalten. Die Folgeakte von 3-4 kommt an Tag 4, wenn sie damals offen war. Ein Test deckt das ab.
+- Nicht gespeichert werden die Lage von Papieren und Werkzeugen und eine offene, noch nicht gestempelte Akte. Nach dem Neuladen liegt diese Akte wieder zugeklappt oben im Eingang, ihre Entscheidungen sind leer.
 - „Neues Spiel“ fragt vor dem Überschreiben nach.
 
 ## 10. Arbeitsweise für Claude Code
 
 1. Zuerst `core`: Schema, Zusammenführen, Querprüfungen, Bewertung, Rechner, Spielstand-Übernahme, inklusive Tests.
 2. Dann die Oberfläche für die neuen Teile ohne Animationen, danach Optik nach Abschnitt 7.
-3. Nach jedem Oberflächen-Schritt Screenshots mit Playwright erstellen (Startbildschirm, Schreibtisch mit offener Akte vom Typ `entscheidungen` mit Betragsfeld, Markiermodus mit einem Paar, Nachfrage-Auswahl, Morgenzeitung, Rechner, Kodex offen mit Hinweisregel, Tagesauswertung mit Betrag und Widerspruch, Schlussbildschirm Akt I, dazu die Kodex-Ansichten aus Abschnitt 6: zugeklappt an Tag 1 und an Tag 10, aufgeschlagen mit Inhaltsverzeichnis, aufgeschlagen mit Hinweisregel, aufgeschlagen mit Suchtreffern und markiertem Wort, gesperrte Seite, schmale Ansicht mit Einzelseite) und selbst prüfen: Ist der Text lesbar, überlappt nichts, sind alle Bedienelemente sichtbar?
+3. Nach jedem Oberflächen-Schritt Screenshots mit Playwright erstellen (Startbildschirm, Schreibtisch mit offener Akte vom Typ `entscheidungen` mit Betragsfeld, Markiermodus mit einem Paar, Nachfrage-Auswahl, Morgenzeitung, Rechner, Kodex offen mit Hinweisregel, Tagesauswertung mit Betrag und Widerspruch, dazu für den Arbeitstisch: leerer Tisch an Tag 1, offene Mappe mit Unterlagen in der Tasche, offene Mappe mit drei herausgezogenen Papieren und Kodex am Tisch, aufgenommener Stempel über dem Stempelfeld, zugeklappte gestempelte Akte, Tisch an Tag 8 mit Kalender und Rechner aufgeschlagen, Kalender April 2026 mit Auswahl, Schlussbildschirm Akt I, dazu die Kodex-Ansichten aus Abschnitt 6: zugeklappt an Tag 1 und an Tag 10, aufgeschlagen mit Inhaltsverzeichnis, aufgeschlagen mit Hinweisregel, aufgeschlagen mit Suchtreffern und markiertem Wort, gesperrte Seite, schmale Ansicht mit Einzelseite) und selbst prüfen: Ist der Text lesbar, überlappt nichts, sind alle Bedienelemente sichtbar?
 4. Inhalte nie im Code ändern. Fällt ein Fehler im JSON auf, im Bericht melden statt stillschweigend anzupassen. Fehlt ein Spieltext im JSON, ebenfalls melden und nicht im Code erfinden. Für fehlende Oberflächentexte gilt die Regel des jeweiligen Auftrags.
 5. Änderungen an `src/core`, die ein Auftrag nicht vorsieht, nur machen, wenn sie zwingend sind, und im Bericht begründen.
 
@@ -308,7 +375,14 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - [ ] Der Kodex bleibt mit allen 54 Regeln bedienbar, auch mit Tastatur und Screenreader-Struktur (Dialog, Seiten, Griffregister).
 - [ ] Papiere lassen sich mit Maus und Touch ziehen, bei „Effekte aus“ ohne Animation, und werden an keinem Rand abgeschnitten.
 - [ ] Der Build läuft auf GitHub Pages (Unterpfad, Neuladen und alle Assets werden gefunden).
+- [ ] Arbeitstisch: Der e2e-Durchspieltest von Akt I läuft über den neuen Ablauf (Akte aus dem Eingang ziehen, Unterlagen herausziehen, entscheiden, Stempel aufnehmen und aufdrücken, schließen, in den Ausgangskorb ziehen), einmal mit Maus-Ziehen und einmal nur mit Tastatur. Beide enden mit null Fehlern an allen Tagen.
+- [ ] Es liegt nie mehr als eine Akte am Tisch. Eine zweite wird mit `ui.desk.oneAkteOnly` abgewiesen und gleitet in den Eingang zurück.
+- [ ] Nach `ui.desk.closeAkte` liegen alle Papiere der Akte wieder in der Tasche, keines bleibt auf der Unterlage. Eine offene oder ungestempelte Akte nimmt der Ausgangskorb nicht an.
+- [ ] Der Kodex lässt sich auf die Unterlage ziehen, schlägt dort auf, lässt sich verschieben, blättern und zurücklegen. `ui.codex.readMode` und K öffnen den Lesemodus an derselben Regel. An Tag 1 stehen auch am Tisch keine Inhalte gesperrter Regeln im DOM.
+- [ ] Der Kalender erscheint ab Tag 4 und nicht vorher. Er schlägt im April 2026 auf. Unit-Test: Ostersonntag 2024 bis 2030 richtig, Feiertage 2026 laut `kalender.json` (unter anderem 6. April Ostermontag), Karfreitag 3. April 2026 und 24. Dezember sind keine Feiertage. e2e: Auswahl 21. März bis 3. April 2026 zeigt 13 Tage Abstand.
+- [ ] Bei 1280 × 720, 1920 × 1080 und 1024 × 768 passt der ganze Tisch ins Fenster, nichts ist abgeschnitten, Akte, Kodex und Kalender lassen sich nebeneinander auf die Unterlage legen.
+- [ ] Bei „Effekte aus“ gibt es beim Aufschlagen, Zurückfliegen, Stempeln und Ablegen keine Animation.
 
 ## 12. Nicht Teil dieser Version
 
-Weiterspielen am Schlussbildschirm (kommt mit Akt II), Regel-ID in der Tagesauswertung als Sprung in den Kodex (Vorschlag für einen späteren Auftrag), Pinnwand und Spuren (Darstellung), Lade mit Notizbuch, Metagame (Tagesbudget, Beurteilung, Vertrauen, Zuhause, Ereigniskarten), Begründung beim Stempel (Auswahl der Regel-ID), Bedingungen auf Merker oder frühere Entscheidungen, Fristen und Kalender im Spielablauf, Three.js-Atmosphäre, Akte ab Akt II, weitere Musikstücke.
+Weiterspielen am Schlussbildschirm (kommt mit Akt II), Regel-ID in der Tagesauswertung als Sprung in den Kodex (Vorschlag für einen späteren Auftrag), Pinnwand und Spuren (Darstellung), Lade mit Notizbuch, Metagame (Tagesbudget, Beurteilung, Vertrauen, Zuhause, Ereigniskarten), Begründung beim Stempel (Auswahl der Regel-ID), Bedingungen auf Merker oder frühere Entscheidungen, Fristen im Spielablauf (der Tischkalender ist nur ein Werkzeug), Lade und Pinnwand am Tisch, Three.js-Atmosphäre, Akte ab Akt II, weitere Musikstücke.

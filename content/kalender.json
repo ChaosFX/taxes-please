@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "version": "0.1.0",
+    "quelle": "§ 7 Abs. 2 ARG in der Fassung BGBl. I Nr. 22/2019",
+    "hinweis": "Gesetzliche Feiertage für den Tischkalender. Karfreitag und 24. Dezember sind bewusst nicht eingetragen: Sie zählen nur für Fristen nach § 108 BAO (Kodexregel R14)."
+  },
+  "holidays": {
+    "fixed": [
+      {
+        "date": "01-01",
+        "name": "Neujahr"
+      },
+      {
+        "date": "01-06",
+        "name": "Heilige Drei Könige"
+      },
+      {
+        "date": "05-01",
+        "name": "Staatsfeiertag"
+      },
+      {
+        "date": "08-15",
+        "name": "Mariä Himmelfahrt"
+      },
+      {
+        "date": "10-26",
+        "name": "Nationalfeiertag"
+      },
+      {
+        "date": "11-01",
+        "name": "Allerheiligen"
+      },
+      {
+        "date": "12-08",
+        "name": "Mariä Empfängnis"
+      },
+      {
+        "date": "12-25",
+        "name": "Weihnachten"
+      },
+      {
+        "date": "12-26",
+        "name": "Stephanstag"
+      }
+    ],
+    "easter": [
+      {
+        "offset": 1,
+        "name": "Ostermontag"
+      },
+      {
+        "offset": 39,
+        "name": "Christi Himmelfahrt"
+      },
+      {
+        "offset": 50,
+        "name": "Pfingstmontag"
+      },
+      {
+        "offset": 60,
+        "name": "Fronleichnam"
+      }
+    ]
+  }
+}

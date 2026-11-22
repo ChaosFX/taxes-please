@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arbeitstisch Prototyp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* VOICE: Wiener Amtsstube, ruhig, handfest
+   IDEA: der Schreibtisch selbst – Ablagen links, Unterlage Mitte, Stempel und Ablage rechts
+   PICTURE: die ganze Bühne ist der Tisch, skaliert auf jede Breite
+   COLOUR and TYPE: Holz, grüne Unterlage, Leinenrot, Manila; Courier Prime, EB Garamond
+   LAYOUT: kurze Kopfzeile, darunter die Bühne 1200 x 740 */
+:root{color-scheme:light dark;--bg:light-dark(#efe8da,#17120d);--ink:light-dark(#2a2118,#efe6d6);
+--wood1:#6b4428;--wood2:#5a381f;--wood3:#7a4f2f;--pad:#2f5a3f;--paper:#f6f1e4;--beleg:#f9f5ea;--pink:#1d1b17;
+--linen:#6b1915;--linen2:#430e0b;--gilt:#d8b866;--leaf:#f8f4ea;--rubric:#8a2a1d;--manila:#d8b874;--manila2:#c49d55;--red:#a3261b;--blue:#24448a;--focus:#ffbf47}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:clip}
+header{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between;padding:14px max(3vw,14px) 10px}
+header h1{font:600 22px/1.1 "EB Garamond",Georgia,serif;margin:0}
+header p{margin:0;font-size:14px;max-width:70ch;opacity:.85}
+header button{font:14px system-ui;padding:8px 14px;min-height:40px;border-radius:6px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer}
+#wrap{width:100%;overflow:hidden;padding:0 max(3vw,14px) 18px}
+#stage{position:relative;width:1200px;height:740px;transform-origin:0 0;border-radius:10px;overflow:hidden;
+background:repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 2px,transparent 2px 9px),linear-gradient(180deg,var(--wood3),var(--wood1) 40%,var(--wood2));touch-action:none;user-select:none;-webkit-user-select:none}
+.rail{position:absolute;top:0;height:740px;background:rgba(0,0,0,.16)}
+.rail.l{left:0;width:212px;box-shadow:inset -2px 0 0 rgba(0,0,0,.2)}.rail.r{right:0;width:198px;box-shadow:inset 2px 0 0 rgba(0,0,0,.2)}
+#pad{position:absolute;left:230px;top:20px;width:760px;height:700px;background:radial-gradient(ellipse at 45% 30%,#3a6a4b,var(--pad) 60%,#264b34);border-radius:6px;box-shadow:inset 0 0 0 3px #1f3e2b,0 8px 18px rgba(0,0,0,.35)}
+.slot{position:absolute;border:1.5px dashed rgba(255,236,200,.22);border-radius:8px}
+.slot>span{position:absolute;top:-19px;left:2px;font:12px system-ui;color:rgba(255,236,200,.7);white-space:nowrap}
+.slot>b{position:absolute;right:4px;top:-19px;font:600 12px system-ui;color:rgba(255,236,200,.85)}
+#slot-calc{display:grid;place-items:center;color:rgba(255,236,200,.45);font:13px system-ui;text-align:center}
+#toast{position:absolute;left:610px;top:34px;transform:translateX(-50%);background:rgba(20,16,10,.88);color:#f6efe0;font:14px system-ui;padding:8px 14px;border-radius:6px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9999;max-width:600px;text-align:center}
+#toast.on{opacity:1}
+.obj{position:absolute;left:0;top:0;touch-action:none;cursor:grab;will-change:transform}
+.obj.lift{scale:1.03;filter:drop-shadow(0 16px 18px rgba(0,0,0,.45));cursor:grabbing}
+.obj:focus-visible,button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+/* Kodex */
+.book.closed{width:118px;height:156px;border-radius:3px 7px 7px 3px;background:linear-gradient(90deg,var(--linen2) 0 12px,var(--linen) 12px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),4px 5px 0 -1px #e9e0cc,6px 8px 10px rgba(0,0,0,.4)}
+.cv{height:100%;display:grid;align-content:center;justify-items:center;gap:8px;color:var(--gilt);font-family:"EB Garamond",serif;padding-left:12px;text-align:center}
+.cv b{font-size:21px;letter-spacing:.06em;border-block:1px solid var(--gilt);padding:2px 6px}.cv small{font-size:11px;line-height:1.3}
+.book.open{width:472px;height:312px;border-radius:5px;background:var(--linen2);perspective:1600px;box-shadow:0 10px 18px rgba(0,0,0,.4)}
+.pg{position:absolute;top:6px;width:230px;height:300px}
+.pg.L{left:6px;transform-origin:right center;transform-style:preserve-3d}.pg.R{left:236px}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.back{transform:rotateY(180deg);background:linear-gradient(90deg,var(--linen),var(--linen2));border-radius:3px}
+.page{position:absolute;inset:0;background:var(--leaf);padding:14px 18px 26px 24px;font:13.5px/1.42 "EB Garamond",Georgia,serif;color:#241d15;overflow:hidden}
+.L .page{box-shadow:inset -14px 0 14px -10px rgba(60,40,20,.35)}.R .page{box-shadow:inset 14px 0 14px -10px rgba(60,40,20,.35)}
+.ph{display:flex;justify-content:space-between;font-size:11px;color:#6a5e4d;border-bottom:1px solid #d9cfbb;margin-bottom:10px;font-style:italic}
+.rz{position:absolute;left:5px;top:44px;font-size:11px;color:var(--rubric);font-weight:600}
+.page h4{margin:0 0 6px;font-size:16px}.page p{margin:0;text-align:justify;hyphens:auto}
+.fn{position:absolute;left:24px;right:18px;bottom:24px;font-size:11px;color:#6a5e4d;border-top:1px solid #d9cfbb;padding-top:3px}
+.pn{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;color:#6a5e4d}
+.toc{list-style:none;margin:4px 0 0;padding:0}.toc li{display:flex;gap:6px;cursor:pointer;padding:2px 0}.toc li:hover{color:var(--rubric)}
+.toc li i{flex:1;border-bottom:1px dotted #a99a80;transform:translateY(-5px)}.toc .grp{font-style:italic;color:#6a5e4d;cursor:default;margin-top:6px}
+.page.blank{background:var(--leaf) repeating-linear-gradient(transparent 0 21px,#e5dccb 21px 22px);background-position:0 40px}
+.page.blank em{color:#a99a80;font-size:12px}
+.tb{position:absolute;bottom:8px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(138,42,29,.08);color:var(--rubric);font:24px/1 "EB Garamond",serif;cursor:pointer;z-index:3}
+.tb:hover:not(:disabled){background:rgba(138,42,29,.18)}
+.tb.prev{left:10px}.tb.next{right:10px}.tb.shut{top:-14px;right:-14px;bottom:auto;font-size:18px;background:var(--linen);color:var(--gilt);box-shadow:0 2px 4px rgba(0,0,0,.4)}
+.tb:disabled{opacity:.25;cursor:default}
+.book.opening .pg.L{animation:bookOpen .6s cubic-bezier(.3,.6,.25,1)}
+.book.closing .pg.L{animation:bookOpen .42s cubic-bezier(.5,0,.75,.4) reverse forwards}
+@keyframes bookOpen{from{transform:rotateY(-180deg)}to{transform:rotateY(0)}}
+.turn{animation:turn .28s ease-out}@keyframes turn{from{opacity:.2;transform:translateX(-10px)}}
+/* Kalender */
+.kal.closed{width:132px;height:100px;border-radius:4px;background:#fbf7ee;box-shadow:0 0 0 1px #cdbf9f,0 6px 0 -2px #ddd2b8,0 8px 10px rgba(0,0,0,.4);display:grid;place-items:center;text-align:center;font:600 13px/1.2 "EB Garamond",serif;color:#3b2f22;padding-top:12px}
+.kal.closed::before{content:"";position:absolute;top:-5px;left:20px;right:20px;height:10px;background:radial-gradient(circle,#777 0 3px,transparent 4px) 0 0/16px 10px repeat-x}
+.kal.closed big{display:block;font-size:24px;color:var(--red)}
+.kal.open{width:300px;background:#fbf7ee;border-radius:4px;box-shadow:0 0 0 1px #cdbf9f,0 10px 16px rgba(0,0,0,.4);padding:10px 12px 10px;font:13px/1.3 system-ui;color:#2a2118}
+.kh{display:flex;align-items:center;justify-content:space-between;font:600 18px "EB Garamond",serif;margin-bottom:6px}
+.kh button,.kx{border:0;background:transparent;font:20px/1 system-ui;width:34px;height:34px;cursor:pointer;color:#5b4c39;border-radius:4px}
+.kh button:hover{background:#efe6d3}
+.kg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.kg .wd{font-size:11px;color:#7b6c58;padding:2px 0}
+.kg button{border:0;background:transparent;height:30px;border-radius:4px;font:14px system-ui;color:#2a2118;cursor:pointer}
+.kg button.we{background:#efe6d3}.kg button.so{color:var(--red)}
+.kg button:hover{outline:1px solid #b9a682}
+.kg button.in{background:#e9d6a8}.kg button.sel{background:#3b2f22;color:#fbf7ee}
+.ki{margin-top:8px;min-height:34px;font-size:12.5px;color:#4c3f2f}
+.kf{font-size:11px;color:#8a7a62;margin-top:2px}
+/* Akten */
+.folder.closed{width:160px;height:112px;border-radius:3px 6px 6px 6px;background:linear-gradient(160deg,var(--manila),var(--manila2));box-shadow:inset 0 0 0 1px rgba(80,55,20,.35),0 5px 8px rgba(0,0,0,.35);font:12px/1.3 "Courier Prime",monospace;color:#3a2c18;padding:24px 10px 8px}
+.folder.closed .tab{position:absolute;top:-12px;left:10px;background:var(--manila);padding:1px 8px;border-radius:4px 4px 0 0;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.folder.closed b{display:block;font-size:14px}
+.folder.closed .mini{position:absolute;right:8px;bottom:8px;transform:rotate(-8deg);font:700 10px "Courier Prime";border:2px solid currentColor;padding:1px 4px}
+.folder.open{width:580px;height:360px;border-radius:6px;background:var(--manila2);box-shadow:0 12px 20px rgba(0,0,0,.4);display:grid;grid-template-rows:34px 1fr;perspective:1400px}
+.fhead{display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 12px;font:700 13px "Courier Prime",monospace;color:#3a2c18;cursor:grab;background:linear-gradient(var(--manila),var(--manila2));border-radius:6px 6px 0 0}
+.fhead button{font:13px system-ui;padding:4px 10px;min-height:28px;border-radius:4px;border:1px solid #6b5028;background:#f3e6c4;color:#3a2c18;cursor:pointer}
+.fbody{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 6px 6px;position:relative}
+.pv{background:var(--paper);border-radius:2px;padding:10px 12px;font:12px/1.35 "Courier Prime",monospace;color:var(--pink);position:relative;cursor:default}
+.pv h4{margin:0;font-size:14px}.pv .sub{margin:0 0 8px;color:#5c5446}
+.row{border-top:1px dashed #cfc5ae;padding:6px 0}.row .lb{display:flex;justify-content:space-between}
+.opts{display:flex;gap:6px;margin-top:4px}
+.opts button{flex:1;font:12px "Courier Prime",monospace;padding:4px;min-height:28px;border:1px solid #9a8d73;background:#fffaf0;border-radius:3px;cursor:pointer;color:var(--pink)}
+.opts button[aria-pressed=true]{background:#2c5a3a;color:#fff;border-color:#2c5a3a}
+.opts button:disabled{cursor:default;opacity:.75}
+.sz{position:absolute;left:12px;right:12px;bottom:10px;height:74px;border:1.5px dashed #b9ad93;border-radius:4px;display:grid;place-items:center;color:#9a8d73;font-size:11px}
+.carry .sz{border-color:var(--red);color:var(--red);background:rgba(163,38,27,.05)}
+.imp{transform:rotate(-7deg);border:3px double currentColor;padding:3px 10px;font:700 15px/1.1 "Courier Prime",monospace;text-align:center;opacity:.88;mix-blend-mode:multiply}
+.imp small{display:block;font-size:10px;font-weight:400}
+.imp.bescheid,.mini.bescheid{color:var(--red)}.imp.ergaenzung,.mini.ergaenzung{color:var(--blue)}.imp.ergaenzung{font-size:12px}
+.sz.hit .imp{animation:thud .26s cubic-bezier(.2,1.6,.4,1)}@keyframes thud{from{transform:rotate(-7deg) scale(1.5);opacity:0}}
+.pocket{position:relative;background:linear-gradient(#b98f47,#a77f3c);border-radius:2px;box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
+.plabel{position:absolute;bottom:4px;right:8px;font:11px system-ui;color:rgba(40,25,5,.6)}
+.cover{position:absolute;top:0;right:6px;bottom:6px;width:calc(50% - 9px);background:linear-gradient(160deg,var(--manila),var(--manila2));transform-origin:left center;backface-visibility:hidden;animation:coverOpen .55s cubic-bezier(.3,.6,.25,1) forwards;border-radius:2px;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(80,55,20,.35)}
+@keyframes coverOpen{to{transform:rotateY(-180deg)}}
+.folder.opening .pv{animation:pvIn .5s .2s both}@keyframes pvIn{from{opacity:0}}
+.shake{animation:shake .22s}@keyframes shake{25%{translate:2px 1px}50%{translate:-2px 0}75%{translate:1px -1px}}
+.paper{width:200px;height:252px;background:var(--paper);box-shadow:0 0 0 1px rgba(0,0,0,.08),0 4px 8px rgba(0,0,0,.3);padding:14px 14px;font:11.5px/1.4 "Courier Prime",monospace;color:var(--pink)}
+.paper.beleg{background:var(--beleg)}
+.paper.beleg::before{content:"";position:absolute;top:-8px;left:22px;width:12px;height:34px;border:2px solid #8a8f96;border-radius:7px}
+.paper .pt{font-size:10px;color:#5c5446;border-bottom:1px solid #cfc5ae;margin-bottom:6px}
+.paper h5{margin:0 0 8px;font-size:13px;text-decoration:underline}
+.ln{display:flex;flex-direction:column;padding:3px 0;border-bottom:1px dotted #d2c8b1}.ln b{text-align:right}
+.paper.inpocket{position:absolute;left:0;top:0;cursor:pointer;transition:translate .15s}
+.paper.inpocket:hover{translate:0 -6px}
+/* Stempel */
+#rack{position:absolute;left:1012px;top:40px;width:176px;height:330px;background:linear-gradient(#4a2e19,#3a2312);border-radius:8px;box-shadow:inset 0 2px 6px rgba(0,0,0,.5);padding:28px 12px 12px;display:grid;gap:12px}
+#rack>span{position:absolute;top:6px;left:12px;font:12px system-ui;color:rgba(255,236,200,.7)}
+.rackbtn{position:relative;border:0;background:transparent;cursor:pointer;display:grid;justify-items:center;align-content:end;padding:0 0 8px;color:#f6efe0;font:13px system-ui;border-radius:8px}
+.rackbtn:hover{background:rgba(255,255,255,.06)}
+.rackbtn[aria-pressed=true]{background:rgba(255,191,71,.18)}
+.rackbtn[aria-pressed=true] .st{opacity:.25}
+.st{width:56px;height:84px;margin-bottom:6px;position:relative}
+.st::before{content:"";position:absolute;left:16px;top:0;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#a5774b,#5c3a1d)}
+.st::after{content:"";position:absolute;left:23px;top:20px;width:10px;height:40px;background:linear-gradient(90deg,#5c3a1d,#9a6c40,#5c3a1d)}
+.st i{position:absolute;left:0;right:0;bottom:0;height:24px;border-radius:3px;background:linear-gradient(#7b5330,#4c2f17);box-shadow:inset 0 -6px 0 var(--c)}
+#ghost{position:absolute;left:0;top:0;pointer-events:none;z-index:9998;display:none;filter:drop-shadow(0 10px 8px rgba(0,0,0,.45))}
+.carry #ghost{display:block}.carry,.carry *{cursor:crosshair!important}
+.done{pointer-events:none}
+@media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Arbeitstisch · Prototyp</h1>
+  <p>Kodex und Kalender auf die grüne Unterlage ziehen oder anklicken. Akte aus dem Eingang ziehen, Unterlagen herausziehen, entscheiden, Stempel nehmen und aufdrücken, Akte schließen, in die Ablage ziehen. Taste K: Kodex auf/zu, Esc: Stempel zurücklegen.</p></div>
+  <button id="reset" type="button">Neu beginnen</button>
+</header>
+<div id="wrap"><div id="stage">
+  <div class="rail l"></div><div class="rail r"></div><div id="pad"></div>
+  <div class="slot" id="slot-in"><span>Eingang</span><b id="inCount"></b></div>
+  <div class="slot" id="slot-kodex"><span>Kodex</span></div>
+  <div class="slot" id="slot-kal"><span>Kalender</span></div>
+  <div class="slot" id="slot-calc"><span>Rechner</span>ab Tag 8</div>
+  <div id="rack"><span>Stempel</span>
+    <button class="rackbtn" type="button" data-s="bescheid" aria-pressed="false"><div class="st" style="--c:#a3261b"><i></i></div>Bescheid</button>
+    <button class="rackbtn" type="button" data-s="ergaenzung" aria-pressed="false"><div class="st" style="--c:#24448a"><i></i></div>Ergänzungsersuchen</button>
+  </div>
+  <div class="slot" id="slot-out"><span>Ablage</span><b id="outCount"></b></div>
+  <div id="ghost"><div class="st"><i></i></div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+</div></div>
+<script>
+{
+const $=(s,r=document)=>r.querySelector(s);
+const stage=$('#stage'),wrap=$('#wrap'),toastEl=$('#toast'),ghost=$('#ghost');
+const W=1200,H=740,RM=matchMedia('(prefers-reduced-motion: reduce)').matches;let sc=1;
+const fit=()=>{const w=wrap.clientWidth-parseFloat(getComputedStyle(wrap).paddingLeft)*2;sc=Math.min(1,w/W);stage.style.transform=`scale(${sc})`;stage.style.marginBottom=(H*sc-H)+'px'};
+const ro=new ResizeObserver(fit);ro.observe(wrap);
+const PAD={x:230,y:20,w:760,h:700},LEFT={x:0,y:0,w:215,h:740};
+const SLOT={in:{x:21,y:44,w:170,h:132},kodex:{x:36,y:214,w:140,h:180},kal:{x:28,y:438,w:156,h:128},calc:{x:28,y:604,w:156,h:110},out:{x:1012,y:430,w:176,h:286}};
+for(const[k,r]of Object.entries(SLOT))Object.assign($('#slot-'+k).style,{left:r.x+'px',top:r.y+'px',width:r.w+'px',height:r.h+'px'});
+const pt=e=>{const r=stage.getBoundingClientRect();return{x:(e.clientX-r.left)/sc,y:(e.clientY-r.top)/sc}};
+const rel=el=>{const r=el.getBoundingClientRect(),s=stage.getBoundingClientRect();return{x:(r.left-s.left)/sc,y:(r.top-s.top)/sc,w:r.width/sc,h:r.height/sc}};
+const inR=(p,r)=>p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h;
+const place=(el,x,y)=>{el._x=x;el._y=y;el.style.transform=`translate(${x}px,${y}px) rotate(${el._r||0}deg)`};
+const glide=(el,x,y,ms=280)=>new Promise(res=>{ms=RM?0:ms;el.style.transition=ms?`transform ${ms}ms cubic-bezier(.2,.75,.25,1)`:'';place(el,x,y);setTimeout(()=>{el.style.transition='';res()},ms)});
+let Z=20;const raise=el=>{el.style.zIndex=++Z};
+const clampPad=(el,x,y)=>[Math.max(PAD.x+8,Math.min(x,PAD.x+PAD.w-el.offsetWidth-8)),Math.max(PAD.y+8,Math.min(y,PAD.y+PAD.h-el.offsetHeight-8))];
+const toast=m=>{toastEl.textContent=m;toastEl.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>toastEl.classList.remove('on'),2800)};
+const mk=(cls,parent=stage)=>{const e=document.createElement('div');e.className=cls;parent.append(e);return e};
+function drag(el,e,o){
+  if(e.button>0||stampMode)return;e.preventDefault();
+  const p0=pt(e);let ox=0,oy=0,moved=false;
+  const mv=ev=>{const p=pt(ev);if(!moved){if(Math.hypot(p.x-p0.x,p.y-p0.y)<5)return;moved=true;o.onStart&&o.onStart();ox=p0.x-el._x;oy=p0.y-el._y;raise(el);el.classList.add('lift')}place(el,p.x-ox,p.y-oy)};
+  const up=ev=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);if(moved){el.classList.remove('lift');o.onDrop(pt(ev))}else if(o.onTap)o.onTap()};
+  addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);
+}
+const settle=el=>{const[x,y]=clampPad(el,el._x,el._y);return glide(el,x,y,160)};
+
+/* ---------- Kodex (Regeltexte aus content/akt1.json, Tag 1 und 2) ---------- */
+const RULES=[
+{id:'R1',day:1,title:'Werbungskosten',text:'Werbungskosten sind Aufwendungen zur Erwerbung, Sicherung oder Erhaltung der Einnahmen. Fehlt der Zusammenhang mit dem Beruf, gibt es keinen Abzug.',source:'§ 16 Abs. 1 erster Satz EStG'},
+{id:'R2',day:1,title:'Arbeitsmittel',text:'Ausgaben für Arbeitsmittel wie Werkzeug und Berufskleidung sind Werbungskosten.',source:'§ 16 Abs. 1 Z 7 EStG'},
+{id:'R3',day:2,title:'Kosten der Lebensführung',text:'Aufwendungen für die Lebensführung sind nicht abzugsfähig, auch wenn sie den Beruf fördern.',source:'§ 20 Abs. 1 Z 2 lit. a EStG'},
+{id:'R4',day:2,title:'Kleidung',text:'Bürgerliche Kleidung ist nicht abzugsfähig, auch wenn sie nur im Beruf getragen wird. Typische Berufskleidung ist abzugsfähig.',source:'LStR Rz 322'},
+{id:'R5',day:2,title:'Fachliteratur',text:'Fachliteratur mit beruflichem Bezug ist absetzbar. Allgemein bildende Werke, Lexika und Tageszeitungen sind es nicht.',source:'LStR Rz 383e, Rz 394'}];
+const PAGES=[{toc:1},...RULES.map(r=>({r})),{blank:3},{blank:4}];
+let spread=0,kState='shelf';
+const kodex=mk('obj book');kodex.tabIndex=0;kodex.setAttribute('role','button');
+const pageHTML=i=>{const p=PAGES[i],pn=`<div class="pn">– ${i+1} –</div>`;
+  if(p.toc){let d=0;return `<div class="page"><div class="ph"><span>Kodex</span><span>Inhalt</span></div>${'<ul class="toc">'+RULES.map((r,k)=>(r.day!==d?`<li class="grp">Lieferung Tag ${d=r.day}</li>`:'')+`<li data-go="${k+1}">${r.id} ${r.title}<i></i>${k+2}</li>`).join('')+'</ul>'}${pn}</div>`}
+  if(p.blank)return `<div class="page blank"><div class="ph"><span>Kodex</span><span>Lieferung Tag ${p.blank}</span></div><em>Noch nicht eingelangt.</em>${pn}</div>`;
+  const r=p.r;return `<div class="page"><div class="ph"><span>Kodex</span><span>Lieferung Tag ${r.day}</span></div><div class="rz">${r.id}</div><h4>${r.title}</h4><p>${r.text}</p><div class="fn">Vereinfacht. ${r.source}</div>${pn}</div>`};
+const kShelf=()=>[SLOT.kodex.x+11,SLOT.kodex.y+12];
+function kClosed(){kodex.className='obj book closed';kodex.innerHTML='<div class="cv"><b>KODEX</b><small>Steuerrecht<br>Stand Tag 2</small></div>';kodex.setAttribute('aria-label','Kodex, zugeklappt. Anklicken oder auf den Tisch ziehen.')}
+function kOpen(anim){kodex.className='obj book open'+(anim?' opening':'');kodex.setAttribute('aria-label','Kodex, aufgeschlagen');
+  kodex.innerHTML=`<div class="pg L"><div class="face front">${pageHTML(spread*2)}</div><div class="face back"></div></div><div class="pg R">${pageHTML(spread*2+1)}</div>
+  <button class="tb prev" type="button" aria-label="Zurückblättern" ${spread?'':'disabled'}>‹</button><button class="tb next" type="button" aria-label="Weiterblättern" ${spread<PAGES.length/2-1?'':'disabled'}>›</button><button class="tb shut" type="button" aria-label="Zuklappen">×</button>`;
+  if(anim)setTimeout(()=>kodex.classList.remove('opening'),650)}
+function openKodex(cx,cy){kState='desk';kOpen(true);raise(kodex);const[x,y]=clampPad(kodex,cx-kodex.offsetWidth/2,cy-kodex.offsetHeight/2);
+  if(cx==null){glide(kodex,...clampPad(kodex,PAD.x+24,PAD.y+370),320)}else place(kodex,x,y)}
+function closeKodex(){kodex.classList.add('closing');setTimeout(()=>{kState='shelf';kClosed();glide(kodex,...kShelf(),320)},RM?0:420)}
+const toggleKodex=()=>kState==='shelf'?openKodex():closeKodex();
+const turn=d=>{const n=spread+d;if(n<0||n>=PAGES.length/2)return;spread=n;kOpen(false);$('.pg.R',kodex).classList.add('turn')};
+kodex.addEventListener('pointerdown',e=>{if(e.target.closest('button,[data-go]'))return;
+  drag(kodex,e,{onDrop:p=>{if(kState==='shelf'){inR(p,PAD)?openKodex(p.x,p.y):glide(kodex,...kShelf())}else{inR(p,LEFT)?closeKodex():settle(kodex)}},onTap:()=>{if(kState==='shelf')openKodex()}})});
+kodex.addEventListener('click',e=>{const b=e.target.closest('button,[data-go]');if(!b)return;
+  if(b.dataset.go){spread=Math.floor(+b.dataset.go/2);kOpen(false);return}
+  b.classList.contains('prev')?turn(-1):b.classList.contains('next')?turn(1):closeKodex()});
+kodex.addEventListener('keydown',e=>{if(e.target!==kodex)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleKodex()}else if(kState==='desk'&&e.key==='ArrowRight')turn(1);else if(kState==='desk'&&e.key==='ArrowLeft')turn(-1)});
+kClosed();place(kodex,...kShelf());
+
+/* ---------- Kalender ---------- */
+const kal=mk('obj kal');kal.tabIndex=0;kal.setAttribute('role','button');
+let kalState='shelf',kM=new Date(2026,3,1),sel=[];
+const MON=['Jänner','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],WD=['Mo','Di','Mi','Do','Fr','Sa','So'];
+const fmt=t=>{const d=new Date(t);return `${WD[(d.getDay()+6)%7]} ${d.getDate()}. ${MON[d.getMonth()]} ${d.getFullYear()}`};
+const kalShelf=()=>[SLOT.kal.x+12,SLOT.kal.y+16];
+function kalClosed(){kal.className='obj kal closed';kal.innerHTML=`<div>${kM.getFullYear()}<big>${MON[kM.getMonth()]}</big></div>`;kal.setAttribute('aria-label','Kalender. Anklicken oder auf den Tisch ziehen.')}
+function kalOpen(){kal.className='obj kal open';kal.setAttribute('aria-label','Kalender, aufgeschlagen');
+  const y=kM.getFullYear(),m=kM.getMonth(),first=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();
+  const[a,b]=[...sel].sort((x,z)=>x-z);let cells='';
+  for(let i=0;i<first;i++)cells+='<span></span>';
+  for(let d=1;d<=n;d++){const t=+new Date(y,m,d),wd=(first+d-1)%7;
+    const c=[wd>=5?'we':'',wd===6?'so':'',sel.includes(t)?'sel':'',sel.length===2&&t>a&&t<b?'in':''].join(' ');
+    cells+=`<button type="button" class="${c}" data-t="${t}" aria-label="${fmt(t)}">${d}</button>`}
+  const info=sel.length===0?'Zum Zählen Beginn und Ende anklicken.':sel.length===1?`Beginn: ${fmt(sel[0])}. Jetzt das Ende anklicken.`:`${fmt(a)} bis ${fmt(b)}: <b>${Math.round((b-a)/864e5)} Tage</b> Abstand.`;
+  kal.innerHTML=`<div class="kh"><button type="button" data-m="-1" aria-label="Voriger Monat">‹</button><span>${MON[m]} ${y}</span><button type="button" data-m="1" aria-label="Nächster Monat">›</button><button type="button" class="kx" aria-label="Kalender zurücklegen">×</button></div>
+  <div class="kg">${WD.map(w=>`<span class="wd">${w}</span>`).join('')}${cells}</div><div class="ki" aria-live="polite">${info}</div><div class="kf">Feiertage sind im Prototyp nicht eingetragen.</div>`}
+function openKal(cx,cy){kalState='desk';kalOpen();raise(kal);if(cx==null)glide(kal,...clampPad(kal,PAD.x+500,PAD.y+380),320);else place(kal,...clampPad(kal,cx-150,cy-30))}
+function closeKal(){kalState='shelf';kalClosed();glide(kal,...kalShelf(),320)}
+kal.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;
+  drag(kal,e,{onDrop:p=>{if(kalState==='shelf'){inR(p,PAD)?openKal(p.x,p.y):glide(kal,...kalShelf())}else{inR(p,LEFT)?closeKal():settle(kal)}},onTap:()=>{if(kalState==='shelf')openKal()}})});
+kal.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.classList.contains('kx'))return closeKal();
+  if(b.dataset.m){kM=new Date(kM.getFullYear(),kM.getMonth()+ +b.dataset.m,1)}
+  else{const t=+b.dataset.t;sel=sel.length===1&&sel[0]!==t?[sel[0],t]:[t]}
+  kalOpen();const f=b.dataset.m?$(`[data-m="${b.dataset.m}"]`,kal):$(`[data-t="${b.dataset.t}"]`,kal);f&&f.focus()});
+kal.addEventListener('keydown',e=>{if(e.target===kal&&(e.key==='Enter'||e.key===' ')){e.preventDefault();kalState==='shelf'?openKal():closeKal()}});
+kalClosed();place(kal,...kalShelf());
+
+/* ---------- Akten (Akten 1-1 und 1-2 aus content/akt1.json) ---------- */
+const CASES=[
+{id:'1-1',name:'Anna Huber',job:'Buchhalterin',docs:[
+ {k:'erklaerung',t:'Arbeitnehmerveranlagung 2025',l:[['Name','Anna Huber'],['Beruf','Buchhalterin'],['Fachliteratur','89,00 €'],['Kurskosten','140,00 €']]},
+ {k:'beleg',t:'Rechnung Buchhandlung',l:[['Bilanzierung kompakt, 4. Auflage','89,00 €']]},
+ {k:'beleg',t:'Rechnung Kochschule',l:[['Thai-Kochkurs, 3 Abende','140,00 €']]}],
+ pos:[['p1','Fachbuch Bilanzierung','89,00 €'],['p2','Thai-Kochkurs','140,00 €']]},
+{id:'1-2',name:'Markus Pichler',job:'Elektriker',docs:[
+ {k:'erklaerung',t:'Arbeitnehmerveranlagung 2025',l:[['Name','Markus Pichler'],['Beruf','Elektriker'],['Arbeitsmittel','210,00 €'],['Sonstiges','480,00 €']]},
+ {k:'beleg',t:'Rechnung Baumarkt',l:[['Werkzeugkoffer Elektro, 32-teilig','210,00 €']]},
+ {k:'beleg',t:'Vertrag Fitnessstudio',l:[['Jahresabo 2025','480,00 €'],['Vermerk des Pflichtigen','für den Rücken, wegen schwerer Arbeit']]}],
+ pos:[['p1','Werkzeugkoffer','210,00 €'],['p2','Fitnessstudio','480,00 €']]}];
+const STAMP={bescheid:'BESCHEID',ergaenzung:'ERGÄNZUNGS-<br>ERSUCHEN'};
+const akten=CASES.map(c=>({c,state:'in',stamped:null,dec:{}}));
+const imprint=s=>`<div class="imp ${s}">${STAMP[s]}<small>Tag 1</small></div>`;
+const topIn=()=>akten.find(a=>a.state==='in');
+const onDesk=()=>akten.find(a=>a.state==='open'||a.state==='closed');
+const pocketSlot=i=>[22+i*12,26+i*18];
+function counts(){const n=akten.filter(a=>a.state==='in').length,d=akten.filter(a=>a.state==='done').length;$('#inCount').textContent=n?`${n} ${n>1?'Akten':'Akte'}`:'leer';$('#outCount').textContent=d?String(d):''}
+function pile(){akten.filter(a=>a.state==='in').forEach((a,k,arr)=>{a.el.style.zIndex=10+arr.length-k;a.el.tabIndex=k?-1:0;glide(a.el,SLOT.in.x+5+k*3,SLOT.in.y+14+k*4,240)});counts()}
+function render(a){
+  const el=a.el,c=a.c;
+  if(a.state==='open'){el.className='obj folder open';el.setAttribute('aria-label',`Akte ${c.id}, offen`);
+    el.innerHTML=`<div class="fhead"><span>Akte ${c.id} · ${c.name}</span><button type="button" class="fclose">Akte schließen</button></div>
+    <div class="fbody"><div class="pv"><h4>Prüfvermerk</h4><p class="sub">Werbungskosten · ${c.job}</p>${c.pos.map(([id,lb,amt])=>`<div class="row"><div class="lb"><span>${lb}</span><span>${amt}</span></div><div class="opts">${['anerkennen','streichen'].map(v=>`<button type="button" data-p="${id}" data-v="${v}" aria-pressed="${a.dec[id]===v}" ${a.stamped?'disabled':''}>${v}</button>`).join('')}</div></div>`).join('')}
+    <div class="sz" aria-label="Stempelfeld">${a.stamped?imprint(a.stamped):'Stempelfeld'}</div></div><div class="pocket"><span class="plabel">Unterlagen</span></div></div>`;
+    const pk=$('.pocket',el);a.papers.forEach((p,i)=>{if(!p._loose)toPocket(p,pk,i)})}
+  else{el.className='obj folder closed';el.setAttribute('aria-label',`Akte ${c.id}, ${c.name}${a.stamped?', gestempelt':''}`);
+    el.innerHTML=`<div class="tab">Akte ${c.id}</div><b>${c.name}</b><small>${c.job}</small>${a.stamped?`<div class="mini ${a.stamped}">${a.stamped==='bescheid'?'BESCHEID':'ERG.-ERS.'}</div>`:''}`}
+}
+function toPocket(p,pk,i){p._loose=false;p.classList.add('inpocket');p.classList.remove('lift');pk.append(p);p.style.zIndex=i+1;const[x,y]=pocketSlot(i);p.style.transition='';p.style.transform=`translate(${x}px,${y}px) rotate(${p._r}deg)`}
+function loosen(p){const r=rel(p);stage.append(p);p._loose=true;p.classList.remove('inpocket');place(p,r.x,r.y);raise(p)}
+async function backToPocket(a,p){const pk=$('.pocket',a.el),r=rel(pk),i=a.papers.indexOf(p),[x,y]=pocketSlot(i);raise(p);await glide(p,r.x+x,r.y+y,300);toPocket(p,pk,i)}
+function pullOut(a,p){loosen(p);const i=a.papers.indexOf(p),f=rel(a.el),pw=200,ph=252,g=10;
+  const fits=(x,y)=>x>=PAD.x+8&&y>=PAD.y+8&&x+pw<=PAD.x+PAD.w-8&&y+ph<=PAD.y+PAD.h-8;
+  const cand=[[f.x+f.w+g,f.y+i*40],[f.x-pw-g,f.y+i*40],[f.x+i*60,f.y+f.h+g],[f.x+i*60,f.y-ph-g]].map(([x,y],k)=>[k<2?x:Math.min(Math.max(x,PAD.x+8),PAD.x+PAD.w-pw-8),k<2?Math.min(Math.max(y,PAD.y+8),PAD.y+PAD.h-ph-8):y]);
+  const t=cand.find(([x,y])=>fits(x,y))||[PAD.x+16+i*24,PAD.y+PAD.h-ph-16];glide(p,...clampPad(p,...t),300)}
+function openAkte(a,cx,cy){a.state='open';render(a);raise(a.el);a.el.classList.add('opening');a.el.insertAdjacentHTML('beforeend','<div class="cover"></div>');
+  setTimeout(()=>{a.el.classList.remove('opening');const cv=$('.cover',a.el);cv&&cv.remove()},RM?0:600);
+  place(a.el,...clampPad(a.el,cx-a.el.offsetWidth/2,cy-a.el.offsetHeight/3));counts()}
+async function closeAkte(a){const loose=a.papers.filter(p=>p._loose);await Promise.all(loose.map(p=>backToPocket(a,p)));
+  const r=rel(a.el);a.state='closed';render(a);place(a.el,...clampPad(a.el,r.x+r.w/2-80,r.y+r.h/2-56))}
+async function fileAkte(a){if(!a.stamped){toast('Erst stempeln, dann ablegen.');settle(a.el);return}
+  a.state='done';a.el.classList.add('done');a.el.tabIndex=-1;const k=akten.filter(x=>x.state==='done').length-1;a.el.style.zIndex=5+k;a.el._r=k%2?2:-2;
+  await glide(a.el,SLOT.out.x+8+k*2,SLOT.out.y+150-k*6,320);counts();
+  if(!topIn())toast('Alle Akten erledigt. Im Spiel käme jetzt die Tagesauswertung.')}
+akten.forEach(a=>{
+  a.el=mk('obj folder');a.el.setAttribute('role','button');
+  a.papers=a.c.docs.map((d,i)=>{const p=document.createElement('div');p.className='obj paper '+d.k;p._r=(i-1)*1.3;p.tabIndex=0;p.setAttribute('aria-label',d.t);
+    p.innerHTML=`<div class="pt">${d.k==='erklaerung'?'Erklärung':'Beleg'}</div><h5>${d.t}</h5>${d.l.map(([k,v])=>`<div class="ln"><span>${k}</span><b>${v}</b></div>`).join('')}`;
+    p.addEventListener('pointerdown',e=>{if(a.state!=='open'&&!p._loose)return;
+      drag(p,e,{onStart:()=>{if(!p._loose)loosen(p)},onDrop:q=>{const pk=a.state==='open'&&$('.pocket',a.el);pk&&inR(q,rel(pk))?backToPocket(a,p):settle(p)},onTap:()=>{if(!p._loose)pullOut(a,p)}})});
+    p.addEventListener('keydown',e=>{if(e.key==='Enter'&&a.state==='open'){e.preventDefault();p._loose?backToPocket(a,p):pullOut(a,p)}});
+    return p});
+  render(a);
+  a.el.addEventListener('pointerdown',e=>{if(e.target.closest('button,.paper,.pv'))return;
+    if(a.state==='in'){if(a!==topIn())return;
+      drag(a.el,e,{onDrop:p=>{if(!inR(p,PAD))return pile();if(onDesk()){toast('Es liegt schon eine Akte am Tisch. Erst ablegen.');return pile()}openAkte(a,p.x,p.y)},
+        onTap:()=>{if(onDesk())return toast('Es liegt schon eine Akte am Tisch. Erst ablegen.');openAkte(a,PAD.x+320,PAD.y+120)}})}
+    else if(a.state==='open'){if(!e.target.closest('.fhead'))return;
+      drag(a.el,e,{onDrop:p=>{if(inR(p,SLOT.out))toast('Erst die Akte schließen. Die Unterlagen fliegen dabei zurück.');settle(a.el)}})}
+    else if(a.state==='closed'){
+      drag(a.el,e,{onDrop:p=>inR(p,SLOT.out)?fileAkte(a):settle(a.el),onTap:()=>{const r=rel(a.el);openAkte(a,r.x+80,r.y+40)}})}});
+  a.el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.classList.contains('fclose'))return closeAkte(a);
+    if(b.dataset.p&&!a.stamped){a.dec[b.dataset.p]=b.dataset.v;b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}});
+  a.el.addEventListener('keydown',e=>{if(e.target!==a.el||(e.key!=='Enter'&&e.key!==' '))return;e.preventDefault();
+    if(a.state==='in'&&a===topIn()&&!onDesk())openAkte(a,PAD.x+320,PAD.y+120);else if(a.state==='closed')fileAkte(a)});
+});
+akten.forEach((a,k)=>place(a.el,SLOT.in.x+5+k*3,SLOT.in.y+14+k*4));pile();
+
+/* ---------- Stempel ---------- */
+let stampMode=null;
+const rackBtns=[...document.querySelectorAll('.rackbtn')];
+function takeStamp(s){const a=akten.find(x=>x.state==='open');
+  if(!a)return toast('Zum Stempeln muss eine Akte offen am Tisch liegen.');
+  if(a.stamped)return toast('Diese Akte ist schon gestempelt. Der Stempel ist endgültig.');
+  stampMode=s;stage.classList.add('carry');$('.st',ghost).style.setProperty('--c',s==='bescheid'?'#a3261b':'#24448a');
+  rackBtns.forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===s));toast('Stempel aufgenommen. Aufs Stempelfeld klicken, Esc legt ihn zurück.')}
+function dropStamp(){stampMode=null;stage.classList.remove('carry');rackBtns.forEach(b=>b.setAttribute('aria-pressed','false'))}
+function doStamp(a){a.stamped=stampMode;dropStamp();const z=$('.sz',a.el);z.innerHTML=imprint(a.stamped);z.classList.add('hit');
+  a.el.querySelectorAll('.opts button').forEach(b=>b.disabled=true);if(!RM){a.el.classList.remove('shake');void a.el.offsetWidth;a.el.classList.add('shake')}
+  toast('Gestempelt. Jetzt Akte schließen und in die Ablage ziehen.')}
+rackBtns.forEach(b=>b.addEventListener('click',()=>stampMode===b.dataset.s?dropStamp():takeStamp(b.dataset.s)));
+stage.addEventListener('pointermove',e=>{if(!stampMode)return;const p=pt(e);ghost.style.transform=`translate(${p.x-28}px,${p.y-82}px)`});
+stage.addEventListener('pointerdown',e=>{if(!stampMode||e.target.closest('.rackbtn'))return;e.preventDefault();e.stopPropagation();
+  const z=e.target.closest('.sz'),a=akten.find(x=>x.state==='open');z&&a?doStamp(a):dropStamp()},true);
+stage.addEventListener('contextmenu',e=>{if(stampMode){e.preventDefault();dropStamp()}});
+/* Tastatur: Stempelfeld per Tab erreichbar, wenn ein Stempel aufgenommen ist */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&stampMode){dropStamp();return}
+  if(stampMode&&e.key==='Enter'){const a=akten.find(x=>x.state==='open');if(a){e.preventDefault();doStamp(a)}return}
+  if((e.key==='k'||e.key==='K')&&!e.ctrlKey&&!e.metaKey&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName))toggleKodex()});
+$('#reset').addEventListener('click',()=>location.reload());
+fit();
+}
+</script>
+</body>
+</html>
