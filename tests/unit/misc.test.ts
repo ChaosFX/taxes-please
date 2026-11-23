@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { correctAnswer } from '../../src/core/evaluate';
 import { formatEuro } from '../../src/core/format';
-import { advanceDay, beginWork, drawNext, fileCurrent, applyStamp, decidePosition, newGame, type GameState } from '../../src/core/game';
+import { advanceDay, beginWork, drawNext, fileCurrent, applyStamp, decidePosition, newGame, toolsUntil, type GameState } from '../../src/core/game';
 import { getAkte } from '../../src/core/loader';
 import { clearSave, hasSave, loadGame, SAVE_KEY, saveGame } from '../../src/core/save';
 import { MemoryStore, realContent } from './helpers';
@@ -27,6 +27,18 @@ describe('Speichern', () => {
     expect(loadGame(store, content)).toEqual(s);
     clearSave(store);
     expect(hasSave(store)).toBe(false);
+  });
+
+  it('Spielstand ohne Freischaltung „marking“ bekommt sie ab Tag 5 beim Laden', () => {
+    const store = new MemoryStore();
+    for (const [day, has] of [[3, false], [5, true], [6, true], [9, true]] as const) {
+      const s = newGame(content);
+      const old = { ...s, day, tools: toolsUntil(content, day).filter((x) => x !== 'marking') };
+      saveGame(store, old);
+      const loaded = loadGame(store, content)!;
+      expect(loaded.tools.includes('marking')).toBe(has);
+      expect(loaded.tools.slice(0, old.tools.length)).toEqual(old.tools);
+    }
   });
 
   it('kaputter Spielstand ergibt null', () => {

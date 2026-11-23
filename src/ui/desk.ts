@@ -2,7 +2,7 @@ import { fromCents, parseAmount } from '../core/amount';
 import type { CalcKey, CalcState } from '../core/calculator';
 import { formatEuro } from '../core/format';
 import { boardContext, newClues, unseenAnswers, visibleQuestions, isAnswered } from '../core/board';
-import { dayInfo, hasPinboard, resultsOfDay, type GameState } from '../core/game';
+import { canMark, dayInfo, hasNeedles, hasPinboard, resultsOfDay, type GameState, type PendingLine } from '../core/game';
 import { getAkte, optionValue } from '../core/loader';
 import type { CalendarContent } from '../core/schema';
 import {
@@ -45,7 +45,7 @@ export interface DeskActions {
   pressStamp(): void;
   /** Chooses the question of the Ergänzungsersuchen; the stamp is pressed afterwards (SPEC 4). */
   inquiry(questionId: string): void;
-  toggleMarkMode(): void;
+  /** A line chosen in the Gegenüberstellung (SPEC 4). */
   markLine(doc: number, line: string): void;
   removeMark(index: number): void;
   clearMarks(): void;
@@ -62,9 +62,8 @@ export interface DeskActions {
 /** Desk state that lives only in the interface; reset when a new Akte lands on the desk. */
 export interface DeskUi {
   akteId: string | null;
-  markMode: boolean;
-  /** First line chosen in mark mode, waiting for its partner in another paper. */
-  pending: { doc: number; line: string } | null;
+  /** First line chosen in the Gegenüberstellung, waiting for its partner in another paper. */
+  pending: PendingLine | null;
   inquiryOpen: boolean;
   /** Question chosen for the Ergänzungsersuchen while its stamp is carried. */
   inquiryChoice: string | null;
@@ -124,6 +123,8 @@ export const paperSeed = (akteId: string, i: number) => `${akteId}#${i}`;
 
 /** Spots of papers in the pocket: staggered so every title stays visible (SPEC 7). */
 export const POCKET_STEP = { x: 7, y: 25 };
+/** Papers in the pocket are shown smaller, so the widest stack still fits its 206 px. */
+const POCKET_SCALE = 0.68;
 
 const lineMatches = (m: Mark, title: string, line: string) =>
   (m.a.document === title && m.a.line === line) || (m.b.document === title && m.b.line === line);
@@ -134,6 +135,17 @@ const amountValue = (raw: string | undefined) => {
   const cents = parseAmount(raw);
   return cents === null ? raw : formatEuro(fromCents(cents));
 };
+
+/**
+ * The Gegenüberstellung is open (SPEC 4): from `unlock: marking` on, while the
+ * stamp „Ergänzungsersuchen“ is in the hand of an Akte not yet stamped. It opens
+ * for every Ergänzungsersuchen, with or without discrepancies, so it gives nothing away.
+ */
+export const markOpen = (state: GameState, ui: DeskUi): boolean =>
+  ui.carrying === 'ergaenzung' && canMark(state) && state.current !== null && state.current.answer.stamp === undefined;
+
+/** A value that is only an amount (`1.200,00 €`, `−80 €`): never wraps, right-aligned (SPEC 7, Papier). */
+export const isAmountText = (v: string) => /^[−+-]?\s?\d{1,3}(\.\d{3})*(,\d{1,2})?\s?€$/.test(v.trim());
 
 /** Click and Enter or Space (when the element itself has focus) do the same. */
 function activatable(el: HTMLElement, fn: (viaKeyboard: boolean) => void): HTMLElement {
@@ -188,13 +200,15 @@ interface PaperOpts {
   answer: Answer;
   ui: DeskUi;
   a: DeskActions;
-  /** Lines carry needles (pinboard on the desk, paper on the pad, no mark mode, no stamp in the hand). */
+  /** Lines carry needles (a question needs pinning, paper on the pad, no stamp in the hand). */
   pinnable?: boolean;
+  /** The Gegenüberstellung is open: lines of papers on the pad can be chosen. */
+  marking: boolean;
 }
 
 function paper(doc: Document, docIndex: number, o: PaperOpts): HTMLElement {
   const el = paperSheet(doc, docIndex, o);
-  if (o.pinnable && o.loose && !o.ui.markMode && !o.ui.carrying) {
+  if (o.pinnable && o.loose && !o.ui.carrying) {
     makePinnable(el, doc, { key: `line-${docIndex}`, stampPinnable: !!o.akte.representative?.stampVisible, onPin: o.a.pin });
   }
   return el;
@@ -203,29 +217,30 @@ function paper(doc: Document, docIndex: number, o: PaperOpts): HTMLElement {
 function paperSheet(doc: Document, docIndex: number, o: PaperOpts): HTMLElement {
   const { akte, answer, ui, a } = o;
   const marks = answer.marks ?? [];
-  // Only papers on the pad can be marked; those in the pocket are not clickable then (SPEC 4).
-  const markable = ui.markMode && answer.stamp === undefined && o.loose;
+  // Only papers on the pad can be chosen; those in the pocket are not clickable then (SPEC 4).
+  const markable = o.marking && o.loose;
   return h(
     'article',
     {
-      class: `obj paper doc ${doc.kind}${doc.stamp ? ' has-stamp' : ''}${o.loose ? ' loose' : ' in-pocket'}`,
+      class: `obj paper doc ${doc.kind}${doc.stamp ? ' has-stamp' : ''}${o.loose ? ' loose' : ' in-pocket'}${markable ? ' marking' : ''}`,
       tabindex: 0,
       'data-key': `paper-${docIndex}`,
       'data-fx': `paper-${akte.id}-${docIndex}`,
       'aria-label': doc.title,
       'aria-roledescription': t('aria.paper'),
-      inert: !o.loose && ui.markMode ? true : null,
+      inert: !o.loose && o.marking ? true : null,
     },
     h('h3', {}, doc.title),
     h(
       'table',
-      {},
+      { class: doc.lines.some(([, v]) => isAmountText(v)) ? 'lines has-amounts' : 'lines' },
       h(
         'tbody',
         {},
         doc.lines.map(([label, value], lineIndex) => {
           const numbers = marks.flatMap((m, i) => (lineMatches(m, doc.title, label) ? [i + 1] : []));
           const selected = ui.pending?.doc === docIndex && ui.pending.line === label;
+          // The whole row answers a click; the button in it carries focus and Enter (SPEC 4).
           const head = markable
             ? h(
                 'button',
@@ -234,17 +249,25 @@ function paperSheet(doc: Document, docIndex: number, o: PaperOpts): HTMLElement 
                   'data-key': `mark-${docIndex}-${lineIndex}`,
                   'aria-pressed': String(selected),
                   'aria-label': t('aria.markableLine', { label }),
-                  onclick: () => a.markLine(docIndex, label),
                 },
                 label,
               )
             : label;
-          return h(
+          const row = h(
             'tr',
-            { class: numbers.length || selected ? `marked${selected ? ' selected' : ''}` : null },
+            { class: [markable ? 'markable' : '', numbers.length || selected ? 'marked' : '', selected ? 'selected' : ''].filter(Boolean).join(' ') || null },
             h('th', { scope: 'row' }, head, numbers.map((n) => h('span', { class: 'mark-no' }, n))),
-            h('td', {}, value),
+            h('td', { class: isAmountText(value) ? 'amount' : null }, value),
           );
+          if (markable) {
+            // A click on a line does nothing else while the Gegenüberstellung is open: no zoom, no raise, no drag.
+            row.addEventListener('click', (e) => {
+              e.stopPropagation();
+              a.markLine(docIndex, label);
+            });
+            row.addEventListener('dblclick', (e) => e.stopPropagation());
+          }
+          return row;
         }),
       ),
     ),
@@ -253,6 +276,16 @@ function paperSheet(doc: Document, docIndex: number, o: PaperOpts): HTMLElement 
 }
 
 // ---------- Prüfvermerk ----------
+
+/** How long the pencil stroke under a confirmed amount stays (ms); matches the CSS animation. */
+const UNDERLINE_MS = 900;
+
+function underline(box: HTMLElement): void {
+  box.classList.remove('pencil-line');
+  void box.offsetWidth;
+  box.classList.add('pencil-line');
+  setTimeout(() => box.classList.remove('pencil-line'), UNDERLINE_MS);
+}
 
 function decisionRow(content: Content, d: EDecision, answer: Answer, locked: boolean, a: DeskActions): HTMLElement {
   let controls: HTMLElement;
@@ -272,15 +305,18 @@ function decisionRow(content: Content, d: EDecision, answer: Answer, locked: boo
       disabled: locked,
     });
     input.addEventListener('input', () => a.amount(d.id, input.value));
+    controls = h('div', { class: 'controls' }, input);
+    const box = controls;
     const tidy = () => {
       const cents = parseAmount(input.value);
       if (cents !== null) input.value = formatEuro(fromCents(cents));
       if (input.value.trim() !== '' && cents === null) input.setAttribute('aria-invalid', 'true');
       else input.removeAttribute('aria-invalid');
+      // A valid amount gets a short pencil stroke underneath, without sound (SPEC 7).
+      if (cents !== null) underline(box);
     };
     input.addEventListener('blur', tidy);
     input.addEventListener('keydown', (e) => e.key === 'Enter' && tidy());
-    controls = h('div', { class: 'controls' }, input);
   } else {
     const given = answer.decisions?.[d.id];
     controls = h(
@@ -315,41 +351,49 @@ function decisionRow(content: Content, d: EDecision, answer: Answer, locked: boo
   );
 }
 
-function markPanel(answer: Answer, ui: DeskUi, locked: boolean, a: DeskActions): HTMLElement {
-  const marks = answer.marks ?? [];
-  return h(
-    'div',
-    { class: 'marks' },
+function markList(marks: Mark[], locked: boolean, a: DeskActions): HTMLElement[] {
+  if (!marks.length) return [];
+  return [
+    h('p', { class: 'mark-count' }, t('desk.markCount', { count: marks.length })),
     h(
-      'button',
-      { class: 'mark-toggle', 'data-key': 'mark-mode', 'aria-pressed': String(ui.markMode && !locked), disabled: locked, onclick: a.toggleMarkMode },
-      t('desk.markMode'),
-    ),
-    ui.markMode && !locked ? h('p', { class: 'hint', role: 'status' }, t('desk.markHint')) : null,
-    marks.length
-      ? [
-          h('p', { class: 'mark-count' }, t('desk.markCount', { count: marks.length })),
+      'ol',
+      { class: 'mark-list' },
+      marks.map((m, i) =>
+        h(
+          'li',
+          {},
+          h('span', { class: 'mark-no' }, i + 1),
+          h('span', { class: 'mark-pair' }, pairText(m)),
           h(
-            'ol',
-            { class: 'mark-list' },
-            marks.map((m, i) =>
-              h(
-                'li',
-                {},
-                h('span', { class: 'mark-no' }, i + 1),
-                h('span', { class: 'mark-pair' }, pairText(m)),
-                h(
-                  'button',
-                  { class: 'mark-remove', 'data-key': `mark-remove-${i}`, 'aria-label': t('aria.markRemove', { no: i + 1 }), disabled: locked, onclick: () => a.removeMark(i) },
-                  t('desk.markRemove'),
-                ),
-              ),
-            ),
+            'button',
+            { class: 'mark-remove', 'data-key': `mark-remove-${i}`, 'aria-label': t('aria.markRemove', { no: i + 1 }), disabled: locked, onclick: () => a.removeMark(i) },
+            t('desk.markRemove'),
           ),
-          h('button', { class: 'mark-clear', 'data-key': 'mark-clear', disabled: locked, onclick: a.clearMarks }, t('desk.markClear')),
-        ]
-      : null,
-  );
+        ),
+      ),
+    ),
+    h('button', { class: 'mark-clear', 'data-key': 'mark-clear', disabled: locked, onclick: a.clearMarks }, t('desk.markClear')),
+  ];
+}
+
+/**
+ * Pairs in the Prüfvermerk. While the Gegenüberstellung is open (SPEC 4) as its
+ * own area with heading and hints, at the place of the question choice; else
+ * only the list of pairs, if there are any.
+ */
+function markPanel(answer: Answer, open: boolean, locked: boolean, a: DeskActions): HTMLElement | null {
+  const marks = answer.marks ?? [];
+  if (open) {
+    return h(
+      'section',
+      { class: 'marks mark-area', role: 'group', 'aria-labelledby': 'mark-heading', 'data-key': 'mark-area', tabindex: -1 },
+      h('h3', { id: 'mark-heading' }, t('desk.markHeading')),
+      h('p', { class: 'hint' }, t('desk.markHint')),
+      h('p', { class: 'hint optional' }, t('desk.markOptional')),
+      markList(marks, locked, a),
+    );
+  }
+  return marks.length ? h('div', { class: 'marks' }, markList(marks, locked, a)) : null;
 }
 
 function inquiryPanel(akte: Akte, chosen: string | null, a: DeskActions): HTMLElement | null {
@@ -429,7 +473,7 @@ function pruefvermerkBody(content: Content, akte: Akte, answer: Answer, locked: 
 }
 
 /** Left inside of the folder: the Prüfvermerk scrolls in itself, the stamp field below stays visible (SPEC 7.2). */
-function pruefvermerk(content: Content, akte: Akte, answer: Answer, ui: DeskUi, a: DeskActions): HTMLElement {
+function pruefvermerk(content: Content, akte: Akte, answer: Answer, ui: DeskUi, marking: boolean, a: DeskActions): HTMLElement {
   const locked = answer.stamp !== undefined;
   return h(
     'section',
@@ -439,7 +483,7 @@ function pruefvermerk(content: Content, akte: Akte, answer: Answer, ui: DeskUi, 
       { class: 'pv-scroll' },
       h('header', {}, h('h2', {}, t('desk.pruefvermerk')), h('p', {}, akteHeading(akte))),
       pruefvermerkBody(content, akte, answer, locked, a),
-      markPanel(answer, ui, locked, a),
+      markPanel(answer, marking, locked, a),
       ui.inquiryOpen && !locked ? inquiryPanel(akte, ui.inquiryChoice, a) : null,
     ),
     h(
@@ -479,11 +523,11 @@ function closedFolder(content: Content, akte: Akte, stamp: Stamp | undefined, at
   );
 }
 
-function openFolder(content: Content, akte: Akte, answer: Answer, ui: DeskUi, table: TableUi, a: DeskActions, hooks: TableHooks): HTMLElement {
+function openFolder(content: Content, akte: Akte, answer: Answer, ui: DeskUi, marking: boolean, table: TableUi, a: DeskActions, hooks: TableHooks): HTMLElement {
   const pocketPapers = akte.documents.flatMap((doc, i) => {
     if (table.papers[i]) return [];
-    const el = paper(doc, i, { loose: false, akte, answer, ui, a });
-    el.style.transform = objTransform({ x: 2 + i * POCKET_STEP.x, y: 10 + i * POCKET_STEP.y }, paperRotation(paperSeed(akte.id, i)) / 2, 'scale(0.78)');
+    const el = paper(doc, i, { loose: false, akte, answer, ui, a, marking });
+    el.style.transform = objTransform({ x: 2 + i * POCKET_STEP.x, y: 10 + i * POCKET_STEP.y }, paperRotation(paperSeed(akte.id, i)) / 2, `scale(${POCKET_SCALE})`);
     el.style.zIndex = String(i + 1);
     activatable(el, () => hooks.activate({ kind: 'paper', index: i }));
     grabbable(el, { kind: 'paper', index: i }, hooks, { arrows: false });
@@ -507,7 +551,7 @@ function openFolder(content: Content, akte: Akte, answer: Answer, ui: DeskUi, ta
     h(
       'div',
       { class: 'folder-body' },
-      pruefvermerk(content, akte, answer, ui, a),
+      pruefvermerk(content, akte, answer, ui, marking, a),
       h('div', { class: 'pocket', role: 'group', 'aria-label': t('desk.pocket') }, pocketPapers, h('span', { class: 'pocket-label', 'aria-hidden': 'true' }, t('desk.pocket'))),
     ),
     table.opening ? h('div', { class: 'folder-cover', 'aria-hidden': 'true' }) : null,
@@ -717,14 +761,15 @@ export function deskView(env: DeskEnv): HTMLElement {
   const tools = (['codex', 'calendar', 'calculator'] as const).filter((x) => x === 'codex' || state.tools.includes(x));
 
   const objects: HTMLElement[] = [];
+  const marking = markOpen(state, ui);
   if (akte && answer) {
     if (table.folderOpen) {
-      const f = openFolder(content, akte, answer, ui, table, a, hooks);
+      const f = openFolder(content, akte, answer, ui, marking, table, a, hooks);
       objects.push(place(f, table.folder ?? { x: PAD.x + 12, y: PAD.y + 12 }, FOLDER_ROTATION, table.folder?.z ?? 0));
       akte.documents.forEach((doc, i) => {
         const at = table.papers[i];
         if (!at) return;
-        const el = paper(doc, i, { loose: true, akte, answer, ui, a, pinnable: hasPinboard(state) });
+        const el = paper(doc, i, { loose: true, akte, answer, ui, a, marking, pinnable: hasNeedles(content, state) });
         activatable(el, (kbd) => hooks.activate({ kind: 'paper', index: i }, kbd));
         el.addEventListener('dblclick', (e) => {
           if (!(e.target as HTMLElement).closest('button')) hooks.zoom(el);

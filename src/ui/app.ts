@@ -3,10 +3,12 @@ import * as core from '../core';
 import type { CalendarContent, Content, EffectsLevel, GameState, Settings } from '../core';
 import * as atmosphere from './atmosphere';
 import { CodexBook, loadBookFonts, type BookEnv } from './codex';
-import { deskView, type DeskActions, type DeskUi } from './desk';
+import { deskView, markOpen, type DeskActions, type DeskUi } from './desk';
+import { PencilMarks } from './pencil';
 import { PinboardView, openDrawer } from './pinboard';
 import { h } from './dom';
 import { EFFECT_LEVELS, applyEffects, defaultSettings, loadSavedGame, loadSettings, saveSettings } from './settings';
+import { fitPaperLines } from './paper-interaction';
 import { fitStage, stageScale } from './stage';
 import { Table } from './table';
 import { t, type UiKey } from './text';
@@ -37,7 +39,9 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
   const book = new CodexBook('reader');
   /** The small open codex on the desk (SPEC 6.1a); kept across renders while it lies there. */
   const deskBook = new CodexBook('desk');
-  const deskUi: DeskUi = { akteId: null, markMode: false, pending: null, inquiryOpen: false, inquiryChoice: null, carrying: null, calc: core.CALC_INITIAL };
+  const deskUi: DeskUi = { akteId: null, pending: null, inquiryOpen: false, inquiryChoice: null, carrying: null, calc: core.CALC_INITIAL };
+  /** Pencil loops on the chosen options of the Prüfvermerk (SPEC 7); a new loop scratches. */
+  const pencil = new PencilMarks(() => sound.play('pencil'));
   /** A render asked for while an object is dragged waits for the drop. */
   let renderWaiting = false;
 
@@ -202,6 +206,7 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
       }
       deskUi.carrying = s;
       deskUi.inquiryChoice = null;
+      deskUi.pending = null;
       // An Ergänzungsersuchen with inquiry first asks what to ask (SPEC 4): the choice opens now.
       deskUi.inquiryOpen = core.needsInquiry(content, state, s);
       table.carry(s, byKeyboard);
@@ -210,6 +215,9 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
         const akte = core.getAkte(content, state.current.akteId);
         const first = akte.kind.type === 'entscheidungen' ? akte.kind.inquiry?.options[0]?.id : undefined;
         focusNext = first ? `inq-${first}` : null;
+      } else if (markOpen(state, deskUi)) {
+        // The Gegenüberstellung opens above the stamp field; Enter there still presses the stamp.
+        focusNext = 'mark-area';
       }
       render();
     },
@@ -221,27 +229,22 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
       if (deskUi.inquiryChoice) focusNext = 'stamp-field';
       render();
     },
-    toggleMarkMode: () => {
-      deskUi.markMode = !deskUi.markMode;
-      deskUi.pending = null;
-      render();
-    },
     markLine: (doc, line) => {
-      if (!state?.current) return;
-      const p = deskUi.pending;
-      if (!p || p.doc === doc) {
-        deskUi.pending = p && p.line === line ? null : { doc, line };
+      if (!state?.current || !markOpen(state, deskUi)) return;
+      const r = core.pickLine(deskUi.pending, { doc, line });
+      deskUi.pending = r.pending;
+      if (!r.pair) {
         render();
         return;
       }
       const akte = core.getAkte(content, state.current.akteId);
-      deskUi.pending = null;
-      update(core.toggleMark(content, state, { a: { document: akte.documents[p.doc]!.title, line: p.line }, b: { document: akte.documents[doc]!.title, line } }));
+      const [p, q] = r.pair;
+      update(core.addMark(content, state, { a: { document: akte.documents[p.doc]!.title, line: p.line }, b: { document: akte.documents[q.doc]!.title, line: q.line } }));
     },
     removeMark: (i) => state && update(core.removeMark(state, i)),
     clearMarks: () => {
       if (!state) return;
-      focusNext = 'mark-mode';
+      focusNext = markOpen(state, deskUi) ? 'mark-area' : 'pruefvermerk';
       update(core.clearMarks(state));
     },
     calc: (key) => {
@@ -306,6 +309,8 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     deskUi.carrying = null;
     deskUi.inquiryOpen = false;
     deskUi.inquiryChoice = null;
+    // Pairs stay with the Akte; only a half-made pair goes (SPEC 4).
+    deskUi.pending = null;
     table.carry(null);
     render();
   }
@@ -325,6 +330,7 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     deskUi.carrying = null;
     deskUi.inquiryOpen = false;
     deskUi.inquiryChoice = null;
+    deskUi.pending = null;
     table.carry(null);
     stampFx = next !== state;
     focusNext = 'close-akte';
@@ -385,6 +391,30 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     else openPinboard();
   });
 
+  /**
+   * The open calculator listens to the keyboard (SPEC 7, Tischrechner): digits,
+   * operators, comma, Backspace and Delete wherever the focus is, except in a
+   * text field (amount, codex search). Enter and Escape count only with the focus
+   * in the calculator or on nothing that would use them itself. K and P stay free.
+   */
+  window.addEventListener('keydown', (e) => {
+    if (screen !== 'game' || state?.phase !== 'desk' || !table.ui.tools.calculator) return;
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || book.isOpen || document.querySelector('dialog[open]')) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('input, textarea, select, [contenteditable="true"]')) return;
+    const key = core.calcKeyFor(e.key, e.code);
+    if (!key) return;
+    const inCalc = !!target.closest('.calculator');
+    const confirming = e.key === 'Enter' || e.key === 'Escape' || e.code === 'NumpadEnter';
+    if (confirming && !inCalc && target.closest('button, a, summary, [tabindex], [role="button"]')) return;
+    // Enter or Space on a focused key of the calculator presses that key.
+    if (inCalc && e.key === 'Enter' && target.closest('button')) return;
+    // Letters (c, x) only inside the calculator, so typing elsewhere does not calculate.
+    if (/^[a-z]$/i.test(e.key) && !inCalc) return;
+    e.preventDefault();
+    deskActions.calc(key);
+  });
+
   function settingsPanel(): HTMLElement {
     const details = h(
       'details',
@@ -422,12 +452,11 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     return details;
   }
 
-  /** Mark mode, pending line and the question choice belong to one Akte; the calculator to one day. */
+  /** The half-made pair and the question choice belong to one Akte; the calculator to one day. */
   function syncDeskUi(s: GameState): void {
     const akteId = s.current?.akteId ?? null;
     if (akteId !== deskUi.akteId) {
       deskUi.akteId = akteId;
-      deskUi.markMode = false;
       deskUi.pending = null;
       deskUi.inquiryOpen = false;
       deskUi.inquiryChoice = null;
@@ -435,7 +464,6 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
       table.carry(null);
     }
     if (s.current?.answer.stamp !== undefined) {
-      deskUi.markMode = false;
       deskUi.pending = null;
       deskUi.inquiryOpen = false;
     }
@@ -507,9 +535,11 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     const stage = root.querySelector<HTMLElement>('.stage');
     if (stage) {
       fitStage(stage);
+      stage.querySelectorAll<HTMLElement>('.paper.doc').forEach(fitPaperLines);
       table.afterRender(stage);
       deskBook.attached();
     }
+    pencil.apply(root, screen === 'game' && state?.phase === 'desk' ? (state.current?.akteId ?? null) : null, settings.effects);
     let target = key ? root.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`) : null;
     if (target && (target as HTMLButtonElement).disabled) target = null;
     target ??= root.querySelector<HTMLElement>('main button.primary:not([disabled]), main h1');
@@ -523,7 +553,10 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
   // Web fonts change the size of papers (the newspaper): keep everything on the pad once they are there.
   document.fonts?.addEventListener('loadingdone', () => {
     const stage = root.querySelector<HTMLElement>('.stage');
-    if (stage && !table.dragging) table.afterRender(stage);
+    if (stage && !table.dragging) {
+      stage.querySelectorAll<HTMLElement>('.paper.doc').forEach(fitPaperLines);
+      table.afterRender(stage);
+    }
   });
   window.addEventListener('resize', () => {
     const stage = root.querySelector<HTMLElement>('.stage');

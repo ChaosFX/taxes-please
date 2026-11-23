@@ -1,5 +1,5 @@
 {
-  "version": "0.5.1",
+  "version": "0.5.2",
   "title": {
     "heading": "Taxes Please",
     "year": "Veranlagungsjahr {year}",
@@ -17,7 +17,8 @@
     "unlockCalculator": "Neben dem Kodex steht ab heute ein Tischrechner.",
     "unlockCalendar": "Neben dem Kodex liegt ab heute ein Tischkalender.",
     "unlockPinboard": "Neben dem Telefon hängt ab heute eine Pinnwand. Auffällige Stellen aus Akten landen dort als Hinweise, die Sie den offenen Fragen zuordnen.",
-    "unlockDrawer": "Die unterste Lade geht heute endlich auf."
+    "unlockDrawer": "Die unterste Lade geht heute endlich auf.",
+    "unlockMarking": "Ab heute können Sie beim Ergänzungsersuchen zwei Angaben gegenüberstellen, die nicht zusammenpassen."
   },
   "desk": {
     "day": "Tag {day}",
@@ -37,8 +38,9 @@
     "amountPlaceholder": "0,00",
     "inquiryHeading": "Nachfrage",
     "inquiryRequired": "Wählen Sie zuerst, was Sie nachfragen.",
-    "markMode": "Widerspruch markieren",
     "markHint": "Wählen Sie zwei Angaben in zwei Papieren, die nicht zusammenpassen.",
+    "markHeading": "Gegenüberstellung",
+    "markOptional": "Sie können auch ohne Gegenüberstellung stempeln.",
     "markCount": "Markierte Widersprüche: {count}",
     "markClear": "Markierungen aufheben",
     "akteNoJob": "Akte {id} · {name}",
@@ -129,7 +131,8 @@
     "add": "+",
     "subtract": "−",
     "multiply": "×",
-    "divide": "÷"
+    "divide": "÷",
+    "backspace": "⌫"
   },
   "calendar": {
     "heading": "Tischkalender",
@@ -172,7 +175,8 @@
     "archiveDay": "Tag {day}",
     "archiveEmpty": "Noch keine erledigten Akten.",
     "copy": "Durchschlag",
-    "copyClose": "Durchschlag schließen"
+    "copyClose": "Durchschlag schließen",
+    "carbonFolder": "Durchschläge ({count})"
   },
   "drawer": {
     "label": "Lade",
@@ -234,6 +238,7 @@
     "copy": "Durchschlag der Akte {id}, {name}",
     "question": "Frage: {text}",
     "questionAnswered": "Frage beantwortet: {text}",
-    "hand": "Hinweise, {count} Karten"
+    "hand": "Hinweise, {count} Karten",
+    "calcBackspace": "letzte Ziffer löschen"
   }
 }

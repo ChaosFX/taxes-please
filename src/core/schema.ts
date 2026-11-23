@@ -19,7 +19,7 @@ export const RuleSchema = z.object({
 
 const text = z.string().min(1);
 
-export const ToolSchema = z.enum(['calculator', 'calendar', 'pinboard', 'drawer']);
+export const ToolSchema = z.enum(['calculator', 'calendar', 'pinboard', 'drawer', 'marking']);
 
 export const EventEffectsSchema = z.strictObject({
   time: z.number().int(),

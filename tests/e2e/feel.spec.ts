@@ -80,9 +80,10 @@ test('Papier per Touch ziehen', SMOKE, async ({ page }) => {
   await toDeskWithAkte(page);
   const a = key(page, 'paper-1');
   const before = await box(a);
-  await touchDrag(a, -90, 70);
+  // To the right: on the left of it lies the folder with its pocket, which would take the paper back.
+  await touchDrag(a, 90, 70);
   const after = await settled(a);
-  expect(before.x - after.x).toBeGreaterThan(60);
+  expect(after.x - before.x).toBeGreaterThan(60);
   expect(after.y - before.y).toBeGreaterThan(40);
 });
 

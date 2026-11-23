@@ -1,10 +1,20 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 23.11.2026 · Version 0.5.2 · passt zu `content/akt1.json` Version 0.3.6, `content/ui.json` Version 0.5.1 und `content/kalender.json` Version 0.1.0
+Stand: 23.11.2026 · Version 0.5.3 · passt zu `content/akt1.json` Version 0.3.7, `content/ui.json` Version 0.5.2 und `content/kalender.json` Version 0.1.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
 Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakten und 54 Kodexregeln (davon 5 Hinweise ohne eigenen Fall). Inhalt und Lösungen stehen in `content/akt1.json`, einer Datei für den ganzen Akt. Spätere Akte bekommen je eine eigene Datei (`akt2.json` usw.).
+
+Änderungen gegenüber 0.5.2 (Auftrag 06b, Feinschliff nach dem ersten Durchspielen):
+- **Werkzeuge über Akt I verteilt** (Abschnitt 7, „Freischaltung der Werkzeuge“): höchstens ein neues Werkzeug je Tag, vorher ist es nicht am Tisch. Neue Freischaltung `unlock: marking` (Tag 5), Morgenzeitung schon ab Tag 2.
+- **Widerspruch markieren wird zur Gegenüberstellung** beim Stempel „Ergänzungsersuchen“ (Abschnitt 4). Kein Dauer-Schalter mehr, Reihenfolge der Klicks egal, dasselbe Paar noch einmal ändert nichts.
+- **Papiere lesbar** (Abschnitt 7, „Papier“): keine automatische Silbentrennung, linksbündig, Label und Wert als zwei Spalten, Beträge brechen nie um.
+- **Tischrechner** mit Backspace und Numpad (Abschnitt 7, „Tischrechner“).
+- **Nadel und Durchschläge** erst mit der ersten Frage mit `source: "pin"` (Abschnitt 7.6), in Akt I also nie.
+- **Bleistift-Feedback** im Prüfvermerk (Abschnitt 7, „Feedback im Prüfvermerk“).
+- Spielstände ab Tag 5 ohne `marking` bekommen die Freischaltung beim Laden (Abschnitt 9).
+- Inhaltsbericht: Akt I hat sechs vorläufige Texte (neu die Zeitung an Tag 2).
 
 Änderungen gegenüber 0.5.1:
 - Nur Inhalt: `akt1.json` 0.3.6 (Intros aus Daniels Sicht, Ensemble-Zeilen in den Akten, ein neuer vorläufiger Dialog an Tag 3). Am Datenmodell ändert sich nichts.
@@ -122,7 +132,7 @@ Jedes Ereignis hat ein `type`. Die Felder je Typ:
 | `dialog` | `from`, `text` | Sprechblase (wie bisher) |
 | `newspaper` | `from` (Name der Zeitung), `headline`, `text` | Zeitungsblatt mit Kopf `from`, Schlagzeile und kurzem Text |
 | `call` | `from`, `text` | Telefonhörer mit „Anruf von {from}“ und Text |
-| `unlock` | `feature`: `calculator`, `calendar`, `pinboard` oder `drawer` | `calculator` schaltet ab diesem Tag den Tischrechner frei und zeigt `ui.intro.unlockCalculator`, `calendar` den Tischkalender mit `ui.intro.unlockCalendar`, `pinboard` die Pinnwand mit `ui.intro.unlockPinboard`, `drawer` die Lade mit `ui.intro.unlockDrawer`. |
+| `unlock` | `feature`: `calculator`, `calendar`, `pinboard`, `drawer` oder `marking` | `calculator` schaltet ab diesem Tag den Tischrechner frei und zeigt `ui.intro.unlockCalculator`, `calendar` den Tischkalender mit `ui.intro.unlockCalendar`, `pinboard` die Pinnwand mit `ui.intro.unlockPinboard`, `drawer` die Lade mit `ui.intro.unlockDrawer`, `marking` die Gegenüberstellung beim Ergänzungsersuchen (Abschnitt 4) mit `ui.intro.unlockMarking`. |
 | `event` | `id`, `text`, `options` (je `text`, `effects` mit `time`, `rating`, `gerri`, `home` als ganze Zahlen, `sets` als Liste von Merkern) | Ereigniskarte des Metagames. In dieser Version nur geprüft, nicht dargestellt. |
 | `actSummary` | `act` (Zahl) | Nach der Tagesauswertung dieses Tages erscheint der Schlussbildschirm des Akts (Abschnitt 4). |
 
@@ -179,6 +189,7 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
 - Hat eine Akte eine Entscheidung mit `offen`, ist `correctStamp` `ergaenzung`, und umgekehrt hat eine Akte mit `ergaenzung` mindestens eine Entscheidung oder Position mit `offen`.
 - `discrepancies` und `inquiry` zeigen auf existierende Entscheidungen, Dokumente und Zeilen. Eine Akte mit `inquiry` hat einen `followUp`.
 - `variantOf` zeigt auf eine existierende Akte.
+- `marking` ist spätestens an dem ersten Tag freigeschaltet, an dem eine Akte mit `discrepancies` im Stapel liegt. Sonst ist es ein Ladefehler mit Akte und Tag.
 - Jeder Schlüssel in `texts.optionLabels` kommt in einer Entscheidung vor, und jede Option als Zeichenkette hat einen Schlüssel.
 
 ### Tischkalender (`content/kalender.json`)
@@ -204,14 +215,14 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
 
 1. **Startbildschirm:** Titel, Hinweis auf Fiktion und Vereinfachung, Buttons „Neues Spiel“ und „Fortsetzen“.
 2. **Tagesbeginn:** Karte mit „Tag N“ und `intro`-Text. Ein Spieldatum gibt es nicht, der Tag heißt nur „Tag N“. Daten in Belegen und Fristfällen sind Inhalt der Papiere und haben keine Wirkung auf den Ablauf. Danach die Story-Ereignisse des Tages in ihrer Reihenfolge (Abschnitt 3).
-3. **Schreibtisch:** Aufbau nach Abschnitt 7.1. Links der Eingang mit dem Aktenstapel und Zähler, darunter die Werkzeuge: Kodex (Abschnitt 6), ab `unlock: calendar` der Tischkalender, ab `unlock: calculator` der Tischrechner. In der Mitte die Unterlage, darunter der Griff der Lade. Rechts ab `unlock: pinboard` die Pinnwand, darunter Telefon, Stempelhalter und Ausgangskorb.
+3. **Schreibtisch:** Aufbau nach Abschnitt 7.1. Welches Werkzeug ab wann am Tisch ist, regelt Abschnitt 7, „Freischaltung der Werkzeuge“. Links der Eingang mit dem Aktenstapel und Zähler, darunter die Werkzeuge: Kodex (Abschnitt 6), ab `unlock: calendar` der Tischkalender, ab `unlock: calculator` der Tischrechner. In der Mitte die Unterlage, darunter der Griff der Lade. Rechts ab `unlock: pinboard` die Pinnwand, darunter Telefon, Stempelhalter und Ausgangskorb.
 4. **Akte bearbeiten:**
    - Der Spieler zieht die oberste Akte aus dem Eingang auf die Unterlage (oder klickt sie an, oder Enter bei Fokus). Sie schlägt sich auf: innen links der Prüfvermerk, rechts die Unterlagen in der Tasche (Abschnitt 7.2). Es liegt immer nur eine Akte am Tisch.
    - Der Prüfvermerk listet je nach Typ die Positionen (anerkennen, streichen), die Frage mit Optionen oder die Entscheidungen. Bei `entscheidungen` hat jede Zeile entweder Schaltflächen für die Optionen oder ein Eingabefeld für den Betrag. Das Eingabefeld akzeptiert Eingaben wie `4236,7`, `4.236,70` und `4236.70` und zeigt den Betrag nach dem Verlassen des Felds im Format `4.236,70 €`.
    - Bei Entscheidungen oder Positionen mit `offen` ist keine Option richtig. Der Spieler lässt sie unentschieden und stempelt das Ergänzungsersuchen.
-   - **Widerspruch markieren:** Ein Schalter „Widerspruch markieren“ im Prüfvermerk schaltet einen Markiermodus ein. Darin wählt der Spieler eine Zeile in einem herausgezogenen Papier und dann eine Zeile in einem anderen herausgezogenen Papier derselben Akte. Papiere in der Tasche sind im Markiermodus nicht anklickbar. Das Paar erscheint als Markierung im Prüfvermerk und auf beiden Papieren. Markierungen lassen sich aufheben. Der Markiermodus ist bei jeder Akte verfügbar, auch ohne `discrepancies`, damit er nichts verrät. Die Zeilen sind nur im Markiermodus anklickbar, damit das Ziehen der Papiere nicht gestört wird. Im Prüfvermerk steht eine Liste der Paare mit „aufheben“ je Paar und „Markierungen aufheben“ für alle. Auch per Tastatur bedienbar.
-   - **Nachfrage:** Hat die Akte eine `inquiry` und nimmt der Spieler den Stempel „Ergänzungsersuchen“ auf, erscheint im Prüfvermerk über dem Stempelfeld die Auswahl der Fragen (`prompt`, `options[].label`). Das Stempelfeld nimmt den Stempel erst nach der Wahl an. Legt der Spieler den Stempel zurück, schließt sich die Auswahl wieder. Akten ohne `inquiry` stempeln wie bisher.
-   - **Anheften (ab Pinnwand):** Jede Zeile eines herausgezogenen Papiers oder eines Durchschlags zeigt beim Darüberfahren und bei Fokus eine Nadel (`aria.pinnableLine`). Ein Klick oder Enter darauf legt die Stelle als Hinweis in die Hand (`ui.pinboard.pinned`). Ein Klick auf einen Kanzleistempel legt den Vertreter in die Hand (`field: representative`). Jede Zeile hat eine Nadel, damit sie nichts verrät. Selbst angeheftete Hinweise, die zu keiner Frage passen, kann der Spieler wieder weglegen (`ui.pinboard.discard`). Im Markiermodus und mit aufgenommenem Stempel gibt es keine Nadeln. Papiere in der Tasche haben keine Nadel.
+   - **Widerspruch markieren (Gegenüberstellung, ab `unlock: marking`):** Es gibt keinen eigenen Schalter. Nimmt der Spieler den Stempel „Ergänzungsersuchen“ auf, erscheint im Prüfvermerk über dem Stempelfeld der Bereich `ui.desk.markHeading` mit `ui.desk.markHint` und `ui.desk.markOptional`, bei jeder Akte, auch ohne `discrepancies`, damit er nichts verrät. Darin wählt der Spieler eine Zeile in einem herausgezogenen Papier und eine Zeile in einem anderen herausgezogenen Papier derselben Akte. Die Reihenfolge der beiden Klicks ist egal, für das Paar und für die Bewertung. Die erste gewählte Zeile trägt sofort den roten Bleistiftrahmen, bis die zweite kommt. Ein weiterer Klick im selben Papier verschiebt die erste Wahl dorthin, ein Klick auf die gewählte Zeile hebt sie auf. Dasselbe Paar noch einmal (in welcher Reihenfolge auch immer) ändert nichts, Paare verschwinden nur mit „aufheben“. Solange der Bereich offen ist, wählt ein Klick auf eine Zeile nur diese Zeile (kein Stempeln, kein Ziehen, kein Zoom, keine Nadel). Papiere in der Tasche sind dabei nicht anklickbar. Gegenüberstellen ist freiwillig, gestempelt werden darf auch ohne Paar. Legt der Spieler den Stempel zurück, schließt sich der Bereich, gebildete Paare bleiben, eine halbe Wahl verfällt. Paare stehen als Liste im Prüfvermerk mit „aufheben“ je Paar und „Markierungen aufheben“ für alle, auch wenn der Bereich zu ist. Alles auch per Tastatur: Enter oder Leertaste auf einer Zeile wählt sie und drückt nicht den Stempel. Vor `unlock: marking` gibt es weder Bereich noch Schalter.
+   - **Nachfrage:** Hat die Akte eine `inquiry` und nimmt der Spieler den Stempel „Ergänzungsersuchen“ auf, erscheint im Prüfvermerk über dem Stempelfeld die Auswahl der Fragen (`prompt`, `options[].label`), unter der Gegenüberstellung. Das Stempelfeld nimmt den Stempel erst nach der Wahl an. Legt der Spieler den Stempel zurück, schließt sich die Auswahl wieder. Akten ohne `inquiry` stempeln wie bisher.
+   - **Anheften (ab der ersten Frage mit `source: "pin"`, Abschnitt 7.6):** Jede Zeile eines herausgezogenen Papiers oder eines Durchschlags zeigt beim Darüberfahren und bei Fokus eine Nadel (`aria.pinnableLine`). Ein Klick oder Enter darauf legt die Stelle als Hinweis in die Hand (`ui.pinboard.pinned`). Ein Klick auf einen Kanzleistempel legt den Vertreter in die Hand (`field: representative`). Jede Zeile hat eine Nadel, damit sie nichts verrät. Selbst angeheftete Hinweise, die zu keiner Frage passen, kann der Spieler wieder weglegen (`ui.pinboard.discard`). Mit aufgenommenem Stempel (also auch während der Gegenüberstellung) gibt es keine Nadeln. Papiere in der Tasche haben keine Nadel.
    - **Ablegen bringt Hinweise:** Liegt eine Akte im Ausgangskorb und gehört eine ihrer Stellen als `auto`-Hinweis zu einer Frage an der Wand, kommt sie in die Hand. `ui.pinboard.newClue` erscheint in der Live-Region.
    - Der Spieler nimmt einen der verfügbaren Stempel aus dem Halter und drückt ihn auf das Stempelfeld des Prüfvermerks (Abschnitt 7.3). Dann schließt er die Akte, die Unterlagen kommen dabei zurück in die Mappe, und zieht sie in den Ausgangskorb. Erst dann lässt sich die nächste Akte aus dem Eingang nehmen. Der Stempel ist endgültig, danach sind Prüfvermerk, Markierungen und Nachfrage gesperrt.
 5. **Tagesende:** Wenn der Stapel leer ist, erscheint die Auswertung.
@@ -317,19 +328,40 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 
 - **Ziehen:** Pointer Events für Maus und Touch. Beim Aufnehmen leicht vergrößern, Schatten weicher und länger, Neigung je nach Zugrichtung. Beim Loslassen kurze Ablege-Animation. Das zuletzt angefasste Papier liegt oben. Nur `transform` animieren. Ein Papier lässt sich nie so weit ablegen, dass ein Teil seiner Fläche, auch gedreht, vom Rand der Unterlage abgeschnitten wird.
 - **Ziehen per Tastatur:** Ein fokussiertes Papier lässt sich mit den Pfeiltasten verschieben. Ziehen ist für keine Entscheidung nötig: Jeder Schritt des Ablaufs hat auch einen Weg per Klick und per Tastatur (Abschnitt 7.1 bis 7.5).
-- **Papier:** feine Papierstruktur (SVG-Rauschfilter oder kleine Textur), zufällige Drehung von ein bis zwei Grad, Büroklammern bei Belegen.
+- **Papier:** feine Papierstruktur (SVG-Rauschfilter oder kleine Textur), zufällige Drehung von ein bis zwei Grad, Büroklammern bei Belegen. Papiere (Erklärungen, Belege, Zeitung, Zettel) sind linksbündig gesetzt und ohne automatische Silbentrennung, auch die Zeitung. Nur der Kodex behält Blocksatz und Silbentrennung. Belegzeilen stehen in zwei Spalten: links das Label, rechts der Wert. Ein Betrag (ein Wert, der nur aus einem Betrag wie `1.200,00 €` besteht) bricht nie um und steht rechtsbündig mit gleich breiten Ziffern (`tabular-nums`). Andere Werte (Adressen, Vermerke) und Labels brechen nur zwischen Wörtern um, an Leerzeichen und nach Bindestrichen. Die Spalten richten sich nach dem Inhalt. Passen das längste Wort des Labels und der längste Wert eines Papiers nicht nebeneinander, werden seine Zeilen um etwa 8 % kleiner, dann der Abstand zwischen den Spalten enger. Erst wenn auch das nicht reicht, teilt das Spiel die Breite so auf, dass möglichst wenige Wörter brechen, und nur ein Wort, das allein breiter ist als seine Spalte, bricht mitten im Wort (letzte Rettung, Beträge nie). Zum Lesen bleibt der Zoom, darin bricht in Akt I kein Wort. Papiere am Tisch sind 240 px breit (vorher 210 px), in der Tasche verkleinert.
 - **Viele Papiere:** Akten haben bis zu sechs Papiere. In der Tasche der Mappe liegen sie leicht versetzt, sodass jeder Titel zu sehen ist. Herausgezogen ordnet der Spieler sie selbst, sie dürfen sich überdecken. Das zuletzt angefasste Papier liegt oben.
 - **Stempel:** Aufschlag mit kurzer Skalierungs-Animation und leichtem Wackeln der Mappe (nur bei „voll“). Der Abdruck bleibt auf dem Stempelfeld des Prüfvermerks sichtbar, an der zugeklappten Mappe als kleiner Abdruck auf dem Deckel.
 - **Kanzleistempel:** Dokumente mit `stamp` zeigen unten links einen blassen Kanzleistempel.
 - **Morgenzeitung:** ein schmales Zeitungsblatt mit Kopfzeile in Antiqua-Anmutung (lokal eingebundene freie Schrift, Lizenz in `QUELLEN.md`), Schlagzeile groß, Text in Spalten. Es liegt beim Tagesbeginn auf dem Tisch und lässt sich wie ein Papier ziehen und zoomen, bis der Tag endet.
 - **Anruf:** kurzes Klingeln (CC0, Quelle in `QUELLEN.md`), dann der Text als Sprechblase neben einem Telefon.
-- **Tischrechner:** ein kleines Gerät mit Ziffern 0 bis 9, Komma, + − × ÷, = und C, per Maus und Tastatur bedienbar. Die Anzeige nutzt das österreichische Zahlenformat. Der Rechner rechnet in Eingabereihenfolge wie ein einfacher Tischrechner (2 + 3 × 4 = 20) und überträgt nichts automatisch in den Prüfvermerk. Division durch null zeigt `ui.calculator.error`.
-- **Markierungen:** Markierte Zeilen bekommen einen roten Bleistiftrahmen mit kleiner roter Nummer, je Paar dieselbe.
+- **Tischrechner:** ein kleines Gerät mit Ziffern 0 bis 9, Komma, + − × ÷, =, C und `ui.calculator.backspace` (⌫, löscht die letzte eingegebene Ziffer oder das Komma der aktuellen Zahl, nach = oder einem Operator wirkungslos), per Maus und Tastatur bedienbar. Tastatur, Haupttastatur und Ziffernblock: Ziffern, `+`, `-`, `*`, `/` (auch über den Ziffernblock), `Enter`, Ziffernblock-Enter und `=` rechnen, `,`, `.` und das Komma des Ziffernblocks setzen das Komma, `Escape` und `Entf` entsprechen C, `Backspace` wie ⌫. Geprüft wird über `event.key` und, für den Ziffernblock, `event.code`, sodass deutsches und englisches Layout und ausgeschaltetes Num-Lock gehen. Der Rechner reagiert auf Tasten, solange er offen auf der Unterlage liegt und der Fokus nicht in einem Eingabefeld steht (Betragsfeld, Kodex-Suche). Enter und Escape gelten nur mit dem Fokus im Rechner oder auf nichts, das sie selbst nutzt. K und P bleiben frei. Die Anzeige nutzt das österreichische Zahlenformat. Der Rechner rechnet in Eingabereihenfolge wie ein einfacher Tischrechner (2 + 3 × 4 = 20) und überträgt nichts automatisch in den Prüfvermerk. Division durch null zeigt `ui.calculator.error`.
+- **Markierungen:** Markierte Zeilen bekommen einen roten Bleistiftrahmen mit kleiner roter Nummer, je Paar dieselbe. Die erste Zeile einer Gegenüberstellung hat den Rahmen gestrichelt, bis die zweite kommt.
+- **Feedback im Prüfvermerk:** Die gewählte Option (Auswahl, Position, Nachfrage) bekommt einen handgezeichneten Bleistift-Kringel als SVG. Bei „voll“ zeichnet er sich in etwa 200 ms ein (`stroke-dashoffset`), bei „reduziert“ blendet er ein, bei „aus“ steht er sofort. Beim Umentscheiden wird der alte Kringel bei „voll“ kurz durchgestrichen und verschwindet, sonst verschwindet er sofort. Der Kringel ist der sichtbare Zustand, die gewählte Schaltfläche bleibt dafür hell und hat einen festeren Rand. Er ist Dekoration (`aria-hidden`), die Quelle für Screenreader bleibt `aria-pressed`. Schaltflächen geben beim Drücken kurz nach (nur `transform`). Ein neuer Kringel macht ein kurzes Bleistiftgeräusch. Ein Betragsfeld, das mit gültigem Betrag verlassen wird, bekommt eine kurze Unterstreichung in Bleistift, ohne Ton.
 - **Lesbarkeit:** Doppelklick auf ein Papier oder Enter beziehungsweise Leertaste bei Fokus zoomt es lesbar heran. Erneuter Doppelklick oder Escape legt es zurück.
-- **Sound:** Stempel (3 Varianten), Papierrascheln (2), Ablage (2, auch beim Ausgangskorb), Telefonklingeln und leises Büro-Ambiente. Das Blättern im Kodex nutzt das Papierrascheln, das Zuklappen den Ablageton. Alle Klangdateien sind CC0, Quellen und Bearbeitungen stehen in `public/audio/QUELLEN.md`. Ton startet erst nach der ersten Nutzeraktion. Fällt der Ton aus, läuft das Spiel unverändert weiter.
+- **Sound:** Stempel (3 Varianten), Papierrascheln (2), Ablage (2, auch beim Ausgangskorb), Bleistift (beim Kringel), Telefonklingeln und leises Büro-Ambiente. Das Blättern im Kodex nutzt das Papierrascheln, das Zuklappen den Ablageton. Alle Klangdateien sind CC0, Quellen und Bearbeitungen stehen in `public/audio/QUELLEN.md`. Ton startet erst nach der ersten Nutzeraktion. Fällt der Ton aus, läuft das Spiel unverändert weiter.
 - **Musik (Akt 1):** Ein eigenes, synthetisch erzeugtes 16-Bit-Arrangement des Walzers Nr. 1 aus „G'schichten aus dem Wienerwald“ von Johann Strauß (Sohn, gemeinfrei) als nahtlose Schleife. Das Arrangement entsteht aus eigener Notation mit `tools/music/wienerwald16-loop.mjs`, nicht aus einer Aufnahme oder einer geschützten Notenausgabe. Die Musik hat einen eigenen Lautstärkeregler (Standard 0,5, 0 ist aus), getrennt vom Regler für die Effekte. Bei 0 wird sie weder geladen noch dekodiert; wird sie dabei abgeschaltet, blendet sie in 80 ms aus, und beim Wiedereinschalten setzt sie an derselben Stelle fort. Für spätere Akte ist ein eigenes Stück je Akt vorgesehen. Jede Musikquelle steht in `QUELLEN.md`.
 - **Einstellungen:** Effekte aus, reduziert oder voll. `prefers-reduced-motion` setzt automatisch „reduziert“. Dazu Lautstärke (Soundeffekte) und Musiklautstärke. Lautstärke 0 und Musik 0 bedeuten aus.
 - **Bedienbarkeit ohne Maus:** Alle Entscheidungen, Betragsfelder, Markierungen, Nachfragen, der Rechner, der Kalender, die Stempel, das Öffnen, Schließen und Ablegen der Akte sind per Tastatur erreichbar. Fokus ist sichtbar.
+
+### Freischaltung der Werkzeuge
+
+Höchstens ein neues Werkzeug je Tag. Ein Werkzeug ist am Tisch erst sichtbar, wenn es freigeschaltet ist, vorher hat es keinen Platz und keinen Eintrag im DOM. Ausnahmen sind der Griff der Lade, weil „die Lade klemmt“ ab Tag 1 zur Story gehört (Abschnitt 7.7), und das Telefon, das nur klingelt und nichts bedienen lässt. Bei der Story darf das Spiel an die Hand nehmen, bei den Fällen nie: Werkzeuge dürfen einfacher werden und später kommen, aber nichts am Tisch zeigt an, wo in einer Akte das Problem steckt.
+
+Verteilung in Akt I (aus den Daten, nicht im Code):
+
+| Tag | Neu |
+| --- | --- |
+| 1 | Mappe, Stempel „Bescheid“, Kodex |
+| 2 | Morgenzeitung |
+| 3 | Stempel „Ergänzungsersuchen“ (`Day.stamps`) |
+| 4 | Tischkalender (`unlock: calendar`) |
+| 5 | Widerspruch markieren (`unlock: marking`, Gegenüberstellung, Abschnitt 4) |
+| 6 | Nachfrage mit Auswahl (erste Akte mit `inquiry`) |
+| 7 | Pinnwand, nur Fragen und Hand (`unlock: pinboard`) |
+| 8 | Tischrechner mit Betragsfeldern (`unlock: calculator`, erste Akte mit Betrag) |
+| 9 | Anruf |
+| 10 | Lade (`unlock: drawer`) |
+| ab der ersten Frage mit `source: "pin"` (Akt II) | Nadel und Durchschläge (Abschnitt 7.6) |
 
 ### 7.1 Tischplan
 
@@ -379,7 +411,8 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise in einer Hand, Ablegen auf die passende Frage. Referenz für Ablauf und Gefühl ist der Prototyp `auftraege/06-prototyp-pinnwand.html`.
 
 - **Am Tisch:** Vor `unlock: pinboard` hat die Pinnwand keinen Platz und keinen Eintrag im DOM. Danach zeigt die Korkfläche in der rechten Leiste, wie viele Hinweise neu in der Hand liegen (`ui.pinboard.newClues`), und die Marke `ui.pinboard.new`, solange eine neu beantwortete Frage noch nicht angesehen wurde. Klick, Enter oder Taste P öffnen die Pinnwand-Ansicht.
-- **Pinnwand-Ansicht:** ein Dialog über dem Tisch wie der Lesemodus des Kodex. Oben die Korkwand, unten die Hand (`ui.pinboard.hand`) mit dem Hinweis `ui.pinboard.placeHint`. Schließen mit Escape, P oder `ui.pinboard.close`, der Fokus kehrt zurück. Eine Seitenleiste `ui.pinboard.archive` listet die Durchschläge abgelegter Akten nach Tag.
+- **Pinnwand-Ansicht:** ein Dialog über dem Tisch wie der Lesemodus des Kodex. Oben die Korkwand, unten die Hand (`ui.pinboard.hand`) mit dem Hinweis `ui.pinboard.placeHint`. Schließen mit Escape, P oder `ui.pinboard.close`, der Fokus kehrt zurück.
+- **Nadel und Durchschläge:** Die Seitenleiste mit den Durchschlägen und die Nadel an den Zeilen erscheinen erst, sobald an der Wand eine Frage hängt (offen oder beantwortet), die mindestens einen Hinweis mit `source: "pin"` hat. Danach bleiben sie. Das ergibt sich nur aus den Daten, es gibt keinen eigenen Schalter. In Akt I erscheinen sie also nie. Auch dann liegen die Durchschläge zuerst als geschlossener Ordner `ui.pinboard.carbonFolder` da und gehen erst auf Klick auf. Offen listet die Seitenleiste `ui.pinboard.archive` die Durchschläge abgelegter Akten nach Tag.
 - **Wand:** Die Fragen stehen in Spalten nach `group` (Überschrift), innerhalb einer Spalte in der Reihenfolge, in der sie aufgetaucht sind. Eine Frage ist ein gelber Zettel mit blauer Nadel, Kopf `ui.pinboard.questionFrom` oder `ui.pinboard.questionOwn`, darunter der Fortschritt (zum Beispiel „1 von 2 Hinweisen“). Rechts daneben hängen die schon zugeordneten Hinweise, mit rotem Faden zur Frage, vorgegebene mit `ui.pinboard.given`. Die Lage an der Wand berechnet das Spiel, der Spieler muss nichts ordnen.
 - **Hinweis-Karten** zeigen Akte und Name (`ui.pinboard.cardTitle`), Dokument und Zeile (`ui.pinboard.cardLine`) und den Wert, beim Vertreter `ui.pinboard.cardStamp`. Neue Karten tragen `ui.pinboard.new`, bis die Hand einmal offen war.
 - **Zuordnen:** Eine Karte aus der Hand auf eine offene Frage ziehen (die Frage hebt sich beim Darüberziehen hervor). Ohne Ziehen: Karte anklicken oder mit Enter wählen (sie hebt sich, alle offenen Fragen sind als Ziel markiert), dann Frage anklicken oder Enter. Escape hebt die Wahl auf.
@@ -406,6 +439,7 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - Gespeichert werden: aktueller Tag, Ergebnisse je Akte (inklusive eingegebener Beträge, Markierungen und gewählter Nachfrage), Fehler je Tag, offene Folgeakten, freigeschaltete Werkzeuge, Einstellungen, Kodex-Lesestand (`codex.lastRuleId`: ID der zuletzt gelesenen Regel oder leer für das Inhaltsverzeichnis, und `codex.seenDay`: höchster Tag, dessen Lieferung der Spieler gesehen hat). Ein älterer Spielstand ohne `codex` bekommt `lastRuleId` leer und `seenDay` 0, der Rest bleibt erhalten.
 - Die Einstellungen sind `effects` (aus, reduziert, voll), Lautstärke (0 = aus) und `music` (Musiklautstärke, Standard 0,5, 0 = aus). Ein älterer Spielstand ohne einzelne Felder bekommt für diese die Standardwerte aus `DEFAULT_SETTINGS`, ohne dass der übrige Spielstand verloren geht.
 - **Spielstände aus Version 0.2:** Ein Spielstand, der an Tag 4 oder danach steht (Ende des Prototyps), wird so übernommen, dass der Spieler mit Tag 4 weiterspielt. Die Ergebnisse von Tag 1 bis 3 bleiben erhalten. Die Folgeakte von 3-4 kommt an Tag 4, wenn sie damals offen war. Ein Test deckt das ab.
+- **Freischaltungen (ab 0.5.3):** Beim Laden bekommt ein Spielstand jede Freischaltung, die der Inhalt bis zum gespeicherten Tag vorsieht und die ihm fehlt. So bekommen Spielstände ab Tag 5 von vor 0.5.3 `marking`.
 - **Pinnwand (ab 0.5.0):** `board` mit `placed` (je Frage-ID die Schlüssel der zugeordneten Hinweise), `pinned` (selbst angeheftete Stellen, die noch in der Hand liegen, je `{ case, document, line }` oder `{ case, field }`, bei Folgeakten zusätzlich `followUp: true`), `seenClues` und `seenAnswers` (für die Marke „neu“) und `misses`. Hand, sichtbare und beantwortete Fragen werden aus Inhalt und Spielstand berechnet, nicht gespeichert. Ein Spielstand ohne `board` bekommt eine leere Pinnwand. Einträge, deren Frage oder Fundstelle es im Inhalt nicht mehr gibt, fallen beim Laden still weg.
 - Nicht gespeichert werden die Lage von Papieren und Werkzeugen und eine offene, noch nicht gestempelte Akte. Nach dem Neuladen liegt diese Akte wieder zugeklappt oben im Eingang, ihre Entscheidungen sind leer.
 - „Neues Spiel“ fragt vor dem Überschreiben nach.
@@ -414,7 +448,7 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 
 1. Zuerst `core`: Schema, Zusammenführen, Querprüfungen, Bewertung, Rechner, Spielstand-Übernahme, inklusive Tests.
 2. Dann die Oberfläche für die neuen Teile ohne Animationen, danach Optik nach Abschnitt 7.
-3. Nach jedem Oberflächen-Schritt Screenshots mit Playwright erstellen (Startbildschirm, Schreibtisch mit offener Akte vom Typ `entscheidungen` mit Betragsfeld, Markiermodus mit einem Paar, Nachfrage-Auswahl, Morgenzeitung, Rechner, Kodex offen mit Hinweisregel, Tagesauswertung mit Betrag und Widerspruch, dazu für den Arbeitstisch: leerer Tisch an Tag 1, offene Mappe mit Unterlagen in der Tasche, offene Mappe mit drei herausgezogenen Papieren und Kodex am Tisch, aufgenommener Stempel über dem Stempelfeld, zugeklappte gestempelte Akte, Tisch an Tag 8 mit Kalender und Rechner aufgeschlagen, Kalender April 2026 mit Auswahl, Schlussbildschirm Akt I, dazu die Kodex-Ansichten aus Abschnitt 6: zugeklappt an Tag 1 und an Tag 10, aufgeschlagen mit Inhaltsverzeichnis, aufgeschlagen mit Hinweisregel, aufgeschlagen mit Suchtreffern und markiertem Wort, gesperrte Seite, schmale Ansicht mit Einzelseite) und selbst prüfen: Ist der Text lesbar, überlappt nichts, sind alle Bedienelemente sichtbar?
+3. Nach jedem Oberflächen-Schritt Screenshots mit Playwright erstellen (Startbildschirm, Schreibtisch mit offener Akte vom Typ `entscheidungen` mit Betragsfeld, Gegenüberstellung mit einem Paar, Nachfrage-Auswahl, Morgenzeitung, Rechner, Kodex offen mit Hinweisregel, Tagesauswertung mit Betrag und Widerspruch, dazu für den Arbeitstisch: leerer Tisch an Tag 1, offene Mappe mit Unterlagen in der Tasche, offene Mappe mit drei herausgezogenen Papieren und Kodex am Tisch, aufgenommener Stempel über dem Stempelfeld, zugeklappte gestempelte Akte, Tisch an Tag 8 mit Kalender und Rechner aufgeschlagen, Kalender April 2026 mit Auswahl, Schlussbildschirm Akt I, dazu die Kodex-Ansichten aus Abschnitt 6: zugeklappt an Tag 1 und an Tag 10, aufgeschlagen mit Inhaltsverzeichnis, aufgeschlagen mit Hinweisregel, aufgeschlagen mit Suchtreffern und markiertem Wort, gesperrte Seite, schmale Ansicht mit Einzelseite) und selbst prüfen: Ist der Text lesbar, überlappt nichts, sind alle Bedienelemente sichtbar?
 4. Inhalte nie im Code ändern. Fällt ein Fehler im JSON auf, im Bericht melden statt stillschweigend anzupassen. Fehlt ein Spieltext im JSON, ebenfalls melden und nicht im Code erfinden. Für fehlende Oberflächentexte gilt die Regel des jeweiligen Auftrags.
 5. **Inhaltsbericht:** `npm run content:report` gibt für alle Inhaltsdateien eine Liste aus: Tage mit Akten, Regeln und Fragen, dazu alle Texte mit `provisional: true` mit Tag und Fundort. Er dient dem Chat beim Überarbeiten der Story und läuft ohne Browser.
 6. Änderungen an `src/core`, die ein Auftrag nicht vorsieht, nur machen, wenn sie zwingend sind, und im Bericht begründen.
@@ -429,11 +463,11 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - [ ] Die Folgeakten erscheinen nur nach einem Ergänzungsersuchen, auch nach falscher Nachfrage.
 - [ ] Betragseingaben `4236,7`, `4.236,70`, `4236.70` und `4 236,70` werden als derselbe Betrag erkannt. Ein Unit-Test deckt Grenzfälle ab (leer, Buchstaben, negativ, mehr als zwei Nachkommastellen).
 - [ ] Der Rechner liefert für eine Testliste von Rechnungen die richtigen Ergebnisse (Unit-Test), auch mit Komma.
-- [ ] Widerspruch markieren und Nachfrage funktionieren mit Maus und Tastatur.
+- [ ] Gegenüberstellung (Widerspruch markieren) und Nachfrage funktionieren mit Maus und Tastatur.
 - [ ] Morgenzeitung, Anruf und Freischaltung des Rechners erscheinen an den Tagen laut JSON.
 - [ ] Nach Tag 10 erscheint „Ende von Akt I“ mit der Übersicht aller zehn Tage.
 - [ ] Ein Spielstand vom Ende des Prototyps (0.2) lädt und geht mit Tag 4 weiter.
-- [ ] Im Code steht kein Text, den ein Spieler liest oder ein Screenreader vorliest. Der Textliteral-Test und der e2e-Test zur JSON-Herkunft decken auch Zeitung, Rechner, Markiermodus und Nachfrage ab.
+- [ ] Im Code steht kein Text, den ein Spieler liest oder ein Screenreader vorliest. Der Textliteral-Test und der e2e-Test zur JSON-Herkunft decken auch Zeitung, Rechner, Gegenüberstellung und Nachfrage ab.
 - [ ] Jeder Schlüssel in `ui.json` wird im Code verwendet, jeder im Code verwendete Schlüssel steht in `ui.json`, und die Platzhalter passen.
 - [ ] Der Startbildschirm zeigt den Hinweis auf Fiktion, Vereinfachung und fehlende Rechtsauskunft.
 - [ ] Jedes Bedienelement hat eine zugängliche Beschriftung.
@@ -462,14 +496,26 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - [ ] Unit-Tests in `core`: sichtbare Fragen (Tag, `after`, Kette), Inhalt der Hand (`auto` vor und nach dem Ablegen, Akte vor der Frage abgelegt, `pin`, Hinweis zu zwei Fragen nur einmal), Zuordnen, beantwortet, Durchschläge inklusive Folgeakten.
 - [ ] Ein Unit-Test zeigt, dass der Code keine Figur kennt: Eine Test-Inhaltsdatei mit anderer Figur, anderer Gruppe und einer Frage mit `source: "pin"` wird ohne Codeänderung dargestellt und lässt sich lösen.
 - [ ] Loader-Tests mit je einem kaputten Beispiel: Hinweis auf eine Akte nach dem Tag der Frage; `given` mit einer Akte vom selben Tag; alle Hinweise `given`; `field` ungleich `representative`; Vertreter ohne sichtbaren Stempel; doppelte Frage-ID; `after` auf unbekannte oder spätere Frage; Kreis über `after`; `given` an einer Frage ohne `from`; Frage vor `unlock: pinboard`; `keep: "drawer"` vor `unlock: drawer`; `keep` an einem anderen Typ als `note`.
-- [ ] Zuordnen, Anheften, Weglegen, Durchschlag öffnen und die Lade gehen auch nur mit der Tastatur. Im Markiermodus gibt es keine Nadeln.
+- [ ] Zuordnen, Anheften, Weglegen, Durchschlag öffnen und die Lade gehen auch nur mit der Tastatur. Mit aufgenommenem Stempel gibt es keine Nadeln.
 - [ ] Die Pinnwand übersteht Neuladen (zugeordnete und angeheftete Hinweise, beantwortete Fragen). Ein Spielstand ohne `board` lädt weiterhin.
 - [ ] Die Zettel von Tag 10 mit `keep: "drawer"` liegen nach dem Tagesbeginn in der Lade und sind nach Neuladen noch dort.
 - [ ] In der Tagesauswertung öffnet jede Regel-ID den Lesemodus an dieser Regel, Escape führt zurück, der Fokus liegt wieder auf der Regel.
 - [ ] An Tag 7 stehen keine Inhalte von Akten oder Fragen im DOM, die erst später kommen.
 - [ ] Bei 1280 × 720, 1920 × 1080 und 1024 × 768 passen Pinnwand-Platz und Lade-Griff auf den Tisch, und Pinnwand-Ansicht (Wand und Hand) und Lade-Ansicht sind vollständig sichtbar.
 - [ ] Bei „Effekte aus“ gibt es beim Zuordnen, beim Wackeln, beim Erscheinen der Antwort und beim Öffnen der Lade keine Animation.
-- [ ] `npm run content:report` listet die fünf vorläufigen Texte von Akt I (Gerris Dialog an Tag 3, q1, q2, q3 und `e-tag9-gerri`).
+- [ ] `npm run content:report` listet die vorläufigen Texte von Akt I (ab 0.5.3 sechs: die Zeitung an Tag 2, Gerris Dialog an Tag 3, q1, q2, q3 und `e-tag9-gerri`).
+
+### Feinschliff (ab 0.5.3, Auftrag 06b)
+
+- [ ] Akt I ist mit Maus und mit Tastatur von Tag 1 bis 10 durchspielbar, mit der Gegenüberstellung beim Ergänzungsersuchen.
+- [ ] Ein e2e-Test prüft je Tag 1 bis 10, welche Werkzeuge am Tisch sichtbar sind, gegen die Tabelle in „Freischaltung der Werkzeuge“.
+- [ ] Vor Tag 5 gibt es keinen Markier-Schalter und keine Gegenüberstellung. Ab Tag 5 erscheint sie bei jedem Ergänzungsersuchen, auch bei Akten ohne `discrepancies`.
+- [ ] 5-3 mit umgekehrter Klickreihenfolge markiert und mit Ergänzungsersuchen gestempelt ergibt keinen Widerspruchsfehler. Die erste Wahl lässt sich im selben Papier verschieben.
+- [ ] Auf keinem Papier ist `hyphens: auto` wirksam, Beträge brechen nie um.
+- [ ] Rechner: Backspace und alle Tasten aus Abschnitt 7 per Unit- und e2e-Test, kein Auslösen bei Fokus im Betragsfeld.
+- [ ] In Akt I gibt es an keiner Zeile eine Nadel und keine Durchschläge (Tag 7 und 10). Ein Unit-Test mit einer Frage mit `source: "pin"` zeigt beides.
+- [ ] Kringel bei „voll“, „reduziert“ und „aus“ wie beschrieben, `aria-pressed` korrekt.
+- [ ] Spielstände von vor 0.5.3 laden ohne Fehler (Tag 3, 6 und 9).
 
 ## 12. Nicht Teil dieser Version
 

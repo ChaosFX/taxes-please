@@ -9,6 +9,7 @@ import {
   drawerNotes,
   hand,
   newClues,
+  needlesActive,
   newQuestionsOfDay,
   refOnAkte,
   unseenAnswers,
@@ -27,6 +28,7 @@ import {
   drawNext,
   errorsOfDay,
   fileCurrent,
+  hasNeedles,
   newGame,
   pinClue,
   placeClue,
@@ -191,6 +193,8 @@ describe('Zuordnen', () => {
 });
 
 describe('Anheften und Weglegen', () => {
+  // Akt I has no question with a pin clue, so no needle (SPEC 7.6); these tests add one.
+  const content = pinContent();
   const line = (k: string): ClueRef => {
     const doc = getAkte(content, k).documents[0]!;
     return { case: k, document: doc.title, line: doc.lines[0]![0] };
@@ -237,6 +241,42 @@ describe('Anheften und Weglegen', () => {
     expect(placeClue(content, s.state, clueKey(ref), 'q1').result).toBe('wrong');
   });
 });
+
+describe('Nadel und Durchschläge erst mit der ersten pin-Frage (SPEC 7.6)', () => {
+  it('in Akt I nie, auch nicht an Tag 7 und 10', () => {
+    for (const day of [1, 7, 10]) expect(needlesActive(content, boardContext(gameAt(content, day, filedBefore(day))))).toBe(false);
+    expect(hasNeedles(content, gameAt(content, 10))).toBe(false);
+    expect(pinClue(content, gameAt(content, 7, filedBefore(7)), { case: '1-1', document: getAkte(content, '1-1').documents[0]!.title, line: getAkte(content, '1-1').documents[0]!.lines[0]![0] }).result).toBe('invalid');
+  });
+
+  it('mit einer pin-Frage an der Wand ab ihrem Tag, und danach bleiben sie', () => {
+    const pc = pinContent();
+    expect(needlesActive(pc, boardContext(gameAt(pc, 6)))).toBe(false);
+    expect(needlesActive(pc, boardContext(gameAt(pc, 7)))).toBe(true);
+    expect(needlesActive(pc, boardContext(gameAt(pc, 10)))).toBe(true);
+    expect(hasNeedles(pc, gameAt(pc, 7))).toBe(true);
+    // Without the pinboard on the desk there is no needle.
+    expect(hasNeedles(pc, { ...gameAt(pc, 7), tools: [] })).toBe(false);
+  });
+
+  it('eine pin-Frage mit after kommt erst nach der vorigen Frage, beantwortet bleibt sie', () => {
+    const c = clone(rawContentFiles()[0]!.data) as any;
+    const q2 = c.days.find((d: any) => d.day === 7).questions.find((q: any) => q.id === 'q2');
+    q2.clues[0].source = 'pin';
+    const pc = loadContent(c);
+    expect(needlesActive(pc, boardContext(gameAt(pc, 7, filedBefore(7))))).toBe(false);
+    const s = place(gameAt(pc, 7, [...filedBefore(7), '7-3']), ES118, 'q1', pc);
+    expect(needlesActive(pc, boardContext(s))).toBe(true);
+  });
+});
+
+/** Akt I with one more question on day 7 whose only clue has to be pinned. */
+function pinContent() {
+  const c = clone(rawContentFiles()[0]!.data) as any;
+  const doc = c.cases.find((k: any) => k.id === '1-2').documents[0];
+  c.days.find((d: any) => d.day === 7).questions.push({ id: 'qpin', text: 'Testfrage', clues: [{ case: '1-2', document: doc.title, line: doc.lines[0][0], source: 'pin' }], answer: { text: 'Test' } });
+  return loadContent(c);
+}
 
 describe('neu und gesehen', () => {
   it('neue Hinweise und Antworten bis die Pinnwand offen war', () => {

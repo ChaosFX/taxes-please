@@ -357,6 +357,31 @@ describe('loadContent: Querprüfungen', () => {
     });
   });
 
+  describe('Freischaltung „marking“ (SPEC 7)', () => {
+    it('meldet eine Akte mit Widersprüchen vor unlock: marking, mit Akte und Tag', () => {
+      const c = raw();
+      const events = day(c, 5).storyEvents;
+      const [u] = events.splice(events.findIndex((e: any) => e.type === 'unlock' && e.feature === 'marking'), 1);
+      day(c, 6).storyEvents.push(u);
+      expect(problems(() => loadContent(c))).toContain('Tag 5, Akte 5-3: hat Widersprüche, aber „marking“ ist an diesem Tag noch nicht freigeschaltet');
+    });
+    it('ohne unlock: marking ist jede Akte mit Widersprüchen ein Fehler', () => {
+      const c = raw();
+      const events = day(c, 5).storyEvents;
+      events.splice(events.findIndex((e: any) => e.type === 'unlock' && e.feature === 'marking'), 1);
+      const found = problems(() => loadContent(c)).filter((x) => x.includes('„marking“'));
+      expect(found).toEqual([
+        'Tag 5, Akte 5-3: hat Widersprüche, aber „marking“ ist an diesem Tag noch nicht freigeschaltet',
+        'Tag 7, Akte 7-3: hat Widersprüche, aber „marking“ ist an diesem Tag noch nicht freigeschaltet',
+        'Tag 9, Akte 9-2: hat Widersprüche, aber „marking“ ist an diesem Tag noch nicht freigeschaltet',
+      ]);
+    });
+    it('Akt I schaltet marking als erstes Ereignis von Tag 5 frei, die Zeitung kommt ab Tag 2', () => {
+      expect(day(raw(), 5).storyEvents[0]).toEqual({ type: 'unlock', feature: 'marking' });
+      expect(day(raw(), 2).storyEvents[0].type).toBe('newspaper');
+    });
+  });
+
   it('nimmt provisional an jedem Story-Ereignis an', () => {
     const c = raw();
     for (const d of c.days) for (const e of d.storyEvents) e.provisional = true;

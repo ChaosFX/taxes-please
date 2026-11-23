@@ -1,8 +1,9 @@
 import * as core from '../core';
 import type { Clue, ClueRef, Content, Document, EffectsLevel, GameState, KeptNote, WallQuestion } from '../core';
+import { isAmountText } from './desk';
 import { h } from './dom';
 import { akteHeading, akteLabel } from './labels';
-import { openZoom, paperRotation } from './paper-interaction';
+import { fitPaperLines, openZoom, paperRotation } from './paper-interaction';
 import { makePinnable, type PinPlace } from './pin-lines';
 import { swallowClick } from './stage';
 import { t, type UiKey, type UiParams } from './text';
@@ -66,7 +67,11 @@ function copyPaper(doc: Document, i: number, akteId: string, stampPinnable: bool
       style: `rotate:${paperRotation(`${akteId}#${i}`) / 2}deg`,
     },
     h('h3', {}, doc.title),
-    h('table', {}, h('tbody', {}, doc.lines.map(([label, value]) => h('tr', {}, h('th', { scope: 'row' }, label), h('td', {}, value))))),
+    h(
+      'table',
+      { class: doc.lines.some(([, v]) => isAmountText(v)) ? 'lines has-amounts' : 'lines' },
+      h('tbody', {}, doc.lines.map(([label, value]) => h('tr', {}, h('th', { scope: 'row' }, label), h('td', { class: isAmountText(value) ? 'amount' : null }, value)))),
+    ),
     doc.stamp ? h('div', { class: 'office-stamp', 'aria-label': t('aria.officeStamp', { stamp: doc.stamp }) }, doc.stamp) : null,
   );
   makePinnable(el, doc, { key: `copy-line-${i}`, stampPinnable, onPin });
@@ -90,6 +95,8 @@ export class PinboardView {
   private selected: string | null = null;
   /** Akte whose carbon copy is open, or null. */
   private copy: string | null = null;
+  /** The folder of carbon copies has been opened (SPEC 7.6); closed again with every opening of the pinboard. */
+  private carbonsOpen = false;
   /** Clues seen before this opening: the others carry „neu“. */
   private seenAtOpen = new Set<string>();
   /** Answers that already played their entrance. */
@@ -109,6 +116,7 @@ export class PinboardView {
     this.back = back;
     this.selected = null;
     this.copy = null;
+    this.carbonsOpen = false;
     this.seenAtOpen = new Set(s.board.seenClues);
     this.shownAnswers = new Set(s.board.seenAnswers);
     // The hand has been open once: its cards are no longer new on the desk.
@@ -186,9 +194,12 @@ export class PinboardView {
     if (!this.dialog || !s) return;
     const key = focusKey ?? (document.activeElement as HTMLElement | null)?.dataset.key;
     const ctx = core.boardContext(s);
-    const parts = [h('div', { class: 'pb-main' }, this.wallView(ctx), this.archiveView(s)), this.handView(ctx)];
+    // Carbon copies and needle only once a question needs pinning (SPEC 7.6).
+    const needles = core.hasNeedles(this.host.content, s);
+    const parts = [h('div', { class: `pb-main${needles ? '' : ' no-archive'}` }, this.wallView(ctx), needles ? this.archiveView(s) : null), this.handView(ctx)];
     if (this.copy) parts.push(this.copyView(this.copy));
     this.body.replaceChildren(...parts);
+    this.body.querySelectorAll<HTMLElement>('.copy-paper').forEach(fitPaperLines);
     this.dialog.setAttribute('aria-label', t('aria.pinboard', { count: core.visibleQuestions(this.host.content, ctx).filter((q) => !core.isAnswered(s.board, q)).length }));
     const target = (key && this.dialog.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`)) || this.dialog.querySelector<HTMLElement>('[data-key="pb-close"]');
     target?.focus({ preventScroll: false });
@@ -302,10 +313,21 @@ export class PinboardView {
 
   private archiveView(s: GameState): HTMLElement {
     const days = core.copies(s.results);
+    if (!this.carbonsOpen) {
+      // First a closed folder; one click opens it (SPEC 7.6).
+      const count = days.reduce((n, d) => n + d.akten.length, 0);
+      const folder = h('button', { class: 'pb-carbon-folder', 'data-key': 'carbon-folder', 'aria-expanded': 'false' }, h('span', { class: 'carbon-tab', 'aria-hidden': 'true' }), t('pinboard.carbonFolder', { count }));
+      folder.addEventListener('click', () => {
+        this.carbonsOpen = true;
+        this.host.sound('paper');
+        this.render('pb-archive-heading');
+      });
+      return h('aside', { class: 'pb-archive closed' }, folder);
+    }
     return h(
       'aside',
       { class: 'pb-archive', 'aria-labelledby': 'pb-archive-heading' },
-      h('h3', { id: 'pb-archive-heading' }, t('pinboard.archive')),
+      h('h3', { id: 'pb-archive-heading', 'data-key': 'pb-archive-heading', tabindex: -1 }, t('pinboard.archive')),
       days.length === 0
         ? h('p', { class: 'pb-empty' }, t('pinboard.archiveEmpty'))
         : days.map((d) =>

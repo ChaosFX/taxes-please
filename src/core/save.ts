@@ -90,6 +90,16 @@ export function migrateV1(content: Content, old: StoredState): GameState {
   return startDay(content, { ...base, results, pendingFollowUps: pending, current: null, queue: [], tools: toolsUntil(content, PROTOTYPE_LAST_DAY - 1) }, PROTOTYPE_LAST_DAY);
 }
 
+/**
+ * Tools unlocked so far plus every tool the content unlocks up to the saved
+ * day. A save from before `unlock: marking` (SPEC 0.5.3) on day 5 or later gets
+ * it this way; tools already saved keep their order.
+ */
+export function withEarlierUnlocks(content: Content, state: Pick<GameState, 'day' | 'tools'>): GameState['tools'] {
+  const extra = toolsUntil(content, state.day).filter((x) => !state.tools.includes(x));
+  return extra.length ? [...state.tools, ...extra] : state.tools;
+}
+
 /** The raw save if it has a known shape; does not need the content. */
 function readSave(store: KeyValueStore | null): StoredState | null {
   if (!store) return null;
@@ -120,7 +130,8 @@ export function loadGame(store: KeyValueStore | null, content: Content): GameSta
   try {
     if (saved.version === 1) return shelveUnstamped(migrateV1(content, saved));
     // A save without `codex` (before SPEC 0.3.2) or `board` (before 0.5.0) keeps everything else (SPEC 9).
-    return shelveUnstamped({ ...(saved as Omit<GameState, 'codex' | 'board'>), codex: codexProgress(saved.codex), board: boardFromSave(content, saved.board) } as GameState);
+    const loaded = { ...(saved as Omit<GameState, 'codex' | 'board'>), codex: codexProgress(saved.codex), board: boardFromSave(content, saved.board) } as GameState;
+    return shelveUnstamped({ ...loaded, tools: withEarlierUnlocks(content, loaded) });
   } catch {
     return null;
   }

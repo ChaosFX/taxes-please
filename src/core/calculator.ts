@@ -104,27 +104,47 @@ export function calcDisplay(state: CalcState): string | null {
   return `${negative ? '−' : ''}${grouped}${frac !== undefined ? `,${frac}` : ''}`;
 }
 
-/** Keyboard key to calculator key; `null` if the key does nothing. */
-export function calcKeyFor(key: string): CalcKey | null {
+/** Keys of the numeric keypad by `event.code`: they count the same with Num Lock off (then `key` is an arrow or `Delete`). */
+const NUMPAD: Record<string, CalcKey> = {
+  NumpadAdd: '+',
+  NumpadSubtract: '-',
+  NumpadMultiply: '*',
+  NumpadDivide: '/',
+  NumpadEnter: '=',
+  NumpadEqual: '=',
+  NumpadDecimal: ',',
+  NumpadComma: ',',
+};
+
+const BY_KEY: Record<string, CalcKey> = {
+  ',': ',',
+  '.': ',',
+  '+': '+',
+  '-': '-',
+  '*': '*',
+  x: '*',
+  '/': '/',
+  ':': '/',
+  '=': '=',
+  Enter: '=',
+  Escape: 'C',
+  Delete: 'C',
+  c: 'C',
+  C: 'C',
+  Backspace: 'back',
+};
+
+/**
+ * Keyboard to calculator key (SPEC 7, Tischrechner); `null` if the key does
+ * nothing. `key` covers the main keyboard in any layout (German `,` and `.`,
+ * Shift for `*`, `/` and `=`); `code` covers the keypad, also with Num Lock off.
+ */
+export function calcKeyFor(key: string, code = ''): CalcKey | null {
+  const pad = /^Numpad([0-9])$/.exec(code);
+  if (pad) return pad[1] as CalcKey;
+  if (NUMPAD[code]) return NUMPAD[code];
   if (/^[0-9]$/.test(key)) return key as CalcKey;
-  const map: Record<string, CalcKey> = {
-    ',': ',',
-    '.': ',',
-    '+': '+',
-    '-': '-',
-    '*': '*',
-    x: '*',
-    '/': '/',
-    ':': '/',
-    '=': '=',
-    Enter: '=',
-    Escape: 'C',
-    Delete: 'C',
-    c: 'C',
-    C: 'C',
-    Backspace: 'back',
-  };
-  return map[key] ?? null;
+  return BY_KEY[key] ?? null;
 }
 
 /** Presses a sequence of keys from the initial state. Convenience for tests. */

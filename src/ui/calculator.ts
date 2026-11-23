@@ -1,4 +1,4 @@
-import { calcDisplay, calcKeyFor, type CalcKey, type CalcState } from '../core/calculator';
+import { calcDisplay, type CalcKey, type CalcState } from '../core/calculator';
 import { h } from './dom';
 import { t, type UiKey } from './text';
 
@@ -8,14 +8,14 @@ const ROWS: [CalcKey, UiKey | null, UiKey | null][][] = [
   [['4', null, null], ['5', null, null], ['6', null, null], ['*', 'calculator.multiply', 'aria.calcMultiply']],
   [['1', null, null], ['2', null, null], ['3', null, null], ['-', 'calculator.subtract', 'aria.calcSubtract']],
   [['0', null, null], [',', 'calculator.decimal', 'aria.calcDecimal'], ['=', 'calculator.equals', 'aria.calcEquals'], ['+', 'calculator.add', 'aria.calcAdd']],
-  [['C', 'calculator.clear', 'aria.calcClear']],
+  [['C', 'calculator.clear', 'aria.calcClear'], ['back', 'calculator.backspace', 'aria.calcBackspace']],
 ];
 
-const KEY_NAMES: Partial<Record<CalcKey, string>> = { '/': 'div', '*': 'mul', '-': 'sub', '+': 'add', ',': 'comma', '=': 'eq', C: 'clear' };
+const KEY_NAMES: Partial<Record<CalcKey, string>> = { '/': 'div', '*': 'mul', '-': 'sub', '+': 'add', ',': 'comma', '=': 'eq', C: 'clear', back: 'back' };
 
 /**
- * Desk calculator (SPEC 7). Mouse and keyboard; with focus anywhere in it,
- * digits, `, . + - * / = Enter Escape Backspace` work. It never fills in the Prüfvermerk.
+ * Desk calculator (SPEC 7). Mouse and keyboard; the keys are handled for the
+ * whole desk in app.ts while the calculator lies open. It never fills in the Prüfvermerk.
  */
 export function renderCalculator(state: CalcState, onKey: (key: CalcKey) => void): HTMLElement {
   const shown = calcDisplay(state);
@@ -31,7 +31,7 @@ export function renderCalculator(state: CalcState, onKey: (key: CalcKey) => void
         h(
           'button',
           {
-            class: `calc-key${/[0-9,]/.test(key) ? '' : ' op'}${key === 'C' ? ' clear' : ''}`,
+            class: `calc-key${/^[0-9,]$/.test(key) ? '' : ' op'}${key === 'C' ? ' clear' : ''}${key === 'back' ? ' back' : ''}`,
             'data-key': `calc-${KEY_NAMES[key] ?? key}`,
             'aria-label': aria ? t(aria) : null,
             onclick: () => onKey(key),
@@ -41,14 +41,5 @@ export function renderCalculator(state: CalcState, onKey: (key: CalcKey) => void
       ),
     ),
   );
-  el.addEventListener('keydown', (e) => {
-    // Enter and Space on a focused key press that key.
-    if ((e.key === 'Enter' || e.key === ' ') && (e.target as HTMLElement).closest('button')) return;
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    const key = calcKeyFor(e.key);
-    if (!key) return;
-    e.preventDefault();
-    onKey(key);
-  });
   return el;
 }

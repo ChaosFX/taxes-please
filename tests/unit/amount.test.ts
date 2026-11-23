@@ -96,14 +96,53 @@ describe('Tischrechner', () => {
     expect(run('999999999999*10=')).toBeNull();
   });
 
-  it('Tastatur: Punkt ist Komma, Enter ist =, Escape ist C', () => {
-    expect(calcKeyFor('.')).toBe(',');
-    expect(calcKeyFor(',')).toBe(',');
-    expect(calcKeyFor('Enter')).toBe('=');
-    expect(calcKeyFor('Escape')).toBe('C');
-    expect(calcKeyFor('Backspace')).toBe('back');
-    expect(calcKeyFor('x')).toBe('*');
+  it('Backspace löscht die letzte Ziffer oder das Komma, nach = oder Operator nichts', () => {
+    expect(run('123<')).toBe('12');
+    expect(run('12,<')).toBe('12');
+    expect(run('12,5<<')).toBe('12');
+    expect(run('7<')).toBe('0');
+    expect(run('12+<')).toBe('12');
+    expect(run('12+3=<')).toBe('15');
+    expect(run('12+34<=')).toBe('15');
+  });
+
+  it.each([
+    // [event.key, event.code, Rechnertaste]
+    ['7', 'Digit7', '7'],
+    ['0', 'Digit0', '0'],
+    ['+', 'BracketRight', '+'],
+    ['+', 'Equal', '+'],
+    ['-', 'Slash', '-'],
+    ['-', 'Minus', '-'],
+    ['*', 'BracketRight', '*'],
+    ['/', 'Digit7', '/'],
+    ['=', 'Digit0', '='],
+    ['Enter', 'Enter', '='],
+    [',', 'Comma', ','],
+    ['.', 'Period', ','],
+    ['Escape', 'Escape', 'C'],
+    ['Delete', 'Delete', 'C'],
+    ['Backspace', 'Backspace', 'back'],
+    // Keypad with Num Lock on …
+    ['7', 'Numpad7', '7'],
+    ['+', 'NumpadAdd', '+'],
+    ['-', 'NumpadSubtract', '-'],
+    ['*', 'NumpadMultiply', '*'],
+    ['/', 'NumpadDivide', '/'],
+    ['Enter', 'NumpadEnter', '='],
+    [',', 'NumpadDecimal', ','],
+    ['.', 'NumpadDecimal', ','],
+    // … and off: the key is an arrow or Delete, the code still says which key it is.
+    ['ArrowUp', 'Numpad8', '8'],
+    ['Insert', 'Numpad0', '0'],
+    ['Delete', 'NumpadDecimal', ','],
+  ])('Taste %s (%s) → %s', (key, code, calc) => expect(calcKeyFor(key, code)).toBe(calc));
+
+  it('Tasten ohne Bedeutung, K und P bleiben frei', () => {
+    expect(calcKeyFor('a', 'KeyA')).toBeNull();
+    expect(calcKeyFor('k', 'KeyK')).toBeNull();
+    expect(calcKeyFor('p', 'KeyP')).toBeNull();
+    expect(calcKeyFor('ArrowUp', 'ArrowUp')).toBeNull();
     expect(calcKeyFor('7')).toBe('7');
-    expect(calcKeyFor('a')).toBeNull();
   });
 });

@@ -101,6 +101,15 @@ export function visibleQuestions(content: Content, ctx: Pick<BoardContext, 'day'
   return out;
 }
 
+/**
+ * Needle and carbon copies come with the first question on the wall that has a
+ * clue with `source: "pin"` (open or answered, SPEC 7.6). A question once on the
+ * wall stays there, so they stay too. Derived from the content, no switch of its own.
+ */
+export function needlesActive(content: Content, ctx: Pick<BoardContext, 'day' | 'board'>): boolean {
+  return visibleQuestions(content, ctx).some((q) => q.clues.some((c) => c.source === 'pin'));
+}
+
 /** One question as it hangs on the wall. */
 export interface WallQuestion {
   question: DayQuestion;

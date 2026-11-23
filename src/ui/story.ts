@@ -44,6 +44,7 @@ export function storyEvent(e: StoryEvent): HTMLElement | null {
       if (e.feature === 'calculator') return h('p', { class: 'unlock calculator-unlock' }, t('intro.unlockCalculator'));
       if (e.feature === 'calendar') return h('p', { class: 'unlock calendar-unlock' }, t('intro.unlockCalendar'));
       if (e.feature === 'pinboard') return h('p', { class: 'unlock pinboard-unlock' }, t('intro.unlockPinboard'));
+      if (e.feature === 'marking') return h('p', { class: 'unlock marking-unlock' }, t('intro.unlockMarking'));
       return h('p', { class: 'unlock drawer-unlock' }, t('intro.unlockDrawer'));
     case 'event':
     case 'actSummary':

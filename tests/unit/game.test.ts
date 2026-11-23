@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { correctAnswer } from '../../src/core/evaluate';
+import { correctAnswer, evaluate } from '../../src/core/evaluate';
 import {
   advanceDay,
   applyStamp,
@@ -19,7 +19,8 @@ import {
   needsReprimand,
   newGame,
   removeMark,
-  toggleMark,
+  addMark,
+  pickLine,
   type GameState,
 } from '../../src/core/game';
 import { getAkte } from '../../src/core/loader';
@@ -37,7 +38,7 @@ function play(state: GameState, answer: (akteId: string) => Answer): GameState {
   if (a.option) s = chooseOption(s, a.option);
   for (const [id, v] of Object.entries(a.decisions ?? {})) s = decide(s, id, v);
   for (const [id, v] of Object.entries(a.amounts ?? {})) s = enterAmount(s, id, v);
-  for (const m of a.marks ?? []) s = toggleMark(content, s, m);
+  for (const m of a.marks ?? []) s = addMark(content, s, m);
   if (a.stamp) s = applyStamp(content, s, a.stamp, a.inquiry);
   return fileCurrent(content, s);
 }
@@ -129,7 +130,7 @@ describe('Tagesablauf Akt I', () => {
     expect(advanceDay(content, s)).toBe(s);
   });
 
-  it('Kalender ab Tag 4 und Rechner ab Tag 8 werden freigeschaltet und bleiben', () => {
+  it('Werkzeuge: Kalender ab Tag 4, Markieren ab Tag 5, Pinnwand ab 7, Rechner ab 8, Lade ab 10, und sie bleiben', () => {
     let s = newGame(content);
     const tools: Record<number, string[]> = {};
     while (s.phase !== 'actEnd') {
@@ -138,9 +139,10 @@ describe('Tagesablauf Akt I', () => {
     }
     expect(tools[3]).toEqual([]);
     expect(tools[4]).toEqual(['calendar']);
-    expect(tools[7]).toEqual(['calendar', 'pinboard']);
-    expect(tools[8]).toEqual(['calendar', 'pinboard', 'calculator']);
-    expect(tools[10]).toEqual(['calendar', 'pinboard', 'calculator', 'drawer']);
+    expect(tools[5]).toEqual(['calendar', 'marking']);
+    expect(tools[7]).toEqual(['calendar', 'marking', 'pinboard']);
+    expect(tools[8]).toEqual(['calendar', 'marking', 'pinboard', 'calculator']);
+    expect(tools[10]).toEqual(['calendar', 'marking', 'pinboard', 'calculator', 'drawer']);
   });
 
   it('Ermahnung ab drei Fehlern', () => {
@@ -196,24 +198,45 @@ describe('Aktionen am Schreibtisch', () => {
     expect(s.current!.answer.amounts).toEqual({});
   });
 
-  it('Markieren: Paar anlegen, gleiches Paar hebt auf, nur verschiedene Papiere', () => {
+  it('Markieren: Paar anlegen, gleiches Paar in beliebiger Reihenfolge bleibt, nur verschiedene Papiere', () => {
     let s = onDesk('5-3');
     const k = getAkte(content, '5-3');
     const line = (doc: number, i = 0) => ({ document: k.documents[doc]!.title, line: k.documents[doc]!.lines[i]![0] });
-    s = toggleMark(content, s, { a: line(0), b: line(0, 1) });
+    s = addMark(content, s, { a: line(0), b: line(0, 1) });
     expect(s.current!.answer.marks).toBeUndefined();
-    s = toggleMark(content, s, { a: line(0), b: { document: 'Gibt es nicht', line: 'X' } });
+    s = addMark(content, s, { a: line(0), b: { document: 'Gibt es nicht', line: 'X' } });
     expect(s.current!.answer.marks).toBeUndefined();
-    s = toggleMark(content, s, { a: line(0), b: line(1) });
-    s = toggleMark(content, s, { a: line(2), b: line(3) });
+    s = addMark(content, s, { a: line(0), b: line(1) });
+    s = addMark(content, s, { a: line(2), b: line(3) });
     expect(s.current!.answer.marks).toHaveLength(2);
-    s = toggleMark(content, s, { a: line(1), b: line(0) });
-    expect(s.current!.answer.marks).toEqual([{ a: line(2), b: line(3) }]);
-    s = toggleMark(content, s, { a: line(0), b: line(1) });
+    // Before 0.5.3 the same pair in the other order removed it (Bericht 06b).
+    const same = addMark(content, s, { a: line(1), b: line(0) });
+    expect(same).toBe(s);
     s = removeMark(s, 0);
-    expect(s.current!.answer.marks).toEqual([{ a: line(0), b: line(1) }]);
+    expect(s.current!.answer.marks).toEqual([{ a: line(2), b: line(3) }]);
     s = clearMarks(s);
     expect(s.current!.answer.marks).toEqual([]);
+  });
+
+  it('Gegenüberstellung: erste Wahl, verschieben im selben Papier, aufheben, Paar in beliebiger Reihenfolge', () => {
+    let r = pickLine(null, { doc: 5, line: 'Aufenthalt' });
+    expect(r).toEqual({ pending: { doc: 5, line: 'Aufenthalt' }, pair: null });
+    r = pickLine(r.pending, { doc: 5, line: 'Zwei Nächte' });
+    expect(r).toEqual({ pending: { doc: 5, line: 'Zwei Nächte' }, pair: null });
+    expect(pickLine(r.pending, { doc: 5, line: 'Zwei Nächte' })).toEqual({ pending: null, pair: null });
+    r = pickLine(r.pending, { doc: 4, line: 'Gültig' });
+    expect(r).toEqual({ pending: null, pair: [{ doc: 5, line: 'Zwei Nächte' }, { doc: 4, line: 'Gültig' }] });
+  });
+
+  it('b vor a: 5-3 mit umgekehrter Reihenfolge markiert ergibt keinen Widerspruchsfehler', () => {
+    let s = onDesk('5-3');
+    const w = getAkte(content, '5-3').kind;
+    if (w.type !== 'entscheidungen') throw new Error('5-3');
+    s = addMark(content, s, { a: w.discrepancies[0]!.b, b: w.discrepancies[0]!.a });
+    s = applyStamp(content, s, 'ergaenzung');
+    const errors = evaluate(getAkte(content, '5-3'), s.current!.answer).map((e) => e.kind);
+    expect(errors).not.toContain('widerspruch-fehlt');
+    expect(errors).not.toContain('widerspruch-falsch');
   });
 
   it('Ergänzungsersuchen mit Nachfrage braucht eine gültige Frage', () => {
@@ -234,7 +257,7 @@ describe('Aktionen am Schreibtisch', () => {
     const k = getAkte(content, '5-3');
     s = decide(s, 'd1', 'ba');
     s = enterAmount(s, 'd1', '5');
-    s = toggleMark(content, s, { a: { document: k.documents[0]!.title, line: 'Name' }, b: { document: k.documents[1]!.title, line: k.documents[1]!.lines[0]![0] } });
+    s = addMark(content, s, { a: { document: k.documents[0]!.title, line: 'Name' }, b: { document: k.documents[1]!.title, line: k.documents[1]!.lines[0]![0] } });
     s = clearMarks(s);
     s = applyStamp(content, s, 'bescheid');
     expect(s.current!.answer).toBe(before);

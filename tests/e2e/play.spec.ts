@@ -81,47 +81,56 @@ test('Bescheid statt Ergänzungsersuchen: keine Folgeakte am nächsten Tag', asy
   await expect(page.locator('.pruefvermerk')).toHaveAttribute('data-akte', '6-1');
 });
 
-test('Markierungen: auf Papier und im Prüfvermerk, aufheben, nur zwischen zwei Papieren', async ({ page }) => {
-  await startAtDay(page, 5);
+test('Gegenüberstellung: b vor a zählt, Verschieben im selben Papier, Paare bleiben beim Zurücklegen, auch ohne Widersprüche', async ({ page }) => {
+  await startAtDay(page, 5, { effects: 'aus' });
   await drawUntil(page, '5-3');
   const w = solutionFor('5-3').marks[0]!;
-  // Papers in the pocket cannot be marked: lines become buttons only on papers taken out (SPEC 4).
-  await key(page, 'mark-mode').click();
-  await expect(page.locator('.mark-line')).toHaveCount(0);
-  await key(page, 'mark-mode').click();
+  const s53 = solutionFor('5-3');
+  for (const [d, v] of Object.entries(s53.decisions)) await key(page, `dec-${d}-${v}`).click();
+  // Without the stamp there is nothing to mark (SPEC 4).
+  await expect(page.locator('.mark-line, [data-key="mark-area"]')).toHaveCount(0);
   for (let i = 0; i < 6; i++) await pullOut(page, i);
-  await key(page, 'mark-mode').click();
-  await expect(key(page, 'mark-mode')).toHaveAttribute('aria-pressed', 'true');
-  // Two lines in the same paper make no pair: the second choice replaces the first.
-  await key(page, 'mark-0-0').press('Enter');
-  await key(page, 'mark-0-1').press('Enter');
-  await expect(key(page, 'mark-0-1')).toHaveAttribute('aria-pressed', 'true');
-  await expect(key(page, 'mark-0-0')).toHaveAttribute('aria-pressed', 'false');
-  await key(page, 'mark-0-1').press('Enter');
-  await expect(page.locator('.mark-list li')).toHaveCount(0);
-
-  await key(page, markKey('5-3', w.a)).press('Enter');
-  await key(page, markKey('5-3', w.b)).press('Enter');
+  await key(page, 'stamp-ergaenzung').click();
+  await expect(page.locator('.mark-area h3')).toHaveText('Gegenüberstellung');
+  await expect(page.locator('.mark-area .optional')).toHaveText('Sie können auch ohne Gegenüberstellung stempeln.');
+  // A second click in the same paper moves the first choice; a click on it takes it back.
+  const [b, a] = [markKey('5-3', w.b), markKey('5-3', w.a)];
+  const other = `${b.split('-').slice(0, 2).join('-')}-1`;
+  await key(page, b).click();
+  await expect(key(page, b)).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('tr.selected')).toHaveCount(1);
+  await key(page, other).click();
+  await expect(key(page, other)).toHaveAttribute('aria-pressed', 'true');
+  await expect(key(page, b)).toHaveAttribute('aria-pressed', 'false');
+  await key(page, other).click();
+  await expect(page.locator('tr.selected')).toHaveCount(0);
+  // b before a, by clicking anywhere in the row; the same pair again the other way round changes nothing.
+  await key(page, b).locator('xpath=ancestor::tr').locator('td').click();
+  await key(page, a).click();
   await expect(page.locator('.mark-count')).toHaveText('Markierte Widersprüche: 1');
-  await expect(page.locator('.mark-list li .mark-pair')).toHaveText('Eintrittskarte Gastro-Messe Wien: Gültig ↔ Hotelrechnung Wien: Aufenthalt');
-  await expect(page.locator('.paper.doc tr.marked')).toHaveCount(2);
+  await key(page, a).click();
+  await key(page, b).click();
+  await expect(page.locator('.mark-list li')).toHaveCount(1);
   await expect(page.locator('.paper.doc tr.marked .mark-no')).toHaveText(['1', '1']);
+  // Putting the stamp back keeps the pair; the list can still remove it.
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.mark-area, .mark-line')).toHaveCount(0);
+  await expect(page.locator('.paper.doc tr.marked')).toHaveCount(2);
   await key(page, 'mark-remove-0').click();
   await expect(page.locator('.paper.doc tr.marked')).toHaveCount(0);
-  await key(page, markKey('5-3', w.a)).press('Enter');
-  await key(page, markKey('5-3', w.b)).press('Enter');
-  await key(page, 'mark-clear').click();
-  await expect(page.locator('.mark-list')).toHaveCount(0);
-  // Mode off: marks stay visible, lines are no buttons any more.
-  await key(page, markKey('5-3', w.a)).press('Enter');
-  await key(page, markKey('5-3', w.b)).press('Enter');
-  await key(page, 'mark-mode').click();
-  await expect(page.locator('.mark-line')).toHaveCount(0);
-  await expect(page.locator('.paper.doc tr.marked')).toHaveCount(2);
-  // Mark mode is there for every Akte, also without contradictions.
-  await enter(page, '5-3', { ...solutionFor('5-3'), marks: [] });
+  await key(page, 'stamp-ergaenzung').click();
+  await key(page, b).click();
+  await key(page, a).click();
+  await key(page, 'stamp-field').click();
+  await expect(page.locator('.stamp-imprint')).toBeVisible();
+  await fileAkte(page);
+  // 5-4 has no contradiction: the area opens all the same.
   await openAkte(page);
-  await expect(key(page, 'mark-mode')).toBeEnabled();
+  await key(page, 'stamp-ergaenzung').click();
+  await expect(key(page, 'mark-area')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await enter(page, '5-4', solutionFor('5-4'));
+  await expect(page.getByTestId('errors-total')).toHaveText('Keine Fehler.');
 });
 
 test('Markieren und Nachfrage mit der Tastatur', async ({ page }) => {
@@ -144,15 +153,18 @@ test('Markieren und Nachfrage mit der Tastatur', async ({ page }) => {
   for (const r of [s.marks[0]!.a, s.marks[0]!.b]) await press(`paper-${docs.findIndex((d) => d.title === r.document)}`);
   await key(page, 'pruefvermerk').focus();
   for (const [d, v] of Object.entries(s.decisions)) await press(`dec-${d}-${v}`);
-  await press('mark-mode');
+  await press('stamp-ergaenzung');
+  // Taken: Gegenüberstellung above the choice of questions; the questions have focus.
+  await expect(page.locator('.desk-message')).toHaveText('Stempel aufgenommen. Aufs Stempelfeld drücken, Escape legt ihn zurück.');
+  await expect(page.locator('.inquiry')).toBeVisible();
+  await expect(page.locator('.mark-area + .inquiry')).toHaveCount(1);
+  await expect(key(page, 'inq-q1')).toBeFocused();
+  // Lines by keyboard (Space and Enter); Enter on a line does not press the stamp.
   await press(markKey('9-2', s.marks[0]!.a), ' ');
   await press(markKey('9-2', s.marks[0]!.b));
   await expect(page.locator('.mark-list li')).toHaveCount(1);
-  await press('stamp-ergaenzung');
-  // Taken: the choice of questions opens before the stamp and has focus.
-  await expect(page.locator('.desk-message')).toHaveText('Stempel aufgenommen. Aufs Stempelfeld drücken, Escape legt ihn zurück.');
-  await expect(page.locator('.inquiry')).toBeVisible();
-  await expect(key(page, 'inq-q1')).toBeFocused();
+  await expect(page.locator('.stamp-imprint')).toHaveCount(0);
+  await key(page, 'inq-q1').focus();
   // Enter before a question is chosen does not stamp.
   await key(page, 'stamp-ergaenzung').focus();
   await page.keyboard.press('Enter');

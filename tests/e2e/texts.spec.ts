@@ -215,8 +215,8 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await page.keyboard.press('Escape');
   await pullOut(page, 0);
   await pullOut(page, 1);
-  await key(page, 'mark-mode').click();
-  await check(page, 'Markiermodus');
+  await key(page, 'stamp-ergaenzung').click();
+  await check(page, 'Gegenüberstellung');
   await key(page, 'mark-0-0').press('Enter');
   await key(page, 'mark-1-0').press('Enter');
   await check(page, 'Markierung gesetzt');
@@ -235,7 +235,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   while (await page.locator('.screen.desk').isVisible()) await solveNext(page);
   await check(page, 'Auswertung Nachfrage');
 
-  // Day 7: pinboard with a question, a clue, a wrong try, the answer, a carbon copy and needles (Auftrag 06).
+  // Day 7: pinboard with a question, a clue, a wrong try and the answer (Auftrag 06; carbon copies and needles only with a pin question).
   await startAtDay(page, 7, { filed: true, queue: ['7-3', '7-1'] });
   await check(page, 'Tag 7 neue Frage');
   await key(page, 'begin').click();
@@ -250,16 +250,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await check(page, 'Hinweis gewählt');
   await key(page, 'q-q1').click();
   await check(page, 'Frage beantwortet');
-  await key(page, 'copy-2-4').click();
-  await check(page, 'Durchschlag');
-  await page.locator('.pinnable-stamp').click();
-  await check(page, 'Durchschlag angeheftet');
-  await key(page, 'copy-close').click();
   await key(page, 'pb-close').click();
-  await key(page, 'stack').click();
-  await pullOut(page, 0);
-  await key(page, 'paper-0').locator('tr.pinnable').first().hover();
-  await check(page, 'Nadel am Papier');
 
   // Day 10: the drawer.
   await startAtDay(page, 10, { queue: ['10-1'] });

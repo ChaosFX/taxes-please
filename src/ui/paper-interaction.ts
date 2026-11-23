@@ -34,6 +34,68 @@ export function overhang(el: HTMLElement): Overhang {
   return out;
 }
 
+/** Words of a text as they may break: at spaces and after hyphens and dashes. */
+const words = (text: string) => text.split(/\s+|(?<=[-–])/).filter(Boolean);
+
+/**
+ * Fits the lines of a paper into its width (SPEC 7, Papier). The two columns
+ * size themselves by their content, so no word breaks while all words fit. If
+ * the widest label word and the widest value word (or amount) do not fit side
+ * by side, the lines get about 8 % smaller (`tight`), then the gap between the
+ * columns narrower (`narrow`). If that is still not enough, the width is shared
+ * so that as few words as possible break, the value column keeping at least its
+ * widest amount; only a word wider than its column breaks (`squeeze`, the last
+ * resort). Measured on the layout, so any transform does not matter: on the
+ * desk, in the zoom and on copies alike.
+ */
+export function fitPaperLines(paper: HTMLElement): void {
+  const table = paper.querySelector<HTMLTableElement>('table.lines');
+  const first = table?.rows[0];
+  if (!table || !first || first.cells.length < 2) return;
+  const [th, td] = [first.cells[0]!, first.cells[1]!];
+  paper.classList.remove('tight', 'narrow', 'squeeze');
+  th.style.width = td.style.width = '';
+  const cs = getComputedStyle(paper);
+  const inner = paper.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  if (inner <= 0) return;
+  /** Narrowest widths of both columns without breaking a word. */
+  const needs = (): [number, number] => {
+    table.style.width = 'min-content';
+    const out: [number, number] = [th.offsetWidth, td.offsetWidth];
+    table.style.width = '';
+    return out;
+  };
+  let [label, value] = needs();
+  for (const step of ['tight', 'narrow']) {
+    if (label + value <= inner + 0.5) return;
+    paper.classList.add(step);
+    [label, value] = needs();
+  }
+  if (label + value <= inner + 0.5) return;
+  paper.classList.add('squeeze');
+
+  // Courier is monospaced: a word is as wide as its number of characters.
+  const probe = document.createElement('span');
+  probe.textContent = '0'.repeat(10);
+  td.append(probe);
+  const char = probe.offsetWidth / 10;
+  probe.remove();
+  const pad = (c: HTMLElement) => parseFloat(getComputedStyle(c).paddingLeft) + parseFloat(getComputedStyle(c).paddingRight);
+  const [labelPad, valuePad] = [pad(th), pad(td)];
+  const rows = [...table.rows].map((r) => [r.cells[0]?.textContent ?? '', r.cells[1]?.textContent ?? '', r.cells[1]?.classList.contains('amount') ?? false] as const);
+  const amount = Math.max(0, ...rows.filter((r) => r[2]).map((r) => Math.ceil(r[1].length * char) + 1 + valuePad));
+  /** Words that would break with the label column `w` wide. */
+  const breaks = (w: number) => {
+    const fit = (text: string, room: number) => words(text).filter((x) => x.length * char > room + 0.5).length;
+    return rows.reduce((n, [l, v, isAmount]) => n + fit(l, w - labelPad) + (isAmount ? 0 : fit(v, inner - w - valuePad)), 0);
+  };
+  const most = inner - amount;
+  const candidates = [Math.round((inner * label) / (label + value)), label, inner - value].map((w) => Math.max(0, Math.min(w, most)));
+  const labelWidth = candidates.reduce((best, w) => (breaks(w) < breaks(best) ? w : best));
+  th.style.width = `${labelWidth}px`;
+  td.style.width = `${inner - labelWidth}px`;
+}
+
 /**
  * Shows a readable, enlarged copy of a paper in a modal dialog.
  * Double click, Enter, Space or Escape puts it back and returns focus.
@@ -81,5 +143,7 @@ export function openZoom(paper: HTMLElement): void {
 
   document.body.append(dialog);
   dialog.showModal();
+  // Larger and wider than on the desk: the lines may fit without help now.
+  fitPaperLines(copy);
   dialog.focus();
 }

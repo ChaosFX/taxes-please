@@ -78,16 +78,18 @@ test('Unterlagen herausziehen und auf die Tasche zurückziehen; Schließen holt 
   await expect(page.locator('.pocket .paper')).toHaveCount(3);
 });
 
-test('Markiermodus: nur Zeilen herausgezogener Papiere sind anklickbar', async ({ page }) => {
+test('Gegenüberstellung: nur Zeilen herausgezogener Papiere sind wählbar', async ({ page }) => {
   await startAtDay(page, 5, { effects: 'aus' });
   await key(page, 'begin').click();
   const id = await openAkte(page);
-  await key(page, 'mark-mode').click();
+  await key(page, 'stamp-ergaenzung').click();
+  await expect(key(page, 'mark-area')).toBeVisible();
   await expect(page.locator('.mark-line')).toHaveCount(0);
   await expect(page.locator('.pocket .paper').first()).toHaveAttribute('inert', '');
-  await key(page, 'mark-mode').click();
+  await page.keyboard.press('Escape');
+  await expect(key(page, 'mark-area')).toHaveCount(0);
   await pullOut(page, 0);
-  await key(page, 'mark-mode').click();
+  await key(page, 'stamp-ergaenzung').click();
   await expect(page.locator('.mark-line')).toHaveCount(documentsOf(id)[0]!.lines.length);
 });
 

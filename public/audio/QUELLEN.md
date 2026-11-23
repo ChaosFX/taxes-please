@@ -15,8 +15,9 @@ Verwendet werden die öffentlichen MP3-Vorschauen, in Mono umgewandelt und teils
 | `ablage-2.mp3` | [PaperSlide.wav](https://freesound.org/s/464302/) von eyesonlegs | Ausschnitt 0–1,45 s, Hochpass 120 Hz, Ausblenden, Pegel angeglichen |
 | `telefon.mp3` | [Old Rotary Phone Ringing - Western Electric Bell 500 phone](https://freesound.org/s/456433/) von mycompasstv | Ausschnitt 13,2–16,2 s (ein Klingeln), Ausblenden 0,6 s, Lautheit angeglichen (loudnorm −18 LUFS), Mono, 96 kbit/s |
 | `buero.mp3` | [Empty Office Ambience](https://freesound.org/s/750799/) von simonjeffery13 | Mono, 64 kbit/s, 1,5 s Ein-/Ausblenden für die Schleife |
+| `bleistift.mp3` | [Pencil Circle](https://freesound.org/s/860361/) von sokworks | Mono, −6 dB, Ausblenden ab 0,40 s, 96 kbit/s |
 
-Lizenz jeweils am 20.11.2026 (`telefon.mp3`: 21.11.2026) auf der Freesound-Seite geprüft.
+Lizenz jeweils am 20.11.2026 (`telefon.mp3`: 21.11.2026, `bleistift.mp3`: 23.11.2026) auf der Freesound-Seite geprüft.
 
 ## Musik
 

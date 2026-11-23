@@ -19,17 +19,18 @@ test('Screenshots Akt I (SPEC 10.3)', async ({ page }) => {
   await page.screenshot({ path: shot('03-morgenzeitung-zoom') });
   await page.keyboard.press('Escape');
 
-  // Mark mode with one pair (5-3, six papers, all taken out).
+  // Gegenüberstellung with one pair (5-3, six papers, all taken out).
   await startAtDay(page, 5);
   await drawUntil(page, '5-3');
   for (let i = 0; i < 6; i++) await pullOut(page, i);
   const w = solutionFor('5-3').marks[0]!;
-  await key(page, 'mark-mode').click();
-  await key(page, markKey('5-3', w.a)).press('Enter');
+  await key(page, 'stamp-ergaenzung').click();
   await key(page, markKey('5-3', w.b)).press('Enter');
+  await key(page, markKey('5-3', w.a)).press('Enter');
   await key(page, 'mark-0-1').press('Enter'); // a pending first line of the next pair
   await calm(page);
-  await page.screenshot({ path: shot('04-markiermodus-paar') });
+  await page.screenshot({ path: shot('04-gegenueberstellung-paar') });
+  await page.keyboard.press('Escape');
 
   // Question choice before the stamp (6-3).
   await startAtDay(page, 6);
@@ -278,7 +279,7 @@ test('Screenshots Pinnwand und Lade (Auftrag 06)', async ({ page }) => {
   await page.screenshot({ path: shot('44-pinnwand-q1-geloest-q2') });
   await page.keyboard.press('Escape');
 
-  // Day 10: all three answered, carbon copy open, the drawer.
+  // Day 10: all three answered, the drawer (no carbon copies in Akt I, SPEC 7.6).
   await startAtDay(page, 10, { filed: true, queue: ['10-4', '10-1'], board: { placed: { q1: [ES118], q2: [WOLF] }, pinned: [], seenClues: [], seenAnswers: ['q1', 'q2'], misses: 0 } });
   await key(page, 'begin').click();
   await calm(page);
@@ -290,22 +291,11 @@ test('Screenshots Pinnwand und Lade (Auftrag 06)', async ({ page }) => {
   await key(page, 'q-q3').click();
   await calm(page);
   await page.screenshot({ path: shot('46-pinnwand-alle-beantwortet') });
-  await key(page, 'copy-4-3').click();
-  await calm(page);
-  await page.screenshot({ path: shot('47-pinnwand-durchschlag') });
-  await page.keyboard.press('Escape');
   await page.keyboard.press('Escape');
   await key(page, 'drawer').click();
   await calm(page);
   await page.screenshot({ path: shot('48-lade-tag10') });
   await page.keyboard.press('Escape');
-
-  // Needles on a paper on the desk.
-  await openAkte(page);
-  await pullOut(page, 0);
-  await key(page, 'paper-0').locator('tr.pinnable').nth(1).hover();
-  await calm(page);
-  await page.screenshot({ path: shot('49-nadel-an-zeile') });
 
   // Summary: jump into the codex.
   await startAtDay(page, 1, { queue: ['1-1'] });

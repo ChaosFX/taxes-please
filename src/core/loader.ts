@@ -271,6 +271,16 @@ function crossCheck(c: Content): string[] {
   }
   for (const d of duplicates(eventIds)) problems.push(`Ereignis-ID doppelt: ${d}`);
   problems.push(...checkQuestions(c, scheduled, unlockedAt('pinboard')?.day ?? null));
+  // Marking (SPEC 7, Freischaltung der Werkzeuge): unlocked by the first day with an Akte that has discrepancies.
+  const marking = unlockedAt('marking')?.day ?? null;
+  for (const day of days) {
+    for (const id of day.cases) {
+      const k = c.cases.find((x) => x.id === id);
+      if (k?.type === 'entscheidungen' && (k.discrepancies?.length ?? 0) > 0 && (marking === null || marking > day.day)) {
+        problems.push(`Tag ${day.day}, Akte ${id}: hat Widersprüche, aber „marking“ ist an diesem Tag noch nicht freigeschaltet`);
+      }
+    }
+  }
 
   return problems;
 }

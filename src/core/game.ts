@@ -157,18 +157,42 @@ export function enterAmount(state: GameState, decisionId: string, raw: string): 
 
 /**
  * Marks two lines in two different papers of the Akte on the desk as a
- * discrepancy. Marking the same pair again removes it.
+ * discrepancy. The order of the two lines does not matter, and marking a pair
+ * that is already there changes nothing: pairs go only with `removeMark`
+ * (SPEC 4). Before 0.5.3 the same pair toggled off again, so a pair chosen a
+ * second time in the other order was lost.
  */
-export function toggleMark(content: Content, state: GameState, mark: Mark): GameState {
+export function addMark(content: Content, state: GameState, mark: Mark): GameState {
   if (!editable(state)) return state;
   if (mark.a.document === mark.b.document) return state;
   const akte = getAkte(content, state.current.akteId);
   const exists = (r: Mark['a']) => akte.documents.some((d) => d.title === r.document && d.lines.some(([l]) => l === r.line));
   if (!exists(mark.a) || !exists(mark.b)) return state;
   const marks = state.current.answer.marks ?? [];
-  const i = marks.findIndex((m) => samePair(m, mark));
-  return withAnswer(state, { marks: i >= 0 ? marks.filter((_, j) => j !== i) : [...marks, mark] });
+  if (marks.some((m) => samePair(m, mark))) return state;
+  return withAnswer(state, { marks: [...marks, mark] });
 }
+
+/** A line chosen in the Gegenüberstellung: the first one waits for its partner in another paper. */
+export interface PendingLine {
+  doc: number;
+  line: string;
+}
+
+/**
+ * One click on a line in the Gegenüberstellung (SPEC 4). The first click
+ * chooses a line; a click on the chosen line takes it back; a click on another
+ * line of the same paper moves the choice there; a click in another paper
+ * makes the pair. The order of the two clicks does not matter.
+ */
+export function pickLine(pending: PendingLine | null, pick: PendingLine): { pending: PendingLine | null; pair: [PendingLine, PendingLine] | null } {
+  if (!pending) return { pending: pick, pair: null };
+  if (pending.doc === pick.doc) return { pending: pending.line === pick.line ? null : pick, pair: null };
+  return { pending: null, pair: [pending, pick] };
+}
+
+/** The Gegenüberstellung opens with the stamp „Ergänzungsersuchen“ from `unlock: marking` on (SPEC 4). */
+export const canMark = (state: GameState): boolean => state.tools.includes('marking');
 
 export function removeMark(state: GameState, index: number): GameState {
   if (!editable(state)) return state;
@@ -290,9 +314,12 @@ export function markDeliverySeen(state: GameState, day: number): GameState {
 /** The pinboard is on the desk from `unlock: pinboard` on. */
 export const hasPinboard = (state: GameState): boolean => state.tools.includes('pinboard');
 
+/** Needle on the lines and carbon copies: with the pinboard and a question that needs pinning (SPEC 7.6). */
+export const hasNeedles = (content: Content, state: GameState): boolean => hasPinboard(state) && board.needlesActive(content, board.boardContext(state));
+
 /** Pins a place into the hand. Only with the pinboard on the desk. */
 export function pinClue(content: Content, state: GameState, ref: ClueRef): { state: GameState; result: board.PinResult } {
-  if (!hasPinboard(state)) return { state, result: 'invalid' };
+  if (!hasNeedles(content, state)) return { state, result: 'invalid' };
   const r = board.pin(content, board.boardContext(state), ref);
   return { state: r.board === state.board ? state : { ...state, board: r.board }, result: r.result };
 }

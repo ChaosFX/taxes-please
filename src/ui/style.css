@@ -150,10 +150,33 @@ button[aria-pressed='true']:hover:not(:disabled) { background: #3a362f; }
 .paper.doc:focus-visible { outline-offset: 4px; }
 .paper h3 { font-size: 1.02rem; border-bottom: 1px solid var(--line); padding-bottom: 0.35rem; margin-bottom: 0.5rem; }
 .paper table { border-collapse: collapse; width: 100%; }
-.paper th, .paper td { text-align: left; vertical-align: top; padding: 0.15rem 0.4rem 0.15rem 0; overflow-wrap: break-word; hyphens: auto; }
-.paper th { font-weight: 400; color: var(--ink-muted); width: 48%; }
+/*
+ * Papers read like typed sheets (SPEC 7, Papier): left-aligned, no automatic
+ * hyphenation, words break only between words. Only a word wider than the whole
+ * column on its own may break inside (`break-word` as the last resort; unlike
+ * `anywhere` it does not let the table squeeze columns below their longest word).
+ */
+.paper, .note, .newspaper { hyphens: manual; -webkit-hyphens: manual; overflow-wrap: break-word; word-break: normal; }
+.paper th, .paper td { text-align: left; vertical-align: top; padding: 0.15rem 0.4rem 0.15rem 0; }
+.paper th { font-weight: 400; color: var(--ink-muted); }
+/*
+ * Lines of a paper as two columns, label left, value right, sized by their
+ * content: no word breaks while the words fit. Only if a paper's lines do not
+ * fit its width (measured after rendering, `fitPaperLines`) the lines get about
+ * 8 % smaller (`tight`), then the gap narrower (`narrow`); as the last resort the
+ * width is shared so that as few words as possible break inside (`squeeze`).
+ */
+.paper.tight table.lines { font-size: 92%; }
+.paper.narrow table.lines th { padding-right: 0.3em; }
+.paper.narrow table.lines td { padding-right: 0; }
+.paper.squeeze table.lines { table-layout: fixed; }
+.paper.squeeze table.lines th, .paper.squeeze table.lines td { box-sizing: border-box; overflow-wrap: anywhere; }
+/* Amounts never wrap and line up right with even digits. */
+.paper td.amount { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; padding-right: 0; }
 .paper.beleg { background-color: var(--paper-beleg); }
-.paper.beleg h3 { padding-right: 2.4rem; }
+/* Room for the paper clip on the first line of the title only; a title word too long for that line goes below it whole. */
+.paper h3 { overflow-wrap: normal; }
+.paper.beleg h3::before { content: ''; float: right; width: 2.4rem; height: 1.2em; }
 .paper.has-stamp { padding-bottom: 3.6rem; }
 
 /* Paper clip on receipts */
@@ -287,8 +310,15 @@ html[data-effects='reduziert'] dialog.zoom[open] .paper { animation: zoom-in 80m
 /* Marking contradictions */
 .marks { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.35rem; align-items: flex-start; }
 .marks .hint { margin: 0; }
-.mark-toggle { font-size: 0.92rem; }
-.mark-toggle[aria-pressed='true'] { background: var(--red-ink); border-color: #6e1810; }
+/* Gegenüberstellung: opens with the stamp „Ergänzungsersuchen“ at the place of the question choice (SPEC 4). */
+.mark-area {
+  margin-top: 0.9rem; padding: 0.8rem 0.9rem; background: #fff8e8; border: 2px dashed var(--red-ink); border-radius: 4px;
+  position: relative; z-index: 3; align-items: stretch;
+}
+.mark-area h3 { font-family: var(--type); color: var(--red-ink); margin: 0 0 0.2rem; }
+.mark-area .optional { font-style: italic; }
+.mark-area:focus { outline: none; }
+.mark-area:focus-visible { outline: 2px solid var(--red-ink); outline-offset: 2px; }
 .mark-count { margin: 0.2rem 0 0; font-weight: 600; }
 .mark-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
 .mark-list li { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; font-size: 0.92rem; }
@@ -312,8 +342,11 @@ html[data-effects='reduziert'] dialog.zoom[open] .paper { animation: zoom-in 80m
 .paper tr.selected th::before, .paper tr.selected td::before { border-style: dashed; }
 .mark-line {
   font: inherit; color: inherit; background: rgba(163, 38, 27, 0.06); border: 1px dashed rgba(163, 38, 27, 0.6);
-  padding: 0 0.25rem; text-align: left; border-radius: 2px; cursor: crosshair;
+  padding: 0 0.25rem; text-align: left; border-radius: 2px; cursor: crosshair; white-space: normal;
 }
+/* While the Gegenüberstellung is open the whole row answers a click. */
+.paper tr.markable { cursor: crosshair; }
+.paper tr.markable:hover:not(.selected) td { background: rgba(163, 38, 27, 0.08); }
 .mark-line:hover:not(:disabled):not([aria-pressed='true']) { background: rgba(163, 38, 27, 0.14); border-color: var(--red-ink); }
 .mark-line[aria-pressed='true'] { background: var(--red-ink); color: #fff; border-color: var(--red-ink); }
 
@@ -341,7 +374,7 @@ html[data-effects='reduziert'] dialog.zoom[open] .paper { animation: zoom-in 80m
 .newspaper .headline, .paper.newspaper h3 {
   font: 700 1.25rem/1.15 var(--press); border: 0; padding: 0; margin: 0 0 0.45rem;
 }
-.newspaper .columns { columns: 2 9rem; column-gap: 1rem; column-rule: 1px solid #b9ae95; margin: 0; font-size: 0.95rem; line-height: 1.35; text-align: justify; hyphens: auto; }
+.newspaper .columns { columns: 2 9rem; column-gap: 1rem; column-rule: 1px solid #b9ae95; margin: 0; font-size: 0.95rem; line-height: 1.35; text-align: left; }
 .intro-paper { margin: 1rem auto; transform: rotate(-1deg); }
 .newspapers { display: flex; justify-content: flex-end; }
 .paper.newspaper { font-family: var(--press); width: 100%; max-width: 360px; padding: 0.8rem 1rem 1rem; }
@@ -389,7 +422,7 @@ html[data-effects='reduziert'] .call .phone { animation: phone-ring 120ms linear
 .calc-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; }
 .calc-key { padding: 0.4rem 0; font: 700 1rem var(--ui); background: #ece6d6; border-color: #7a7262; }
 .calc-key.op { background: #d9cfb8; }
-.calc-key.clear { grid-column: 1 / -1; background: #c2564a; color: #fff; border-color: #7d2219; }
+.calc-key.clear { grid-column: 1 / 4; background: #c2564a; color: #fff; border-color: #7d2219; }
 .calc-key.clear:hover:not(:disabled) { background: #a8463b; }
 .calculator:focus-visible { outline-offset: 3px; }
 
@@ -744,7 +777,8 @@ html[data-effects='aus'] .obj:not(.paper).lifted { filter: drop-shadow(0 6px 6px
 .obj:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; box-shadow: 0 0 0 7px var(--focus-ring); }
 
 /* Papers on the desk */
-.paper.doc { width: 210px; font-size: 12px; line-height: 1.35; padding: 12px 12px 10px; }
+/* 240 px: about 30 characters a line, so most lines fit without breaking a word (Auftrag 06b; before 210 px). */
+.paper.doc { width: 240px; font-size: 12px; line-height: 1.35; padding: 12px 12px 10px; }
 .paper.doc h3 { font-size: 13px; }
 .paper.doc.has-stamp { padding-bottom: 2.9rem; }
 .paper.doc .office-stamp { font-size: 0.72rem; }
@@ -1031,6 +1065,7 @@ dialog.pinboard-dialog::backdrop, dialog.drawer-dialog::backdrop { background: r
 .pb-live:not(:empty) { color: #fff6e0; }
 .pb-body { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; min-height: 0; }
 .pb-main { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 10px; min-height: 0; }
+.pb-main.no-archive { grid-template-columns: minmax(0, 1fr); }
 .pb-wall {
   min-height: 0; overflow: auto; border: 8px solid #5a381f; border-radius: 8px; padding: 16px 18px;
   box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.35); display: flex; flex-wrap: wrap; gap: 22px 30px; align-content: flex-start;
@@ -1098,6 +1133,10 @@ html[data-effects='voll'] .clue-ghost { rotate: 3deg; }
 /* Archive of carbon copies */
 .pb-archive { min-height: 0; overflow: auto; background: #2a2017; border-radius: 8px; padding: 10px 12px; color: #f3e3c3; }
 .pb-archive h3 { margin: 0 0 6px; font: 600 14px var(--ui); }
+.pb-archive.closed { display: flex; align-items: flex-start; justify-content: center; padding-top: 18px; }
+.pb-carbon-folder { position: relative; width: 100%; padding: 26px 12px 18px; font: 600 14px var(--ui); color: #3b2a14; background: #c9a467; border: 1px solid #8a6a36; border-radius: 3px 3px 6px 6px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35); }
+.pb-carbon-folder:hover:not(:disabled) { background: #d4b175; }
+.pb-carbon-folder .carbon-tab { position: absolute; top: -9px; left: 14px; width: 64px; height: 12px; background: #c9a467; border: 1px solid #8a6a36; border-bottom: 0; border-radius: 4px 4px 0 0; }
 .pb-archive h4 { margin: 8px 0 4px; font: 600 12px var(--ui); color: #d9c9a8; letter-spacing: 0.04em; text-transform: uppercase; }
 .pb-archive ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .pb-copy-btn { width: 100%; display: grid; grid-template-columns: auto 1fr; gap: 8px; text-align: left; padding: 3px 8px; min-height: 0; font: 12px var(--ui); background: var(--manila); border-color: #8a6a34; color: #2a2118; }
@@ -1128,3 +1167,36 @@ html[data-effects='voll'] .clue-ghost { rotate: 3deg; }
 .drawer-note .note-from { text-align: right; margin: 0; }
 html[data-effects='voll'] dialog.drawer-dialog[open] .drawer-box { animation: drawer-open 260ms ease-out; }
 @keyframes drawer-open { from { transform: translate(-50%, -40%); opacity: 0.4; } }
+
+/* ---------- Pencil feedback in the Prüfvermerk (SPEC 7, Auftrag 06b) ---------- */
+.pruefvermerk button[aria-pressed] { position: relative; }
+/* The loop shows the choice: the chosen button stays on paper with a firmer edge (no dark fill under the pencil, no shift in the layout). */
+.pruefvermerk button[aria-pressed='true'], .pruefvermerk button[aria-pressed='true']:hover:not(:disabled) { background: #fffdf6; color: var(--ink); border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.pruefvermerk button:active:not(:disabled) { transform: translateY(1px) scale(0.97); }
+.pencil-ring {
+  position: absolute; left: -10px; top: -7px; width: calc(100% + 20px); height: calc(100% + 14px);
+  overflow: visible; pointer-events: none;
+}
+.pencil-ring path { fill: none; stroke: #3f3a35; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; }
+.pencil-ring .strike { stroke-dasharray: 1; stroke-dashoffset: 1; animation: ring-stroke 110ms ease-in forwards; }
+.ring-draw .pencil-ring .ring { stroke-dasharray: 1; stroke-dashoffset: 1; animation: ring-stroke 200ms ease-out forwards; }
+.ring-fade .pencil-ring { animation: ring-in 160ms linear; }
+.pencil-ring.ring-gone { animation: ring-out 120ms linear 110ms forwards; }
+@keyframes ring-stroke { to { stroke-dashoffset: 0; } }
+@keyframes ring-in { from { opacity: 0; } }
+@keyframes ring-out { to { opacity: 0; } }
+
+/* A confirmed amount: a short pencil stroke underneath, no sound. */
+.controls.pencil-line { position: relative; }
+.controls.pencil-line::after {
+  content: ''; position: absolute; left: 3px; bottom: -4px; width: 70%; height: 2px; border-radius: 2px;
+  background: #3f3a35; opacity: 0.75; transform: rotate(-0.7deg); transform-origin: left center; pointer-events: none;
+}
+html[data-effects='voll'] .controls.pencil-line::after { animation: pencil-underline 900ms ease-out forwards; }
+html[data-effects='reduziert'] .controls.pencil-line::after { animation: pencil-underline-fade 900ms linear forwards; }
+@keyframes pencil-underline {
+  0% { transform: rotate(-0.7deg) scaleX(0); }
+  22%, 70% { transform: rotate(-0.7deg) scaleX(1); opacity: 0.75; }
+  100% { transform: rotate(-0.7deg) scaleX(1); opacity: 0; }
+}
+@keyframes pencil-underline-fade { 0% { opacity: 0; } 20%, 70% { opacity: 0.75; } 100% { opacity: 0; } }

@@ -165,71 +165,19 @@ test('falsch zugeordnet: bleibt in der Hand, misses steigt, keine Fehler', async
   expect(saved.results.flatMap((r: { errors: unknown[] }) => r.errors)).toEqual([]);
 });
 
-test('Anheften mit der Nadel: Maus, Tastatur, Durchschlag, Weglegen', async ({ page }) => {
-  await startAtDay(page, 7, { filed: true, queue: ['7-1', '7-2'] });
-  await key(page, 'begin').click();
-  await openAkte(page);
-  // In the pocket there are no needles.
-  await expect(page.locator('.paper.in-pocket .pin-needle')).toHaveCount(0);
-  await pullOut(page, 0);
-  const paper = key(page, 'paper-0');
-  const row = paper.locator('tr.pinnable').first();
-  await row.hover();
-  await expect(row.locator('.pin-needle')).toBeVisible();
-  await row.locator('.pin-needle').click();
-  await expect(message(page)).toContainText('In die Hinweise gelegt');
-  await row.locator('.pin-needle').click();
-  await expect(message(page)).toHaveText('Diese Stelle liegt schon bei den Hinweisen oder an der Wand.');
-
-  // Keyboard: N on the paper goes to its first line, arrow down, N pins. No extra tab stops.
-  await paper.focus();
-  await page.keyboard.press('n');
-  await expect(paper.locator('tr.pinnable').first()).toBeFocused();
-  await page.keyboard.press('ArrowDown');
-  await expect(paper.locator('tr.pinnable').nth(1)).toBeFocused();
-  await page.keyboard.press('n');
-  await expect(message(page)).toContainText('In die Hinweise gelegt');
-  expect(await paper.locator('[tabindex="0"]').count()).toBe(0);
-
-  // Mark mode and a stamp in the hand: no needles.
-  await key(page, 'mark-mode').click();
-  await expect(page.locator('.pin-needle')).toHaveCount(0);
-  await key(page, 'mark-mode').click();
-  await key(page, 'stamp-bescheid').click();
-  await expect(page.locator('.pin-needle')).toHaveCount(0);
-  await page.keyboard.press('Escape');
-  await expect(page.locator('.pin-needle').first()).toBeAttached();
-
-  // A carbon copy in the pinboard: the office stamp of 4-3, by keyboard.
-  await page.keyboard.press('p');
-  await expect(page.locator('.clue-card.in-hand')).toHaveCount(2);
-  await key(page, 'copy-4-3').focus();
-  await page.keyboard.press('Enter');
-  const copy = page.locator('.pb-copy');
-  await expect(copy).toBeVisible();
-  await copy.locator('.copy-paper').first().focus();
-  await page.keyboard.press('n');
-  await page.keyboard.press('End');
-  for (let i = 0; i < 12; i++) await page.keyboard.press('ArrowDown');
-  await expect(copy.locator('.pinnable-stamp')).toBeFocused();
-  await page.keyboard.press('n');
-  await expect(page.locator('.pb-live')).toContainText('Pernold & Partner Steuerberatung');
-  await page.keyboard.press('Escape'); // back to the paper
-  await page.keyboard.press('Escape'); // copy closes
-  await expect(copy).toHaveCount(0);
-  await expect(key(page, 'copy-4-3')).toBeFocused();
-  await expect(page.locator('.clue-card.in-hand')).toHaveCount(3);
-
-  // Lay one away by keyboard.
-  await page.locator('.clue-discard').first().focus();
-  await page.keyboard.press('Enter');
-  await expect(page.locator('.clue-card.in-hand')).toHaveCount(2);
-  await page.keyboard.press('Escape');
-
-  await page.reload();
-  await key(page, 'continue').click();
-  await page.keyboard.press('p');
-  await expect(page.locator('.clue-card.in-hand')).toHaveCount(2);
+test('In Akt I keine Nadel an den Zeilen und keine Durchschläge (Tag 7 und 10)', async ({ page }) => {
+  for (const day of [7, 10]) {
+    await startAtDay(page, day, { filed: true, queue: [`${day}-1`], effects: 'aus' });
+    await key(page, 'begin').click();
+    await openAkte(page);
+    await pullOut(page, 0);
+    await key(page, 'paper-0').locator('tr').first().hover();
+    await expect(page.locator('.pin-needle, tr.pinnable, .pinnable-stamp')).toHaveCount(0);
+    await page.keyboard.press('p');
+    await expect(page.locator('dialog.pinboard-dialog')).toBeVisible();
+    await expect(page.locator('.pb-archive, [data-key="carbon-folder"], .copy-paper')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+  }
 });
 
 for (const size of [
@@ -243,7 +191,7 @@ for (const size of [
     await key(page, 'begin').click();
     for (const k of ['pinboard', 'drawer']) await expect(key(page, k)).toBeInViewport({ ratio: 0.99 });
     await key(page, 'pinboard').click();
-    for (const sel of ['.pb-wall', '.pb-hand', '.pb-archive', '[data-key="pb-close"]']) await expect(page.locator(sel)).toBeInViewport({ ratio: 0.99 });
+    for (const sel of ['.pb-wall', '.pb-hand', '[data-key="pb-close"]']) await expect(page.locator(sel)).toBeInViewport({ ratio: 0.99 });
     await page.keyboard.press('Escape');
     await key(page, 'drawer').click();
     await expect(page.locator('.drawer-box')).toBeInViewport({ ratio: 0.99 });

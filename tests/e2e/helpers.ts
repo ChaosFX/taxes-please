@@ -90,7 +90,7 @@ export const key = (page: Page, k: string) => page.locator(`[data-key="${k}"]`);
  * although `elementFromPoint` and real clicks hit the paper. In WebKit the check
  * is skipped; Chromium and Firefox keep it.
  */
-export async function zoomNewspaper(page: Page, paper: Locator = key(page, 'newspaper-0')): Promise<void> {
+export async function zoomNewspaper(page: Page, paper: Locator = page.locator('.stage [data-key^="newspaper-"]').first()): Promise<void> {
   const webkit = page.context().browser()?.browserType().name() === 'webkit';
   await paper.dblclick({ force: webkit });
 }
@@ -114,19 +114,31 @@ export async function pullOut(page: Page, doc: number) {
   await paper.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
 }
 
-/** Marks a pair of lines in mark mode (mouse). Both papers are taken out of the pocket first. */
-export async function markPair(page: Page, akteId: string, m: { a: LineRef; b: LineRef }) {
+/**
+ * Marks pairs of lines in the Gegenüberstellung (mouse, SPEC 4): the papers come
+ * out of the pocket first, then the stamp „Ergänzungsersuchen“ is taken, which
+ * opens the area, then the lines are clicked. The stamp stays in the hand.
+ */
+export async function markPairs(page: Page, akteId: string, marks: { a: LineRef; b: LineRef }[], way: Way = 'click') {
   const docs = documentsOf(akteId);
-  const on = (await key(page, 'mark-mode').getAttribute('aria-pressed')) === 'true';
-  if (on) await key(page, 'mark-mode').click();
-  for (const r of [m.a, m.b]) await pullOut(page, docs.findIndex((d) => d.title === r.document));
-  await key(page, 'mark-mode').click();
-  for (const r of [m.a, m.b]) {
-    const line = key(page, markKey(akteId, r));
-    // The paper may lie under another one: bring it to the top by its title first.
-    await line.evaluate((el) => el.closest<HTMLElement>('.paper')!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
-    await line.click();
+  for (const m of marks) for (const r of [m.a, m.b]) await pullOutWith(page, way, docs.findIndex((d) => d.title === r.document));
+  await takeStamp(page, 'ergaenzung');
+  await expect(key(page, 'mark-area')).toBeVisible();
+  for (const m of marks) {
+    for (const r of [m.a, m.b]) {
+      const line = key(page, markKey(akteId, r));
+      // The paper may lie under another one: bring it to the top first (a plain click event, no pointer press).
+      await line.evaluate((el) => el.closest<HTMLElement>('.paper')!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+      await line.click();
+    }
   }
+}
+
+/** Takes a stamp from the holder unless it is already in the hand. */
+export async function takeStamp(page: Page, stamp: string) {
+  const btn = key(page, `stamp-${stamp}`);
+  if ((await btn.getAttribute('aria-pressed')) !== 'true') await btn.click();
+  await expect(btn).toHaveAttribute('aria-pressed', 'true');
 }
 
 /**
@@ -134,7 +146,7 @@ export async function markPair(page: Page, akteId: string, m: { a: LineRef; b: L
  * onto the stamp field of the open folder (SPEC 7.3).
  */
 export async function stampAkte(page: Page, stamp: string, inquiry?: string) {
-  await key(page, `stamp-${stamp}`).click();
+  await takeStamp(page, stamp);
   if (inquiry) await key(page, `inq-${inquiry}`).click();
   await key(page, 'stamp-field').click();
   await expect(page.locator('.stamp-imprint')).toBeVisible();
@@ -213,18 +225,20 @@ export async function enter(page: Page, id: string, s: Solution, way: Way = 'cli
       await page.keyboard.type(v);
     } else await key(page, `amt-${d}`).fill(v);
   }
-  if (way === 'click') for (const m of s.marks) await markPair(page, id, m);
-  else if (s.marks.length) {
-    const docs = documentsOf(id);
-    for (const m of s.marks) for (const r of [m.a, m.b]) await pullOutWith(page, way, docs.findIndex((d) => d.title === r.document));
-    await act('mark-mode');
-    // Mark lines by keyboard in both ways: papers may lie on top of each other.
-    for (const m of s.marks) for (const r of [m.a, m.b]) await press(page, markKey(id, r));
-  }
+  // Pairs are made with the stamp „Ergänzungsersuchen“ in the hand (SPEC 4).
+  if (way !== 'keys' && s.marks.length) await markPairs(page, id, s.marks, way);
   const inquiry = s.stamp === 'ergaenzung' && caseOf(id).inquiry && !id.endsWith('/folge') ? s.inquiry : undefined;
   if (way === 'keys') {
+    const docs = documentsOf(id);
+    for (const m of s.marks) for (const r of [m.a, m.b]) await pullOutWith(page, way, docs.findIndex((d) => d.title === r.document));
     // Tab to the stamp, Enter takes it, Enter presses it (after choosing the question, focus is on the stamp field).
     await press(page, `stamp-${s.stamp}`);
+    if (s.marks.length) {
+      // Focus: the questions if there are any, else the Gegenüberstellung.
+      await expect(key(page, inquiry ? `inq-${caseOf(id).inquiry.options[0].id}` : 'mark-area')).toBeFocused();
+      for (const m of s.marks) for (const r of [m.a, m.b]) await press(page, markKey(id, r));
+      if (!inquiry) await key(page, 'stamp-field').focus();
+    }
     if (inquiry) await press(page, `inq-${inquiry}`);
     await expect(key(page, 'stamp-field')).toHaveClass(/ready/);
     await page.keyboard.press('Enter');

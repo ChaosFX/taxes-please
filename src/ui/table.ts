@@ -7,6 +7,7 @@ import { h } from './dom';
 import { openZoom, paperRotation } from './paper-interaction';
 import {
   PAD,
+  PAD_MARGIN,
   captureFx,
   clampToPad,
   freeSpot,
@@ -56,6 +57,8 @@ const TOOL_SIZE: Record<ToolId, { w: number; h: number }> = {
 };
 /** Typical open folder, to find a free spot for it. */
 const FOLDER_SIZE = { w: 520, h: 520 };
+/** Highest an open folder grows (`max-height` of `.folder.open`). */
+const FOLDER_MAX_H = 730;
 const NEWSPAPER_SPOT: Spot = { x: PAD.x + PAD.w - 400, y: PAD.y + PAD.h - 430 };
 const MESSAGE_MS = 3200;
 
@@ -215,8 +218,8 @@ export class Table implements TableHooks {
         const target = e.target as HTMLElement;
         if (target.closest('.settings, dialog')) return;
         if (e.button === 2) return; // the contextmenu event puts it back
-        // The holder, the questions and the stamp field handle their own clicks.
-        if (target.closest('.rack .stamp-btn, .inquiry .option, .folder.open .stamp-field')) return;
+        // The holder, the questions, the lines and pairs of the Gegenüberstellung and the stamp field handle their own clicks.
+        if (target.closest('.rack .stamp-btn, .inquiry .option, .folder.open .stamp-field, tr.markable, .marks button')) return;
         e.preventDefault();
         e.stopPropagation();
         swallowClick();
@@ -239,9 +242,9 @@ export class Table implements TableHooks {
           this.host.putStampBack();
           return;
         }
-        // Enter presses the stamp, unless it chooses a question or confirms a typed amount.
+        // Enter presses the stamp, unless it chooses a question or a line, removes a pair, presses a calculator key or confirms a typed amount.
         const target = e.target as HTMLElement;
-        if (e.key === 'Enter' && !target.closest('.inquiry .option, input, textarea, select')) {
+        if (e.key === 'Enter' && !target.closest('.inquiry .option, .mark-line, .marks button, .calculator button, input, textarea, select')) {
           e.preventDefault();
           e.stopPropagation();
           this.host.pressStamp();
@@ -530,18 +533,24 @@ export class Table implements TableHooks {
     const w = el.offsetWidth;
     const hgt = Math.min(el.offsetHeight, 420);
     const f = rectOn(stage, folder);
-    const taken = this.takenRects(stage);
+    // The folder grows downwards with the Prüfvermerk (the Gegenüberstellung and the questions open with the stamp):
+    // papers keep clear of all of it, so the stamp field never ends up under a paper.
+    const grown = { ...f, h: Math.max(f.h, Math.min(FOLDER_MAX_H, PAD.y + PAD.h - f.y)) };
+    const taken = this.takenRects(stage).map((r) => (r.x === this.ui.folder?.x && r.y === this.ui.folder?.y ? grown : r));
     const near: Spot[] = [
       { x: f.x + f.w + 12, y: f.y + 6 },
       { x: f.x + f.w + 12 + w + 14, y: f.y + 6 },
       { x: f.x + f.w + 12, y: f.y + 6 + hgt + 14 },
       { x: f.x + f.w + 12 + w + 14, y: f.y + 6 + hgt + 14 },
       { x: f.x - w - 12, y: f.y + 6 },
-      { x: f.x + 6, y: f.y + f.h + 12 },
-      { x: f.x + w + 20, y: f.y + f.h + 12 },
     ];
+    // No free spot: papers fan out beside the folder (where there is more room), never over it, so its stamp field stays free.
     const count = Object.keys(this.ui.papers).length;
-    const fallback = { x: f.x + f.w + 12 + count * 26, y: f.y + 6 + count * 34 };
+    const padRight = PAD.x + PAD.w - PAD_MARGIN;
+    const roomRight = padRight - (f.x + f.w + 12);
+    const roomLeft = f.x - 12 - (PAD.x + PAD_MARGIN);
+    const fanX = roomRight >= roomLeft ? Math.min(f.x + f.w + 12 + count * 26, padRight - w) : Math.max(f.x - 12 - w - count * 26, PAD.x + PAD_MARGIN);
+    const fallback = { x: fanX, y: f.y + 6 + count * 34 };
     const spot = freeSpot(w, hgt, [...near, ...padGrid(w, hgt, 32)], taken, fallback);
     void this.move([`paper-${this.akteId}-${i}`], 'glide', () => {
       this.ui.papers[i] = { ...clampToPad(el, spot, this.paperRot(i), { w, h: el.offsetHeight }), z: this.raiseZ() };

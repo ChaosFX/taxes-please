@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "0.3.6",
+    "version": "0.3.7",
     "akt": 1,
     "veranlagungsjahr": 2025,
     "kalenderStart": "2026-04",
@@ -538,6 +538,13 @@
       "cases": ["2-1", "2-2", "2-3", "2-4"],
       "storyEvents": [
         {
+          "type": "newspaper",
+          "from": "Donau-Kurier",
+          "headline": "Die Heurigen am Stadtrand sperren auf",
+          "text": "Mit den ersten warmen Tagen öffnen die Buschenschanken in Stammersdorf und Neustift. Die Wirte rechnen mit einem guten Frühjahr.",
+          "provisional": true
+        },
+        {
           "type": "note",
           "from": "Sedlak",
           "text": "Achte auf den Stempel unten links."
@@ -571,7 +578,7 @@
     },
     {
       "day": 4,
-      "intro": "Die Post ist da. Wenn ich gestern richtig entschieden habe, liegt die Kursbestätigung von Frau Lang obenauf. Auf dem Tisch stehen jetzt ein Kalender und der Donau-Kurier.",
+      "intro": "Die Post ist da. Wenn ich gestern richtig entschieden habe, liegt die Kursbestätigung von Frau Lang obenauf. Auf dem Tisch steht jetzt ein Kalender.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["4-1", "4-2", "4-3", "4-4", "4-5"],
       "storyEvents": [
@@ -598,6 +605,10 @@
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["5-1", "5-2", "5-3", "5-4"],
       "storyEvents": [
+        {
+          "type": "unlock",
+          "feature": "marking"
+        },
         {
           "type": "newspaper",
           "from": "Donau-Kurier",
