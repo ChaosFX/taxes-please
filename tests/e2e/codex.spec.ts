@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { freshStart, key, raw, startAtDay } from './helpers';
+import { SMOKE, freshStart, key, openAkte, raw, startAtDay, stampAkte } from './helpers';
 
 /**
  * Auftrag 04: der Kodex als Buch (SPEC 6). Most tests run with „Effekte aus“,
@@ -81,7 +81,8 @@ test('Tag 1: Titel, Text und Fundstelle von R54 stehen nirgends im DOM, Reiter T
   await key(page, 'begin').click();
   const r54 = ruleById('R54');
   expect(r54.day).toBe(10);
-  await key(page, 'codex-book').click();
+  await key(page, 'codex-book').focus();
+  await page.keyboard.press('k');
   await expect(dialog(page)).toBeVisible();
 
   const all = await everything(page);
@@ -111,7 +112,7 @@ test('Tag 1: Titel, Text und Fundstelle von R54 stehen nirgends im DOM, Reiter T
   await expect(key(page, 'codex-book')).toBeFocused();
 });
 
-test('Öffnen mit K, Blättern mit Pfeiltasten bis R9, Escape, Neuladen, wieder an derselben Stelle', async ({ page }) => {
+test('Öffnen mit K, Blättern mit Pfeiltasten bis R9, Escape, Neuladen, wieder an derselben Stelle', SMOKE, async ({ page }) => {
   await openAtDesk(page, 10);
   await expect(page.locator('.book')).toBeFocused();
   for (let i = 0; i < 40 && !(await fullyVisibleRules(page)).includes('R9'); i++) await page.keyboard.press('ArrowLeft');
@@ -148,15 +149,25 @@ test('Öffnen mit K, Blättern mit Pfeiltasten bis R9, Escape, Neuladen, wieder 
   await expect(dialog(page)).toHaveCount(0);
 });
 
-test('Öffnen mit Enter und Leertaste, Schließen per Klick daneben; K wirkt nicht im Eingabefeld', async ({ page }) => {
+test('Enter und Leertaste legen das Buch auf den Tisch, Lesemodus von dort, Schließen per Klick daneben; K wirkt nicht im Eingabefeld', async ({ page }) => {
   await startAtDay(page, 9, { effects: 'aus' });
   await key(page, 'begin').click();
+  const onDesk = page.locator('.desk-book');
   await key(page, 'codex-book').focus();
   await page.keyboard.press('Enter');
-  await expect(dialog(page)).toBeVisible();
-  await page.keyboard.press('Escape');
+  await expect(onDesk).toBeVisible();
+  await expect(dialog(page)).toHaveCount(0);
+  await key(page, 'codex-putback').click();
+  await expect(onDesk).toHaveCount(0);
   await expect(key(page, 'codex-book')).toBeFocused();
   await page.keyboard.press(' ');
+  await expect(onDesk).toBeVisible();
+  await key(page, 'codex-read').click();
+  await expect(dialog(page)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(key(page, 'codex-read')).toBeFocused();
+  await expect(onDesk).toBeVisible();
+  await page.keyboard.press('k');
   await expect(dialog(page)).toBeVisible();
   // K typed into the search stays in the field.
   await key(page, 'codex-search').click();
@@ -165,9 +176,9 @@ test('Öffnen mit Enter und Leertaste, Schließen per Klick daneben; K wirkt nic
   await expect(key(page, 'codex-search')).toHaveValue('k');
   await page.mouse.click(4, 4);
   await expect(dialog(page)).toHaveCount(0);
-  await expect(key(page, 'codex-book')).toBeFocused();
+  await expect(key(page, 'codex-read')).toBeFocused();
   // On the desk, K in an amount field does not open the book.
-  await key(page, 'stack').click();
+  await openAkte(page);
   const amount = page.locator('.amount-input').first();
   if (await amount.count()) {
     await amount.focus();
@@ -402,10 +413,10 @@ test('Titel bleibt auf dem Buchdeckel, Kodex-Klassen stören den Stempelabdruck 
   });
   expect(inside).toBe(true);
 
-  await key(page, 'stack').click();
+  await openAkte(page);
   await key(page, 'pos-p1-anerkennen').click();
   await key(page, 'pos-p2-streichen').click();
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   const imprint = page.locator('.stamp-imprint');
   await expect(imprint).toHaveClass(/hit/);
   const { w, paper } = await imprint.evaluate((el) => ({ w: (el as HTMLElement).offsetWidth, paper: el.parentElement!.clientWidth }));

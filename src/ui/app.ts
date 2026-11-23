@@ -1,12 +1,13 @@
 import { createSound } from '../audio';
 import * as core from '../core';
-import type { Content, EffectsLevel, GameState, Settings } from '../core';
+import type { CalendarContent, Content, EffectsLevel, GameState, Settings } from '../core';
 import * as atmosphere from './atmosphere';
-import { CodexBook, loadBookFonts } from './codex';
-import { deskView, type DeskActions, type DeskUi, type PaperHook } from './desk';
+import { CodexBook, loadBookFonts, type BookEnv } from './codex';
+import { deskView, type DeskActions, type DeskUi } from './desk';
 import { h } from './dom';
-import { DeskLayout, makeDraggable, openZoom, paperRotation } from './paper-interaction';
 import { EFFECT_LEVELS, applyEffects, defaultSettings, loadSavedGame, loadSettings, saveSettings } from './settings';
+import { fitStage, stageScale } from './stage';
+import { Table } from './table';
 import { t, type UiKey } from './text';
 import { actEndView, introView, startView, summaryView, type ScreenActions } from './views';
 
@@ -19,7 +20,7 @@ const EFFECT_LABELS = {
 } as const satisfies Record<EffectsLevel, UiKey>;
 
 /** Holds the core state, wires DOM events to core actions and re-renders. */
-export function startApp(root: HTMLElement, content: Content): void {
+export function startApp(root: HTMLElement, content: Content, calendar: CalendarContent): void {
   // The codex measures its pages with the book font: have all its faces ready early.
   void loadBookFonts();
   const store = core.browserStorage();
@@ -32,9 +33,12 @@ export function startApp(root: HTMLElement, content: Content): void {
   let focusNext: string | null = null;
   /** Day whose phone call has rung, so re-renders of the intro do not ring again. */
   let rungFor: number | null = null;
-  const book = new CodexBook();
-  const deskUi: DeskUi = { akteId: null, markMode: false, pending: null, inquiryOpen: false, calc: core.CALC_INITIAL };
-  const layout = new DeskLayout();
+  const book = new CodexBook('reader');
+  /** The small open codex on the desk (SPEC 6.1a); kept across renders while it lies there. */
+  const deskBook = new CodexBook('desk');
+  const deskUi: DeskUi = { akteId: null, markMode: false, pending: null, inquiryOpen: false, inquiryChoice: null, carrying: null, calc: core.CALC_INITIAL };
+  /** A render asked for while an object is dragged waits for the drop. */
+  let renderWaiting = false;
 
   applyEffects(settings.effects);
   const sound = createSound(settings.volume, settings.music);
@@ -118,13 +122,53 @@ export function startApp(root: HTMLElement, content: Content): void {
     },
   };
 
-  const deskActions: DeskActions = {
-    drawNext: () => {
+  const codexEnv = (day: number): Omit<BookEnv, 'onClose'> => ({
+    content,
+    day,
+    progress: state!.codex,
+    effects: () => settings.effects,
+    sound: (name) => sound.play(name),
+    onSeen: () => {
       if (!state) return;
-      const next = core.drawNext(state);
-      if (next !== state) sound.play('paper');
-      update(next);
+      // Saved at once, without re-rendering the desk.
+      state = core.markDeliverySeen(state, day);
+      core.saveGame(store, state);
+      book.markSeen();
+      deskBook.markSeen();
     },
+  });
+
+  /** Reading place of the codex: one for the book on the desk and the reader (SPEC 6.1a, 6.7). */
+  function rememberPlace(lastRuleId: string): void {
+    if (!state) return;
+    state = core.rememberCodexPlace(state, lastRuleId);
+    core.saveGame(store, state);
+  }
+
+  const table: Table = new Table({
+    content,
+    calendar,
+    state: () => state,
+    update,
+    render: () => render(),
+    effects: () => settings.effects,
+    sound: (name) => sound.play(name),
+    focus: (key) => (focusNext = key),
+    mountBook: () =>
+      deskBook.mount(
+        { ...codexEnv(state!.day), onClose: () => undefined },
+        { readMode: openCodex, putBack: () => table.putBack('codex') },
+        { class: 'obj tool open tool-codex', 'data-key': 'codex-desk', 'data-fx': 'tool-codex' },
+      ),
+    unmountBook: () => {
+      if (deskBook.isOpen) rememberPlace(deskBook.unmount());
+    },
+    openReader: openCodex,
+    pressStamp: () => pressStamp(),
+    putStampBack: () => putStampBack(),
+  });
+
+  const deskActions: DeskActions = {
     decide: (pid, v) => state && update(core.decidePosition(state, pid, v)),
     choose: (o) => state && update(core.chooseOption(state, o)),
     decideE: (id, v) => state && update(core.decide(state, id, v)),
@@ -133,31 +177,42 @@ export function startApp(root: HTMLElement, content: Content): void {
       state = core.enterAmount(state, id, raw);
       core.saveGame(store, state);
     },
-    stamp: (s) => {
+    stamp: (s, byKeyboard = false) => {
       if (!state) return;
-      // An Ergänzungsersuchen with inquiry first asks what to ask (SPEC 4.4); pressing it again closes the choice.
-      if (core.needsInquiry(content, state, s)) {
-        deskUi.inquiryOpen = !deskUi.inquiryOpen;
-        if (deskUi.inquiryOpen) {
-          const akte = core.getAkte(content, state.current!.akteId);
-          const first = akte.kind.type === 'entscheidungen' ? akte.kind.inquiry?.options[0]?.id : undefined;
-          focusNext = first ? `inq-${first}` : null;
-        }
-        render();
+      // A second click on the holder puts the stamp back (SPEC 7.3).
+      if (deskUi.carrying === s) {
+        putStampBack();
         return;
       }
-      deskUi.inquiryOpen = false;
-      const next = core.applyStamp(content, state, s);
-      stampFx = next !== state;
-      update(next);
+      // Stamps go on the stamp field of an open folder.
+      if (!state.current || !table.ui.folderOpen) {
+        table.say('desk.noOpenAkte');
+        return;
+      }
+      if (state.current.answer.stamp !== undefined) {
+        table.say('desk.alreadyStamped');
+        return;
+      }
+      deskUi.carrying = s;
+      deskUi.inquiryChoice = null;
+      // An Ergänzungsersuchen with inquiry first asks what to ask (SPEC 4): the choice opens now.
+      deskUi.inquiryOpen = core.needsInquiry(content, state, s);
+      table.carry(s, byKeyboard);
+      table.say('desk.stampTaken');
+      if (deskUi.inquiryOpen) {
+        const akte = core.getAkte(content, state.current.akteId);
+        const first = akte.kind.type === 'entscheidungen' ? akte.kind.inquiry?.options[0]?.id : undefined;
+        focusNext = first ? `inq-${first}` : null;
+      }
+      render();
     },
+    pressStamp,
     inquiry: (id) => {
-      if (!state) return;
-      const next = core.applyStamp(content, state, 'ergaenzung', id);
-      deskUi.inquiryOpen = false;
-      stampFx = next !== state;
-      focusNext = 'outbox';
-      update(next);
+      if (!state || !deskUi.carrying) return;
+      deskUi.inquiryChoice = deskUi.inquiryChoice === id ? null : id;
+      // Next by keyboard: the stamp field, where Enter presses the stamp.
+      if (deskUi.inquiryChoice) focusNext = 'stamp-field';
+      render();
     },
     toggleMarkMode: () => {
       deskUi.markMode = !deskUi.markMode;
@@ -186,34 +241,56 @@ export function startApp(root: HTMLElement, content: Content): void {
       deskUi.calc = core.calcPress(deskUi.calc, key);
       render();
     },
-    file: () => {
-      if (!state) return;
-      const next = core.fileCurrent(content, state);
-      if (next !== state) sound.play('file');
-      update(next);
-    },
-    openCodex,
+    file: () => table.file(),
   };
 
-  /** Opens the codex as a book (SPEC 6). While it is open the desk is not re-rendered. */
+  /** Puts the carried stamp back into the holder; the question choice closes again. */
+  function putStampBack(): void {
+    if (!deskUi.carrying) return;
+    deskUi.carrying = null;
+    deskUi.inquiryOpen = false;
+    deskUi.inquiryChoice = null;
+    table.carry(null);
+    render();
+  }
+
+  /** The carried stamp onto the stamp field. With an inquiry only once a question is chosen (SPEC 4). */
+  function pressStamp(): void {
+    const s = deskUi.carrying;
+    if (!state?.current || !s || !table.ui.folderOpen) return;
+    if (deskUi.inquiryOpen && !deskUi.inquiryChoice) {
+      const akte = core.getAkte(content, state.current.akteId);
+      const first = akte.kind.type === 'entscheidungen' ? akte.kind.inquiry?.options[0]?.id : undefined;
+      focusNext = first ? `inq-${first}` : null;
+      render();
+      return;
+    }
+    const next = core.applyStamp(content, state, s, deskUi.inquiryChoice ?? undefined);
+    deskUi.carrying = null;
+    deskUi.inquiryOpen = false;
+    deskUi.inquiryChoice = null;
+    table.carry(null);
+    stampFx = next !== state;
+    focusNext = 'close-akte';
+    update(next);
+  }
+
+  /**
+   * Opens the codex in reading mode (SPEC 6.2), at the place of the book on the
+   * desk if it lies there. While it is open the desk is not re-rendered. Focus
+   * returns to where it was.
+   */
   function openCodex(): void {
     if (!state || state.phase !== 'desk' || book.isOpen) return;
+    if (deskBook.isOpen) rememberPlace(deskBook.place());
+    const back = (document.activeElement as HTMLElement | null)?.dataset.key ?? (deskBook.isOpen ? 'codex-read' : 'codex-book');
     const day = state.day;
     book.open({
-      content,
-      day,
-      progress: state.codex,
-      effects: () => settings.effects,
-      sound: (name) => sound.play(name),
-      onSeen: () => {
-        if (!state) return;
-        // Saved at once, without re-rendering the desk behind the dialog.
-        state = core.markDeliverySeen(state, day);
-        core.saveGame(store, state);
-      },
+      ...codexEnv(day),
       onClose: (lastRuleId) => {
         if (!state) return;
-        focusNext = 'codex-book';
+        deskBook.showRule(lastRuleId);
+        focusNext = back;
         update(core.rememberCodexPlace(state, lastRuleId));
       },
     });
@@ -229,17 +306,6 @@ export function startApp(root: HTMLElement, content: Content): void {
     e.preventDefault();
     openCodex();
   });
-
-  const paperHook: PaperHook = (el, key, seed) =>
-    makeDraggable(el, {
-      key,
-      layout,
-      rotation: paperRotation(seed),
-      surface: () => root.querySelector('.worksurface'),
-      effects: () => settings.effects,
-      onZoom: openZoom,
-      onLift: () => sound.play('paper'),
-    });
 
   function settingsPanel(): HTMLElement {
     const details = h(
@@ -286,13 +352,16 @@ export function startApp(root: HTMLElement, content: Content): void {
       deskUi.markMode = false;
       deskUi.pending = null;
       deskUi.inquiryOpen = false;
+      deskUi.inquiryChoice = null;
+      deskUi.carrying = null;
+      table.carry(null);
     }
     if (s.current?.answer.stamp !== undefined) {
       deskUi.markMode = false;
       deskUi.pending = null;
       deskUi.inquiryOpen = false;
     }
-    layout.forAkte(akteId, s.day);
+    table.sync(s);
   }
 
   function view(): HTMLElement {
@@ -303,7 +372,7 @@ export function startApp(root: HTMLElement, content: Content): void {
         return introView(content, state, screenActions);
       case 'desk':
         syncDeskUi(state);
-        return deskView(content, state, deskUi, deskActions, paperHook);
+        return deskView({ content, calendar, state, ui: deskUi, table: table.ui, a: deskActions, hooks: table, deskBook: deskBook.element, live: table.live, ghost: table.ghost });
       case 'summary':
         return summaryView(content, state, screenActions);
       case 'actEnd':
@@ -311,7 +380,20 @@ export function startApp(root: HTMLElement, content: Content): void {
     }
   }
 
-  /** Stamp hit: imprint scales in, the work surface shakes slightly. Transform only. */
+  /** Scrolls the Prüfvermerk (only it, never the stage) so `el` and, with the question choice, the whole choice are visible. */
+  function revealInPruefvermerk(el: HTMLElement): void {
+    const box = el.closest<HTMLElement>('.pv-scroll');
+    if (!box) return;
+    const show = el.closest<HTMLElement>('.inquiry') ?? el;
+    const b = box.getBoundingClientRect();
+    const r = show.getBoundingClientRect();
+    // Screen pixels of the scaled stage to CSS pixels of the box.
+    const k = stageScale();
+    if (r.bottom > b.bottom) box.scrollTop += (r.bottom - b.bottom) / k + 8;
+    else if (r.top < b.top) box.scrollTop -= (b.top - r.top) / k + 8;
+  }
+
+  /** Stamp hit: imprint scales in, the folder shakes slightly (effects „voll“ only). Transform only. */
   function playStampFx(): void {
     if (!stampFx) return;
     stampFx = false;
@@ -319,9 +401,9 @@ export function startApp(root: HTMLElement, content: Content): void {
     if (settings.effects === 'aus') return;
     root.querySelector('.stamp-imprint')?.classList.add('hit');
     if (settings.effects === 'voll') {
-      const surface = root.querySelector<HTMLElement>('.worksurface');
-      surface?.classList.add('shake');
-      surface?.addEventListener('animationend', () => surface.classList.remove('shake'), { once: true });
+      const folder = root.querySelector<HTMLElement>('.folder.open');
+      folder?.classList.add('shake');
+      folder?.addEventListener('animationend', () => folder.classList.remove('shake'), { once: true });
     }
   }
 
@@ -335,17 +417,42 @@ export function startApp(root: HTMLElement, content: Content): void {
 
   /** Full re-render. Focus is restored via `data-key` so keyboard play keeps its place. */
   function render(): void {
+    if (table.dragging) {
+      renderWaiting = true;
+      return;
+    }
+    renderWaiting = false;
     const active = document.activeElement as HTMLElement | null;
     const key = focusNext ?? active?.dataset.key;
     focusNext = null;
     root.replaceChildren(settingsPanel(), view());
+    const stage = root.querySelector<HTMLElement>('.stage');
+    if (stage) {
+      fitStage(stage);
+      table.afterRender(stage);
+      deskBook.attached();
+    }
     let target = key ? root.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`) : null;
     if (target && (target as HTMLButtonElement).disabled) target = null;
     target ??= root.querySelector<HTMLElement>('main button.primary:not([disabled]), main h1');
     target?.focus({ preventScroll: true });
+    // Inside the Prüfvermerk, which scrolls in itself, the focused control comes into view.
+    if (target) revealInPruefvermerk(target);
     playStampFx();
     ringIfCalled();
   }
+
+  // Web fonts change the size of papers (the newspaper): keep everything on the pad once they are there.
+  document.fonts?.addEventListener('loadingdone', () => {
+    const stage = root.querySelector<HTMLElement>('.stage');
+    if (stage && !table.dragging) table.afterRender(stage);
+  });
+  window.addEventListener('resize', () => {
+    const stage = root.querySelector<HTMLElement>('.stage');
+    if (stage) fitStage(stage);
+  });
+  // A render asked for during a drag happens once the object is dropped.
+  window.addEventListener('pointerup', () => queueMicrotask(() => renderWaiting && !table.dragging && render()));
 
   atmosphere.mount(root);
   atmosphere.setQuality(settings.effects);

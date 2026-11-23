@@ -52,6 +52,7 @@ describe('kein Text im Code', () => {
       else if (v && typeof v === 'object') Object.values(v).forEach(collect);
     };
     rawContentFiles().forEach(collect);
+    collect(JSON.parse(readFileSync(join(__dirname, '..', '..', 'content', 'kalender.json'), 'utf8')));
     collect(uiJson());
     const values = literals.map((l) => l.value);
     for (const t of texts) expect(values.some((v) => v.includes(t)), `Code enthält „${t}“`).toBe(false);
@@ -74,6 +75,12 @@ function uiEntries(): Map<string, string> {
 }
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]!).sort();
 
+/**
+ * Keys already in ui.json for a later stage of the current Auftrag, with the
+ * step that will use them. Kept short; the list must be empty when the Auftrag is done.
+ */
+const PENDING: Record<string, string> = {};
+
 describe('ui.json und Code passen zusammen', () => {
   const entries = uiEntries();
 
@@ -83,8 +90,16 @@ describe('ui.json und Code passen zusammen', () => {
 
   it('jeder Schlüssel in ui.json wird im Code verwendet', () => {
     const used = new Set(literals.map((l) => l.value));
-    const unused = [...entries.keys()].filter((k) => !used.has(k));
+    const unused = [...entries.keys()].filter((k) => !used.has(k) && !(k in PENDING));
     expect(unused).toEqual([]);
+  });
+
+  it('vorgemerkte Schlüssel stehen in ui.json und sind noch unbenutzt', () => {
+    const used = new Set(literals.map((l) => l.value));
+    for (const [k, why] of Object.entries(PENDING)) {
+      expect(entries.has(k), `${k} (${why})`).toBe(true);
+      expect(used.has(k), `${k} wird schon verwendet: aus PENDING streichen`).toBe(false);
+    }
   });
 
   it('jeder im Code verwendete Schlüssel steht in ui.json', () => {

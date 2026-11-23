@@ -19,7 +19,7 @@ export const RuleSchema = z.object({
 
 const text = z.string().min(1);
 
-export const ToolSchema = z.enum(['calculator', 'pinboard', 'drawer']);
+export const ToolSchema = z.enum(['calculator', 'calendar', 'pinboard', 'drawer']);
 
 export const EventEffectsSchema = z.strictObject({
   time: z.number().int(),
@@ -218,6 +218,11 @@ export const MetaSchema = z.object({
   akt: z.number().int().positive(),
   veranlagungsjahr: z.number().int(),
   hinweis: z.string(),
+  /** Month the desk calendar opens with in this act (SPEC 3). */
+  kalenderStart: z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Monat im Format JJJJ-MM')
+    .optional(),
 });
 
 export const ContentSchema = z.object({
@@ -227,3 +232,28 @@ export const ContentSchema = z.object({
   days: z.array(DaySchema).min(1),
   cases: z.array(CaseSchema).min(1),
 });
+
+// ---------- content/kalender.json (SPEC 3, Tischkalender) ----------
+
+const holidayName = z.string().trim().min(1, 'Name ist leer');
+
+/** Days per month in a leap year, so 02-29 is a valid fixed date. */
+const MAX_DAY = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+const MonthDay = z
+  .string()
+  .regex(/^\d{2}-\d{2}$/, 'Datum im Format MM-TT')
+  .refine((s) => {
+    const [m, d] = s.split('-').map(Number) as [number, number];
+    return m >= 1 && m <= 12 && d >= 1 && d <= MAX_DAY[m - 1]!;
+  }, 'kein gültiges Datum (Monat 1 bis 12, Tag im Monat)');
+
+export const CalendarSchema = z.object({
+  meta: z.object({ version: z.string(), quelle: z.string(), hinweis: z.string() }),
+  holidays: z.object({
+    fixed: z.array(z.strictObject({ date: MonthDay, name: holidayName })),
+    easter: z.array(z.strictObject({ offset: z.number().int(), name: holidayName })),
+  }),
+});
+
+export type CalendarContent = z.infer<typeof CalendarSchema>;

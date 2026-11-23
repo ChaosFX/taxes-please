@@ -1,8 +1,9 @@
 {
   "meta": {
-    "version": "0.3.1",
+    "version": "0.3.2",
     "akt": 1,
     "veranlagungsjahr": 2025,
+    "kalenderStart": "2026-04",
     "hinweis": "Alle Personen und Firmen sind erfunden. Kodextexte sind vereinfacht und keine Rechtsauskunft."
   },
   "texts": {
@@ -560,6 +561,10 @@
           "type": "dialog",
           "from": "Gerri",
           "text": "Das Silvesterkonzert, was? Meine Frau wollte unbedingt hin. Kaffee?"
+        },
+        {
+          "type": "unlock",
+          "feature": "calendar"
         }
       ]
     },

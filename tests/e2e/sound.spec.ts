@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { freshStart, key } from './helpers';
+import { fileAkte, freshStart, key, stampAkte } from './helpers';
 
 /** Auftrag 01, Punkt 6: Stempel, Papierrascheln, Büro-Ambiente, Lautstärke-Regler. */
 
@@ -38,12 +38,12 @@ test('Stempel und Papier sind zu hören, Ambiente startet nach dem ersten Klick'
   await key(page, 'stack').click();
   // Paper rustle (> 1 s) when the Akte is drawn.
   await expect.poll(async () => (await played(page)).some((d) => d > 1 && d < 2)).toBe(true);
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   // Stamp hit (< 0.7 s).
   await expect.poll(async () => (await played(page)).some((d) => d > 0 && d < 0.7)).toBe(true);
   // Filing into the out tray (≈ 1.45–1.55 s).
   const before = (await played(page)).length;
-  await key(page, 'outbox').click();
+  await fileAkte(page);
   await expect.poll(async () => (await played(page)).slice(before).some((d) => d > 1.4 && d < 1.6)).toBe(true);
 });
 
@@ -65,7 +65,7 @@ test('Lautstärke 0 schaltet den Ton ab und wird gespeichert', async ({ page }) 
   await key(page, 'new-game').click();
   await key(page, 'begin').click();
   await key(page, 'stack').click();
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   await expect(page.locator('.stamp-imprint')).toBeVisible();
   await page.waitForTimeout(300);
   // Effects are silent; only the music loop (≈ 55 s) may run, it has its own slider.

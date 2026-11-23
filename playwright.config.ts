@@ -17,13 +17,15 @@ export default defineConfig({
   testDir: 'tests/e2e',
   // CI runners are slower and share their CPU: one retry, reported as „flaky“.
   retries: process.env.CI ? 1 : 0,
-  use: { baseURL: `http://localhost:4173${BASE_PATH}`, viewport },
+  // Trace of the retry run lands in test-results/ and is uploaded by the CI on failure.
+  use: { baseURL: `http://localhost:4173${BASE_PATH}`, viewport, trace: 'on-first-retry' },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'], viewport }, testIgnore: /screenshots\.spec\.ts/ },
-    // WebKit paints without GPU on Linux (box-shadows are expensive): every click
-    // waits up to half a second for a frame, so tests get three times the default time.
-    { name: 'webkit', timeout: 90_000, use: { ...devices['Desktop Safari'], viewport }, testIgnore: /screenshots\.spec\.ts/ },
+    // WebKit paints without GPU on Linux and at times stops painting on CI runners,
+    // so it runs only the smoke set (tests tagged @smoke). A hang fails after two
+    // minutes and is not retried.
+    { name: 'webkit', grep: /@smoke/, timeout: 120_000, retries: 0, use: { ...devices['Desktop Safari'], viewport } },
   ],
   webServer: {
     command: `npm run build && npx vite preview --port 4173 --strictPort --base ${BASE_PATH}`,

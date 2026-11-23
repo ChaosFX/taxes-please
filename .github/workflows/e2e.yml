@@ -1,7 +1,8 @@
 name: E2E tests
 
 # Runs the Playwright suite against the Pages build in Chromium (Chrome, Edge),
-# Firefox and WebKit (Safari). WebKit does not install on every Linux, so the
+# Firefox and WebKit (Safari, smoke set only: tests tagged @smoke). WebKit does
+# not install on every Linux, so the
 # full browser matrix runs here.
 
 on:
@@ -9,6 +10,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      grep:
+        description: 'Nur Tests, deren Titel hierzu passt (leer: alle)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -32,9 +38,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: npx playwright test --project=${{ matrix.browser }}
+      - run: npx playwright test --project=${{ matrix.browser }} ${GREP:+--grep "$GREP"}
+        env:
+          GREP: ${{ inputs.grep }}
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: failure() || inputs.grep != ''
         with:
           name: playwright-${{ matrix.browser }}
           path: test-results/

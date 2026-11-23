@@ -1,5 +1,5 @@
 import { toCents } from './amount';
-import { ContentSchema, OFFEN } from './schema';
+import { CalendarSchema, ContentSchema, OFFEN, type CalendarContent } from './schema';
 import {
   isAmountDecision,
   type Akte,
@@ -421,4 +421,25 @@ export function loadContentFiles(files: ContentFile[]): Content {
   };
   if (problems.length > 0) throw new ContentError(problems, versions);
   return loadContent(merged, versions);
+}
+
+/**
+ * Validates `content/kalender.json` (SPEC 3). It is not merged with the act
+ * files. Throws a ContentError naming every problem.
+ */
+export function loadCalendar(raw: unknown): CalendarContent {
+  const version = isObject(raw) && isObject(raw.meta) && typeof raw.meta.version === 'string' ? raw.meta.version : '?';
+  const versions = [`kalender.json ${version}`];
+  const parsed = CalendarSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new ContentError(
+      parsed.error.issues.map((i) => `kalender.json, ${i.path.join('.') || '(Wurzel)'}: ${i.message}`),
+      versions,
+    );
+  }
+  const problems: string[] = [];
+  for (const d of duplicates(parsed.data.holidays.fixed.map((f) => f.date))) problems.push(`kalender.json, holidays.fixed: Datum ${d} doppelt`);
+  for (const d of duplicates(parsed.data.holidays.easter.map((e) => String(e.offset)))) problems.push(`kalender.json, holidays.easter: Abstand ${d} doppelt`);
+  if (problems.length) throw new ContentError(problems, versions);
+  return parsed.data;
 }

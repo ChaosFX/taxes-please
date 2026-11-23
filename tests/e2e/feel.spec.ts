@@ -1,12 +1,14 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { freshStart, key } from './helpers';
+import { SMOKE, freshStart, key, openAkte, pullOut, stampAkte } from './helpers';
 
-/** Auftrag 01: Ziehen, Zoom, Stempel-Effekt, Einstellungen. */
+/** Auftrag 01: Ziehen, Zoom, Stempel-Effekt, Einstellungen; auf dem Arbeitstisch aus Auftrag 05. */
 
+/** Akte 1-1 open, its three papers taken out of the pocket. */
 async function toDeskWithAkte(page: Page) {
   await key(page, 'new-game').click();
   await key(page, 'begin').click();
-  await key(page, 'stack').click();
+  await openAkte(page);
+  for (const i of [0, 1, 2]) await pullOut(page, i);
 }
 
 async function setEffects(page: Page, level: 'aus' | 'reduziert' | 'voll') {
@@ -18,7 +20,7 @@ async function setEffects(page: Page, level: 'aus' | 'reduziert' | 'voll') {
 const box = async (l: Locator) => (await l.boundingBox())!;
 /** Waits until the drop animation is over, then measures. */
 const settled = async (l: Locator) => {
-  await expect(l).not.toHaveClass(/dropping|lifted/);
+  await expect(l).not.toHaveClass(/lifted/);
   await l.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
   return box(l);
 };
@@ -74,7 +76,7 @@ test('Papier mit der Maus ziehen; zuletzt angefasstes liegt oben', async ({ page
   expect(Math.abs(again.x - after.x)).toBeLessThan(2);
 });
 
-test('Papier per Touch ziehen', async ({ page }) => {
+test('Papier per Touch ziehen', SMOKE, async ({ page }) => {
   await toDeskWithAkte(page);
   const a = key(page, 'paper-1');
   const before = await box(a);
@@ -92,21 +94,21 @@ test('Effekte aus: Ziehen geht, aber ohne Animation; Stempel ohne Animation', as
   const before = await box(a);
   await mouseDrag(page, a, 100, 0);
   expect((await settled(a)).x - before.x).toBeGreaterThan(70);
-  await expect(a).not.toHaveClass(/dropping/);
+  expect(await a.evaluate((el) => el.getAnimations().length)).toBe(0);
   expect(await a.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0s');
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   const anims = await page.locator('.stamp-imprint').evaluate((el) => el.getAnimations().length);
   expect(anims).toBe(0);
-  await expect(page.locator('.worksurface')).not.toHaveClass(/shake/);
+  await expect(page.locator('.folder.open')).not.toHaveClass(/shake/);
 });
 
 test('Effekte voll: Stempel schlägt auf und die Arbeitsfläche wackelt', async ({ page }) => {
   await setEffects(page, 'voll');
   await page.locator('.settings summary').click();
   await toDeskWithAkte(page);
-  await key(page, 'stamp-bescheid').click();
+  await stampAkte(page, 'bescheid');
   await expect(page.locator('.stamp-imprint')).toHaveClass(/hit/);
-  await expect(page.locator('.worksurface')).toHaveClass(/shake/);
+  await expect(page.locator('.folder.open')).toHaveClass(/shake/);
   expect(await page.locator('.stamp-imprint').evaluate((el) => el.getAnimations().length)).toBeGreaterThan(0);
   // Imprint stays, stamp stays final.
   await page.waitForTimeout(500);
@@ -114,7 +116,7 @@ test('Effekte voll: Stempel schlägt auf und die Arbeitsfläche wackelt', async 
   await expect(key(page, 'pos-p1-anerkennen')).toBeDisabled();
 });
 
-test('Zoom per Doppelklick und per Tastatur', async ({ page }) => {
+test('Zoom per Doppelklick und per Tastatur', SMOKE, async ({ page }) => {
   await toDeskWithAkte(page);
   const a = key(page, 'paper-0');
   await a.dblclick();

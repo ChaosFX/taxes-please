@@ -33,6 +33,20 @@ const MAX_W = 1120;
 const MAX_H = 760;
 const FLIP_MS = 420;
 const FADE_MS = 110;
+/** Book on the desk (SPEC 6.1a): two pages of 230 × 300 inside 10 px boards; the cover opens in about 500 ms. */
+const DESK_PAGE_W = 230;
+const DESK_PAGE_H = 300;
+const DESK_FS = 12.5;
+const DESK_OPEN_MS = 500;
+
+/** `reader`: the large book in a dialog (6.2). `desk`: the small open book lying on the desk (6.1a). */
+export type BookMode = 'reader' | 'desk';
+
+/** Buttons of the book on the desk. */
+export interface DeskBookActions {
+  readMode(): void;
+  putBack(): void;
+}
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -94,7 +108,7 @@ function marked(text: string, spans: readonly Span[]): (string | HTMLElement)[] 
 
 // ---------- Closed book on the desk (SPEC 6.1) ----------
 
-/** The closed codex. Its block grows with the unlocked days; a slip „neu“ sticks out while today's delivery is unseen. */
+/** The closed codex in the tool rail. Its block grows with the unlocked days; a slip „neu“ sticks out while today's delivery is unseen. Click or Enter lays it open on the desk (6.1a). */
 export function closedBook(content: Content, day: number, progress: CodexProgress, onOpen: () => void): HTMLElement {
   const unlocked = codexDays(content.rules).filter((d) => d <= day).length;
   const unseen = deliveryUnseen(content.rules, day, progress);
@@ -108,7 +122,6 @@ export function closedBook(content: Content, day: number, progress: CodexProgres
         'data-key': 'codex-book',
         'aria-label': t('codex.open'),
         'aria-description': t('aria.codexBook', { day }),
-        'aria-haspopup': 'dialog',
         style: `--days: ${unlocked}`,
         onclick: onOpen,
       },
@@ -190,7 +203,10 @@ export function loadBookFonts(): Promise<unknown> {
 
 export class CodexBook {
   private env: BookEnv | null = null;
+  /** The dialog (reader) or the object on the desk; null while closed. */
+  private host: HTMLElement | null = null;
   private dialog: HTMLDialogElement | null = null;
+  private laidOut = false;
   private shell!: HTMLElement;
   private book!: HTMLElement;
   private viewport!: HTMLElement;
@@ -224,8 +240,20 @@ export class CodexBook {
   /** Where the reader jumped to (open, tab, register, hit); kept across a new layout until the next turn. */
   private target: Anchor | null = null;
 
+  constructor(private readonly mode: BookMode = 'reader') {}
+
+  /** Keys and ids of the book on the desk carry a prefix, so they never clash with the reader open above it. */
+  private key(k: string): string {
+    return this.mode === 'desk' ? `desk-${k}` : k;
+  }
+
   get isOpen(): boolean {
-    return this.dialog !== null;
+    return this.host !== null;
+  }
+
+  /** The object on the desk (desk mode), or null. */
+  get element(): HTMLElement | null {
+    return this.mode === 'desk' ? this.host : null;
   }
 
   open(env: BookEnv): void {
@@ -236,6 +264,7 @@ export class CodexBook {
     this.seenReported = !deliveryUnseen(env.content.rules, env.day, env.progress);
     this.ribbonRule = env.progress.lastRuleId;
     this.build();
+    this.host = this.dialog;
     document.body.append(this.dialog!);
     this.dialog!.showModal();
     this.layout(this.openAnchor());
@@ -246,6 +275,83 @@ export class CodexBook {
     const onResize = () => this.queueRelayout();
     window.addEventListener('resize', onResize);
     this.cleanup.push(() => window.removeEventListener('resize', onResize));
+    this.watchFonts();
+  }
+
+  /**
+   * Desk mode: builds the small open book and returns it. The caller puts it on
+   * the desk; the same element is kept across re-renders. Pages are laid out
+   * once it is in the document (`attached`).
+   */
+  mount(env: BookEnv, actions: DeskBookActions, attrs: Record<string, string>): HTMLElement {
+    if (this.host) return this.host;
+    this.env = env;
+    this.query = '';
+    this.hits = [];
+    this.seenReported = !deliveryUnseen(env.content.rules, env.day, env.progress);
+    this.ribbonRule = env.progress.lastRuleId;
+    this.laidOut = false;
+    this.buildBook();
+    const readBtn = h('button', { class: 'book-tool', 'data-key': 'codex-read' }, t('codex.readMode'));
+    const backBtn = h('button', { class: 'book-tool put-back', 'data-key': 'codex-putback' }, t('desk.putBack'));
+    readBtn.addEventListener('click', actions.readMode);
+    backBtn.addEventListener('click', actions.putBack);
+    this.shell = h('div', { ...attrs, class: `${attrs.class ?? ''} desk-book`, tabindex: '0', role: 'group', 'aria-label': t('aria.codex') }, h('div', { class: 'book-tools' }, readBtn, backBtn), this.book);
+    this.shell.dataset.mode = 'spread';
+    this.shell.addEventListener('keydown', (e) => this.onDeskKey(e));
+    this.host = this.shell;
+    this.watchFonts();
+    return this.shell;
+  }
+
+  /** Desk mode: lays the pages out the first time the book is in the document. */
+  attached(): void {
+    if (this.mode !== 'desk' || !this.host?.isConnected || this.laidOut) return;
+    this.laidOut = true;
+    this.layout(this.openAnchor());
+    this.env!.sound('paper');
+    this.playOpen();
+  }
+
+  /** Desk mode: takes the book off the desk. Returns the rule read last (empty: register). */
+  unmount(): string {
+    if (this.mode !== 'desk' || !this.host) return '';
+    const last = this.laidOut ? this.currentRuleId() : (this.env?.progress.lastRuleId ?? '');
+    this.finishAnimations();
+    this.cleanup.forEach((f) => f());
+    this.cleanup = [];
+    this.host.remove();
+    this.host = null;
+    this.env = null;
+    this.laidOut = false;
+    return last;
+  }
+
+  /** Rule read last on the open book (empty: register). */
+  place(): string {
+    return this.host && this.laidOut ? this.currentRuleId() : (this.env?.progress.lastRuleId ?? '');
+  }
+
+  /** Opens at a rule (or the register for an empty id) without turning; keeps the reading place in sync with the reader. */
+  showRule(id: string): void {
+    if (!this.host || !this.laidOut) {
+      if (this.env) this.env = { ...this.env, progress: { ...this.env.progress, lastRuleId: id } };
+      return;
+    }
+    this.finishAnimations();
+    const anchor: Anchor = id && this.rulePage.has(id) ? { kind: 'rule', id } : { kind: 'front' };
+    this.target = anchor;
+    this.ribbonRule = id;
+    this.spread = Math.min(this.spreadOf(this.pageOf(anchor)), this.spreadCount() - 1);
+    this.show();
+  }
+
+  /** Today's delivery was seen in the reader: the desk book need not report it again. */
+  markSeen(): void {
+    this.seenReported = true;
+  }
+
+  private watchFonts(): void {
     // Web fonts change line breaks: lay out again once they are there. Firefox loads a face
     // only when text first uses it, so all faces of the book are asked for explicitly, and
     // any face that still arrives later (`loadingdone`) lays the book out again.
@@ -262,7 +368,7 @@ export class CodexBook {
 
   close(): void {
     const env = this.env;
-    if (!this.dialog || !env) return;
+    if (this.mode !== 'reader' || !this.dialog || !env) return;
     const last = this.currentRuleId();
     this.finishAnimations();
     this.cleanup.forEach((f) => f());
@@ -270,12 +376,42 @@ export class CodexBook {
     this.dialog.close();
     this.dialog.remove();
     this.dialog = null;
+    this.host = null;
     this.env = null;
     env.sound('file');
     env.onClose(last);
   }
 
   // ---------- Building the dialog ----------
+
+  /** The book itself: boards, page strip, ribbon, corners. Shared by both modes. */
+  private buildBook(): void {
+    this.strip = h('div', { class: 'book-strip' });
+    this.layer = h('div', { class: 'flip-layer', 'aria-hidden': 'true' });
+    this.viewport = h('div', { class: 'book-viewport' }, this.strip, this.layer);
+    this.measureBox = h('div', { class: 'book-measure', 'aria-hidden': 'true' });
+    this.ribbon = h('div', { class: 'ribbon', 'aria-hidden': 'true' });
+    this.prevBtn = h('button', { class: 'corner prev', 'data-key': this.key('codex-prev'), 'aria-label': t('codex.prevPage') }, chevron('prev'));
+    this.nextBtn = h('button', { class: 'corner next', 'data-key': this.key('codex-next'), 'aria-label': t('codex.nextPage') }, chevron('next'));
+    this.prevBtn.addEventListener('click', () => this.turn(-1));
+    this.nextBtn.addEventListener('click', () => this.turn(1));
+    const edgePrev = h('div', { class: 'edge prev', 'aria-hidden': 'true' });
+    const edgeNext = h('div', { class: 'edge next', 'aria-hidden': 'true' });
+    edgePrev.addEventListener('click', () => this.turn(-1));
+    edgeNext.addEventListener('click', () => this.turn(1));
+    this.book = h(
+      'div',
+      { class: 'book', tabindex: -1 },
+      h('div', { class: 'book-board', 'aria-hidden': 'true' }),
+      this.viewport,
+      this.ribbon,
+      edgePrev,
+      edgeNext,
+      this.prevBtn,
+      this.nextBtn,
+      this.measureBox,
+    );
+  }
 
   private build(): void {
     this.search = h('input', {
@@ -300,32 +436,7 @@ export class CodexBook {
 
     const bar = h('div', { class: 'book-bar' }, h('div', { class: 'search-wrap' }, this.search, this.clearBtn), this.status, closeBtn);
 
-    this.strip = h('div', { class: 'book-strip' });
-    this.layer = h('div', { class: 'flip-layer', 'aria-hidden': 'true' });
-    this.viewport = h('div', { class: 'book-viewport' }, this.strip, this.layer);
-    this.measureBox = h('div', { class: 'book-measure', 'aria-hidden': 'true' });
-    this.ribbon = h('div', { class: 'ribbon', 'aria-hidden': 'true' });
-    this.prevBtn = h('button', { class: 'corner prev', 'data-key': 'codex-prev', 'aria-label': t('codex.prevPage') }, chevron('prev'));
-    this.nextBtn = h('button', { class: 'corner next', 'data-key': 'codex-next', 'aria-label': t('codex.nextPage') }, chevron('next'));
-    this.prevBtn.addEventListener('click', () => this.turn(-1));
-    this.nextBtn.addEventListener('click', () => this.turn(1));
-    const edgePrev = h('div', { class: 'edge prev', 'aria-hidden': 'true' });
-    const edgeNext = h('div', { class: 'edge next', 'aria-hidden': 'true' });
-    edgePrev.addEventListener('click', () => this.turn(-1));
-    edgeNext.addEventListener('click', () => this.turn(1));
-
-    this.book = h(
-      'div',
-      { class: 'book', tabindex: -1 },
-      h('div', { class: 'book-board', 'aria-hidden': 'true' }),
-      this.viewport,
-      this.ribbon,
-      edgePrev,
-      edgeNext,
-      this.prevBtn,
-      this.nextBtn,
-      this.measureBox,
-    );
+    this.buildBook();
     this.tabs = h('nav', { class: 'register-tabs', 'aria-label': t('aria.bookmarks') });
     this.shell = h('div', { class: 'book-shell' }, bar, this.tabs, this.book);
 
@@ -340,6 +451,27 @@ export class CodexBook {
     dialog.addEventListener('keydown', (e) => this.onKey(e));
     this.addSwipe();
     this.dialog = dialog;
+  }
+
+  /** Desk mode: arrows, Page up and down, Home and End turn pages while focus is in the book. K stays with the desk. */
+  private onDeskKey(e: KeyboardEvent): void {
+    if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
+    const nav: Record<string, () => void> = {
+      ArrowRight: () => this.turn(1),
+      ArrowLeft: () => this.turn(-1),
+      PageDown: () => this.turn(1),
+      PageUp: () => this.turn(-1),
+      Home: () => this.jump({ kind: 'front' }),
+      End: () => {
+        this.target = null;
+        this.goSpread(this.spreadOf(this.lastReadablePage()));
+      },
+    };
+    const action = nav[e.key];
+    if (!action || !this.laidOut) return;
+    e.preventDefault();
+    e.stopPropagation();
+    action();
   }
 
   private onKey(e: KeyboardEvent): void {
@@ -382,6 +514,7 @@ export class CodexBook {
 
   /** Keeps Tab inside the dialog and off hidden pages. */
   private trapFocus(e: KeyboardEvent): void {
+    if (!this.dialog) return;
     const focusables = [...this.dialog!.querySelectorAll<HTMLElement>('button, input, a[href], [tabindex="0"]')].filter(
       (el) => !el.closest('[inert]') && !(el as HTMLButtonElement).disabled && !el.hidden && el.getClientRects().length > 0,
     );
@@ -449,7 +582,7 @@ export class CodexBook {
       : h('div', { class: 'rule-main' }, title, text, foot);
     return h(
       'article',
-      { class: `blk rule${rule.hint ? ' hint-rule' : ''}${fresh ? ' fresh' : ''}`, id: `regel-${rule.id}`, 'data-rule': rule.id, 'data-day': rule.day },
+      { class: `blk rule${rule.hint ? ' hint-rule' : ''}${fresh ? ' fresh' : ''}`, id: this.key(`regel-${rule.id}`), 'data-rule': rule.id, 'data-day': rule.day },
       h(
         'div',
         { class: 'rule-margin' },
@@ -482,7 +615,7 @@ export class CodexBook {
       out.push(
         h(
           'button',
-          { class: 'blk toc-group', 'data-key': `toc-day-${d.day}`, onclick: () => this.jump({ kind: 'delivery', day: d.day }) },
+          { class: 'blk toc-group', 'data-key': this.key(`toc-day-${d.day}`), 'data-day': d.day, onclick: () => this.jump({ kind: 'delivery', day: d.day }) },
           h('span', { class: 'toc-label' }, t('codex.deliveryHeading', { day: d.day })),
           this.leader(this.folio(dp)),
         ),
@@ -492,7 +625,7 @@ export class CodexBook {
         out.push(
           h(
             'button',
-            { class: 'blk toc-line', 'data-key': `toc-${r.id}`, onclick: () => this.goRule(r.id) },
+            { class: 'blk toc-line', 'data-key': this.key(`toc-${r.id}`), 'data-rule-id': r.id, onclick: () => this.goRule(r.id) },
             h('span', { class: 'toc-id' }, r.id),
             h('span', { class: 'toc-title' }, r.title, r.hint ? h('span', { class: 'toc-hint', role: 'img', 'aria-label': t('codex.hint') }, manicule('manicule small')) : null),
             this.leader(this.folio(p)),
@@ -547,16 +680,28 @@ export class CodexBook {
   }
 
   private queueRelayout(): void {
-    if (this.relayoutQueued || !this.dialog) return;
+    if (this.relayoutQueued || !this.host) return;
+    if (this.mode === 'desk' && !this.laidOut) return;
     this.relayoutQueued = true;
     requestAnimationFrame(() => {
       this.relayoutQueued = false;
-      if (this.dialog) this.layout(this.target ?? this.anchor());
+      if (this.host?.isConnected) this.layout(this.target ?? this.anchor());
     });
   }
 
-  /** Book size from the window (SPEC 6.2): at most 1120 × 760, single page below 900 px. */
+  /** Book size from the window (SPEC 6.2): at most 1120 × 760, single page below 900 px. On the desk a fixed small double page (6.1a). */
   private sizeBook(): void {
+    if (this.mode === 'desk') {
+      this.single = false;
+      this.pageW = DESK_PAGE_W;
+      const s = this.shell.style;
+      s.setProperty('--book-w', `${DESK_PAGE_W * 2 + 20}px`);
+      s.setProperty('--book-h', `${DESK_PAGE_H + 20}px`);
+      s.setProperty('--page-w', `${DESK_PAGE_W}px`);
+      s.setProperty('--page-h', `${DESK_PAGE_H}px`);
+      s.setProperty('--book-fs', `${DESK_FS}px`);
+      return;
+    }
     const vw = document.documentElement.clientWidth;
     const vh = window.innerHeight;
     this.single = vw < SINGLE_PAGE_BELOW;
@@ -752,11 +897,11 @@ export class CodexBook {
     for (const p of this.pages) {
       if (!p.front) continue;
       for (const btn of p.el.querySelectorAll<HTMLElement>('.toc-line')) {
-        const id = btn.dataset.key!.slice(4);
+        const id = btn.dataset.ruleId!;
         btn.querySelector('.toc-page')!.textContent = this.folio(this.rulePage.get(id)!);
       }
       for (const btn of p.el.querySelectorAll<HTMLElement>('.toc-group')) {
-        const d = Number(btn.dataset.key!.slice(8));
+        const d = Number(btn.dataset.day);
         btn.querySelector('.toc-page')!.textContent = this.folio(this.deliveryPage.get(d)!);
       }
     }
@@ -939,6 +1084,7 @@ export class CodexBook {
   // ---------- Register tabs (SPEC 6.5) ----------
 
   private renderTabs(): void {
+    if (this.mode === 'desk') return;
     const env = this.env!;
     const tabs: HTMLElement[] = [
       h('button', { class: 'tab tab-register', 'data-key': 'tab-register', onclick: () => this.jump({ kind: 'front' }) }, t('codex.tabRegister')),
@@ -968,6 +1114,7 @@ export class CodexBook {
   }
 
   private updateTabs(): void {
+    if (this.mode === 'desk') return;
     const pages = this.visibleIndices().map((i) => this.pages[i]!);
     const front = pages[0]?.front ?? false;
     // The delivery jumped to, if it is on the spread; else the first one shown.
@@ -1050,7 +1197,7 @@ export class CodexBook {
           { transform: 'rotateY(-150deg)', opacity: 1, offset: 0.75 },
           { transform: 'rotateY(-180deg)', opacity: 0 },
         ],
-        { duration: FLIP_MS, easing: 'cubic-bezier(.45,.05,.3,1)' },
+        { duration: this.mode === 'desk' ? DESK_OPEN_MS : FLIP_MS, easing: 'cubic-bezier(.45,.05,.3,1)' },
       ),
     );
   }

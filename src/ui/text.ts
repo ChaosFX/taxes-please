@@ -10,16 +10,17 @@ import { z } from 'zod';
  */
 const KEYS = {
   title: ['heading', 'year', 'newGame', 'continue', 'confirmOverwrite'],
-  intro: ['day', 'noteFrom', 'speaker', 'begin', 'newspaper', 'call', 'unlockCalculator'],
-  desk: ['day', 'stack', 'pruefvermerk', 'akte', 'followUpId', 'colPosition', 'colAmount', 'colDecision', 'emptyDesk', 'stamps', 'outbox', 'outboxButton', 'stampFirst', 'amountLabel', 'amountPlaceholder', 'inquiryHeading', 'inquiryRequired', 'markMode', 'markHint', 'markCount', 'markClear', 'akteNoJob', 'markPair', 'markSide', 'markRemove'],
+  intro: ['day', 'noteFrom', 'speaker', 'begin', 'newspaper', 'call', 'unlockCalculator', 'unlockCalendar'],
+  desk: ['day', 'stack', 'pruefvermerk', 'akte', 'followUpId', 'colPosition', 'colAmount', 'colDecision', 'emptyDesk', 'stamps', 'outbox', 'outboxButton', 'stampFirst', 'amountLabel', 'amountPlaceholder', 'inquiryHeading', 'inquiryRequired', 'markMode', 'markHint', 'markCount', 'markClear', 'akteNoJob', 'markPair', 'markSide', 'markRemove', 'closeAkte', 'pocket', 'stampField', 'oneAkteOnly', 'closeFirst', 'stampTaken', 'alreadyStamped', 'noOpenAkte', 'putBack'],
   verdict: ['anerkennen', 'streichen', 'offen'],
-  codex: ['open', 'close', 'day', 'locked', 'new', 'simplified', 'sourceSeparator', 'searchPlaceholder', 'hits', 'hint', 'coverTitle', 'coverSubtitle', 'coverStand', 'runningHeadLeft', 'runningHeadRight', 'deliveryHeading', 'register', 'tabRegister', 'lockedSheet', 'nextPage', 'prevPage', 'noHits', 'searchClear'],
+  codex: ['open', 'close', 'day', 'locked', 'new', 'simplified', 'sourceSeparator', 'searchPlaceholder', 'hits', 'hint', 'coverTitle', 'coverSubtitle', 'coverStand', 'runningHeadLeft', 'runningHeadRight', 'deliveryHeading', 'register', 'tabRegister', 'lockedSheet', 'nextPage', 'prevPage', 'noHits', 'searchClear', 'readMode'],
   evaluation: ['heading', 'noErrors', 'errorsToday', 'speaker', 'markOk', 'markWrong', 'result', 'followUpName', 'correct', 'wrong', 'errorStamp', 'errorDetail', 'notGiven', 'solution', 'positionHeading', 'questionHeading', 'correctStamp', 'ruleSeparator', 'closeDay', 'amountGiven', 'inquiryGiven', 'discrepancyHeading', 'errorAbout', 'inquiryCorrect', 'inquiryAnswer'],
   end: ['heading', 'colDay', 'colErrors', 'toStart'],
   calculator: ['heading', 'clear', 'equals', 'decimal', 'error', 'add', 'subtract', 'multiply', 'divide'],
+  calendar: ['heading', 'prevMonth', 'nextMonth', 'monthYear', 'countHint', 'countStart', 'countResult', 'countResultOne'],
   settings: ['heading', 'effects', 'effectsAus', 'effectsReduziert', 'effectsVoll', 'sound', 'volume', 'music', 'percent'],
   error: ['heading'],
-  aria: ['codex', 'codexSearch', 'bookmarks', 'lockedPage', 'paper', 'officeStamp', 'pruefvermerk', 'worksurface', 'tools', 'calculator', 'amountInput', 'markableLine', 'calcDisplay', 'calcAdd', 'calcSubtract', 'calcMultiply', 'calcDivide', 'calcDecimal', 'calcClear', 'calcEquals', 'markRemove', 'codexPage', 'codexBook'],
+  aria: ['codex', 'codexSearch', 'bookmarks', 'lockedPage', 'paper', 'officeStamp', 'pruefvermerk', 'worksurface', 'tools', 'calculator', 'amountInput', 'markableLine', 'calcDisplay', 'calcAdd', 'calcSubtract', 'calcMultiply', 'calcDivide', 'calcDecimal', 'calcClear', 'calcEquals', 'markRemove', 'codexPage', 'codexBook', 'calendar', 'calendarDay', 'calendarHoliday', 'inbox', 'folder', 'folderStamped'],
 } as const;
 
 type Keys = typeof KEYS;

@@ -112,7 +112,8 @@ describe('Spielstände aus 0.2 (SPEC 9)', () => {
     expect(s.results.map((r) => r.akteId)).toEqual(old.results.filter((r: { day: number }) => r.day < 4).map((r: { akteId: string }) => r.akteId));
     expect(s.results).toHaveLength(11);
     expect(s.queue).toEqual(['3-4/folge', '4-1', '4-2', '4-3', '4-4', '4-5']);
-    expect(s.tools).toEqual([]);
+    // Day 4 unlocks the desk calendar (akt1.json 0.3.2).
+    expect(s.tools).toEqual(['calendar']);
     expect(s.settings).toEqual(old.settings);
   });
 

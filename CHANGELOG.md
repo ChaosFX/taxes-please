@@ -2,6 +2,13 @@
 
 Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in diesem Repo parallel geführt. Jede Änderung steht hier mit Datum, Datei und Version.
 
+## 22.11.2026
+
+- `SPEC.md` 0.4.0: Arbeitstisch zum Anfassen (Abschnitte 4, 6.1, 6.1a, 6.2, 7.1 bis 7.5, 9, 10, 11, 12): Eingang und Werkzeugleiste links, Akte als Mappe mit Tasche, Unterlagen fliegen beim Schließen zurück, Stempel nehmen und aufdrücken, Ablegen durch Ziehen, nur eine Akte am Tisch, Kodex am Tisch aufgeschlagen und Lesemodus mit K. Neuer Tischkalender mit `content/kalender.json`, `unlock: calendar`, `meta.kalenderStart`. „Papiere im Raster“ entfällt. `auftraege/05-arbeitstisch.md` und `auftraege/05-prototyp-arbeitstisch.html` angelegt.
+- `content/akt1.json` 0.3.2: `meta.kalenderStart` „2026-04“, Tag 4 mit `unlock: calendar`.
+- `content/ui.json` 0.4.0: neu `intro.unlockCalendar`, `desk.closeAkte`, `desk.pocket`, `desk.stampField`, `desk.oneAkteOnly`, `desk.closeFirst`, `desk.stampTaken`, `desk.alreadyStamped`, `desk.noOpenAkte`, `desk.putBack`, `codex.readMode`, Bereich `calendar`, `aria.calendar`, `aria.calendarDay`, `aria.calendarHoliday`, `aria.inbox`, `aria.folder`, `aria.folderStamped`; geändert `desk.stack` und `desk.emptyDesk`.
+- `content/kalender.json` 0.1.0 neu: gesetzliche Feiertage nach § 7 Abs. 2 ARG (BGBl. I Nr. 22/2019, über linda geprüft, nicht direkt in RIS), Karfreitag und 24. Dezember bewusst nicht eingetragen.
+
 ## 21.11.2026
 
 - `content/ui.json` 0.3.0 (Ausnahme in Auftrag 04): neue Schlüssel `codex.coverTitle`, `codex.coverSubtitle`, `codex.coverStand`, `codex.runningHeadLeft`, `codex.runningHeadRight`, `codex.deliveryHeading`, `codex.register`, `codex.tabRegister`, `codex.lockedSheet`, `codex.nextPage`, `codex.prevPage`, `codex.noHits`, `codex.searchClear`, `aria.codexPage`, `aria.codexBook`; `aria.calcDisplay` jetzt „Rechneranzeige“. Kein Schlüssel entfernt. Bitte im Chat prüfen.

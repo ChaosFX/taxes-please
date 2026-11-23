@@ -129,16 +129,18 @@ describe('Tagesablauf Akt I', () => {
     expect(advanceDay(content, s)).toBe(s);
   });
 
-  it('der Rechner wird an Tag 8 freigeschaltet und bleibt', () => {
+  it('Kalender ab Tag 4 und Rechner ab Tag 8 werden freigeschaltet und bleiben', () => {
     let s = newGame(content);
     const tools: Record<number, string[]> = {};
     while (s.phase !== 'actEnd') {
       tools[s.day] = s.tools;
       s = advanceDay(content, playDay(s, perfect));
     }
-    expect(tools[7]).toEqual(['pinboard']);
-    expect(tools[8]).toEqual(['pinboard', 'calculator']);
-    expect(tools[10]).toEqual(['pinboard', 'calculator', 'drawer']);
+    expect(tools[3]).toEqual([]);
+    expect(tools[4]).toEqual(['calendar']);
+    expect(tools[7]).toEqual(['calendar', 'pinboard']);
+    expect(tools[8]).toEqual(['calendar', 'pinboard', 'calculator']);
+    expect(tools[10]).toEqual(['calendar', 'pinboard', 'calculator', 'drawer']);
   });
 
   it('Ermahnung ab drei Fehlern', () => {
