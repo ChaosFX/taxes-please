@@ -1,5 +1,5 @@
 {
-  "version": "0.5.2",
+  "version": "0.6.1",
   "title": {
     "heading": "Taxes Please",
     "year": "Veranlagungsjahr {year}",
@@ -18,7 +18,15 @@
     "unlockCalendar": "Neben dem Kodex liegt ab heute ein Tischkalender.",
     "unlockPinboard": "Neben dem Telefon hängt ab heute eine Pinnwand. Auffällige Stellen aus Akten landen dort als Hinweise, die Sie den offenen Fragen zuordnen.",
     "unlockDrawer": "Die unterste Lade geht heute endlich auf.",
-    "unlockMarking": "Ab heute können Sie beim Ergänzungsersuchen zwei Angaben gegenüberstellen, die nicht zusammenpassen."
+    "unlockMarking": "Ab heute können Sie beim Ergänzungsersuchen zwei Angaben gegenüberstellen, die nicht zusammenpassen.",
+    "clipping": "Zeitungsausschnitt vom {date}",
+    "marginNote": "Randnotiz von {from}",
+    "continue": "Weiter"
+  },
+  "prologue": {
+    "next": "Weiter",
+    "skip": "Vorspann überspringen",
+    "start": "Zum ersten Arbeitstag"
   },
   "desk": {
     "day": "Tag {day}",
@@ -201,6 +209,8 @@
     "heading": "Inhalte konnten nicht geladen werden"
   },
   "aria": {
+    "prologue": "Vorspann",
+    "deskEvent": "Ereignis am Tisch",
     "codex": "Kodex",
     "codexSearch": "Kodex durchsuchen",
     "bookmarks": "Lesezeichen",

@@ -1,11 +1,28 @@
 {
   "meta": {
-    "version": "0.3.7",
+    "version": "0.4.1",
     "akt": 1,
     "veranlagungsjahr": 2025,
     "kalenderStart": "2026-04",
     "hinweis": "Alle Personen und Firmen sind erfunden. Kodextexte sind vereinfacht und keine Rechtsauskunft."
   },
+  "prologue": [
+    {
+      "title": "Küche, kurz nach sieben",
+      "text": "Mia malt am Küchentisch, die Zunge zwischen den Zähnen. „Was machst du heute, Papa?“ „Ich krieg einen neuen Schreibtisch.“ „Mit Stempel?“ „Mit Stempel.“",
+      "provisional": true
+    },
+    {
+      "title": "Der Kühlschrank",
+      "text": "Johannas Fototermine in Rot, Daniels Dienst in Blau. Quer über die Woche klebt ein Zettel in Großbuchstaben: KINDERGARTEN SPERRT 16:30. Johanna packt die Kameratasche. „Wenn die Hochzeit im Juni fix wird, haben wir einen ruhigen Sommer. Drück mir die Daumen.“",
+      "provisional": true
+    },
+    {
+      "title": "Der Brief",
+      "text": "Finanzamt, Dienststelle Wien-Mitte: „Sie übernehmen ab 1. April 2026 den Arbeitsplatz von Amtsrat Walter Sedlak, der mit Ablauf März in den Ruhestand getreten ist.“ Daniel liest den Satz zweimal. Warum der Platz frei geworden ist, steht nicht drin. Als er die Tasche zumacht, merkt er nicht, dass Mia etwas hineingeschoben hat.",
+      "provisional": true
+    }
+  ],
   "texts": {
     "optionLabels": {
       "unbeschraenkt": "unbeschränkt steuerpflichtig",
@@ -578,7 +595,7 @@
     },
     {
       "day": 4,
-      "intro": "Die Post ist da. Wenn ich gestern richtig entschieden habe, liegt die Kursbestätigung von Frau Lang obenauf. Auf dem Tisch steht jetzt ein Kalender.",
+      "intro": "Die Post ist da. Wenn ich gestern richtig entschieden habe, liegt die Kursbestätigung von Frau Lang obenauf. Auf dem Tisch steht jetzt ein Kalender. Unter Sedlaks offenen Akten lag noch eine Mappe mit Zeitungsausschnitten, jeder mit Datum und ein paar Worten am Rand.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["4-1", "4-2", "4-3", "4-4", "4-5"],
       "storyEvents": [
@@ -586,7 +603,13 @@
           "type": "newspaper",
           "from": "Donau-Kurier",
           "headline": "Silvesterkonzert im Kurhaus: Edlinger bringt den Saal zum Schunkeln",
-          "text": "Wie der Donau-Kurier erfuhr, war das Konzert schon Wochen vorher ausverkauft. Über die Gage schweigen alle Beteiligten."
+          "text": "Wie der Donau-Kurier erfuhr, war das Konzert schon Wochen vorher ausverkauft. Über die Gage schweigen alle Beteiligten.",
+          "clipping": {
+            "date": "2. Jänner 2026",
+            "note": "Edlinger. Wer organisiert ihm das alles?",
+            "noteFrom": "Sedlak"
+          },
+          "provisional": true
         },
         {
           "type": "dialog",
@@ -613,7 +636,13 @@
           "type": "newspaper",
           "from": "Donau-Kurier",
           "headline": "Winterfest im Goldenen Hirschen",
-          "text": "Wirt Ferdinand Brandl feierte Mitte Dezember mit rund 200 Gästen. Für Dekoration und Service sorgte nach Angaben des Hauses die Eventservice GmbH."
+          "text": "Wirt Ferdinand Brandl feierte Mitte Dezember mit rund 200 Gästen. Für Dekoration und Service sorgte nach Angaben des Hauses die Eventservice GmbH.",
+          "clipping": {
+            "date": "17. Dezember 2025",
+            "note": "Schon wieder die Eventservice.",
+            "noteFrom": "Sedlak"
+          },
+          "provisional": true
         },
         {
           "type": "dialog",
@@ -642,8 +671,9 @@
         {
           "type": "newspaper",
           "from": "Donau-Kurier",
-          "headline": "Wirte investieren in Küchentechnik",
-          "text": "Immer mehr Gastbetriebe tauschen ihre Geräte vor dem Jahreswechsel aus. Die Branche erwartet einen starken Winter."
+          "headline": "Goldener Hirsch: neue Schank zum Frühjahr",
+          "text": "Wirt Ferdinand Brandl hat über den Winter umgebaut. Die neue Schank hat Tischlermeister Wolfgang Hable gemacht, wie schon die alte vor dreißig Jahren.",
+          "provisional": true
         },
         {
           "type": "note",
@@ -667,7 +697,13 @@
           "type": "newspaper",
           "from": "Donau-Kurier",
           "headline": "Edlinger feiert Geburtstag mit halber Branche",
-          "text": "Zum Empfang im Palais luden Edlingers Management und eine Wiener Eventagentur. Der Sänger zeigte sich mit neuem Sportwagen."
+          "text": "Zum Empfang im Palais luden Edlingers Management und eine Wiener Eventagentur. Der Sänger zeigte sich mit neuem Sportwagen.",
+          "clipping": {
+            "date": "23. Juni 2025",
+            "note": "Welche Eventagentur?",
+            "noteFrom": "Sedlak"
+          },
+          "provisional": true
         },
         {
           "type": "note",
@@ -763,7 +799,8 @@
           "type": "newspaper",
           "from": "Donau-Kurier",
           "headline": "Goldener Hirsch: ein Familienbetrieb wie aus dem Bilderbuch",
-          "text": "Wirt Ferdinand Brandl dankt beim Winterfest seiner Frau Renate. Ohne sie, sagt er, ginge im Haus gar nichts."
+          "text": "Zum Saisonstart spricht Wirt Ferdinand Brandl über sein Haus. Ohne seine Frau Renate, sagt er, ginge im Goldenen Hirschen gar nichts.",
+          "provisional": true
         },
         {
           "type": "call",
@@ -818,32 +855,54 @@
           "text": "Der Immobilieninvestor Konstantin Haller baut sein Weingut weiter aus. Wein sei für ihn eine Herzensangelegenheit, ließ er über seine Holding ausrichten."
         },
         {
+          "type": "dialog",
+          "from": "Gerri",
+          "at": {
+            "case": "9-2"
+          },
+          "provisional": true,
+          "text": "Den Brandl hast schon durch? Der Sedlak ist an dem ein Jahr gesessen."
+        },
+        {
           "type": "unlock",
-          "feature": "drawer"
+          "feature": "drawer",
+          "at": "end"
         },
         {
           "type": "note",
           "from": "Sedlak",
           "title": "Notizbuch, erste Seite",
           "text": "Brandl zahlt der Eventservice bar. Edlinger zahlt derselben Firma Konzerte, die in seinem Tourneeplan nicht stehen. Die Kopien liegen im Schließfach, nicht in diesem Haus. Wenn Sie das lesen, sitzen Sie an meinem Tisch. Es tut mir leid. Und danke.",
-          "keep": "drawer"
+          "keep": "drawer",
+          "at": "end"
         },
         {
           "type": "note",
           "from": "Sedlak",
           "title": "Beurteilung, Kopie",
           "text": "Auf der letzten Beurteilung ist das Wort „Rückstände“ unterstrichen. Daneben stehen drei Aktenzahlen. Hinter jeder steht: „Antwort ausständig.“",
-          "keep": "drawer"
+          "keep": "drawer",
+          "at": "end"
         },
         {
           "type": "dialog",
           "from": "Gerri",
-          "text": "Leg mir die offenen Akten beim nächsten Mal kurz her. Für heut reicht’s."
+          "text": "Leg mir die offenen Akten beim nächsten Mal kurz her. Für heut reicht’s.",
+          "at": "end"
         },
         {
           "type": "call",
           "from": "Dr. Pernold",
-          "text": "Grüß Gott, Herr Winkler. Pernold hier, wegen Herrn Edlinger. Ich wollte Ihnen nur meine Durchwahl geben. Der Herr Sedlak hat sie auch gehabt. Er hat gegen Ende lieber geschrieben. Sie können mir natürlich auch schreiben."
+          "text": "Grüß Gott, Herr Winkler. Pernold hier, wegen Herrn Edlinger. Ich wollte Ihnen nur meine Durchwahl geben. Der Herr Sedlak hat sie auch gehabt. Er hat gegen Ende lieber geschrieben. Sie können mir natürlich auch schreiben.",
+          "at": "end"
+        },
+        {
+          "type": "note",
+          "from": "Johanna",
+          "title": "Nachricht",
+          "at": "end",
+          "provisional": true,
+          "text": "Ich hab den Termin mit der Agentur. Eventservice GmbH, die machen Firmenfeiern. Wenn das klappt, ist der Sommer gerettet. Drück mir die Daumen."
         },
         {
           "type": "actSummary",
@@ -875,6 +934,31 @@
           "answer": {
             "from": "Sedlak",
             "text": "Der Stempel sitzt immer unten links, immer schief, immer gleich. Wie viele Akten mit diesem Stempel liegen noch in diesem Haus?"
+          },
+          "provisional": true
+        },
+        {
+          "id": "q4",
+          "group": "Goldener Hirsch",
+          "from": "Sedlak",
+          "after": "q3",
+          "text": "Renates Gehalt ging bar aus der Kassa. Wohin geht in diesem Haus sonst noch Bargeld?",
+          "clues": [
+            {
+              "case": "9-2",
+              "document": "Dienstvertrag Renate Brandl",
+              "line": "Auszahlung",
+              "given": true
+            },
+            {
+              "case": "5-3",
+              "document": "Rechnung Eventservice GmbH",
+              "line": "Bezahlt"
+            }
+          ],
+          "answer": {
+            "from": "Sedlak",
+            "text": "Bar aus der Kassa, bar an die Eventservice. Und an wen zahlt die Eventservice bar?"
           },
           "provisional": true
         }

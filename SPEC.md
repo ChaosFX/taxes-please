@@ -1,10 +1,18 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 23.11.2026 · Version 0.5.3 · passt zu `content/akt1.json` Version 0.3.7, `content/ui.json` Version 0.5.2 und `content/kalender.json` Version 0.1.0
+Stand: 23.11.2026 · Version 0.6.1 · passt zu `content/akt1.json` Version 0.4.1, `content/ui.json` Version 0.6.1 und `content/kalender.json` Version 0.1.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
 Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakten und 54 Kodexregeln (davon 5 Hinweise ohne eigenen Fall). Inhalt und Lösungen stehen in `content/akt1.json`, einer Datei für den ganzen Akt. Spätere Akte bekommen je eine eigene Datei (`akt2.json` usw.).
+
+Änderungen gegenüber 0.6.0: Auftrag 07 liegt jetzt auf Auftrag 06b (0.5.3). Dessen Änderungen sind eingearbeitet, siehe unten. Inhalt: `akt1.json` 0.4.1, `ui.json` 0.6.1.
+
+Änderungen gegenüber 0.5.3 (Auftrag 07):
+- **Vorspann** (`prologue`) je Akt-Datei: kurze Bildschirme vor dem ersten Tag des Akts, in Akt I nach „Neues Spiel“ (Abschnitte 3, 4, 7.8, 9).
+- **Zeitpunkt von Story-Ereignissen** (`at`): zum Tagesbeginn (Standard), nach dem Ablegen einer bestimmten Akte (`{ "case": "…" }`) oder am Tagesende vor der Auswertung (`"end"`). Ereignisse im Lauf des Tages erscheinen am Tisch (Abschnitte 3, 4, 7.8, 9).
+- **Zeitungsausschnitt** (`clipping` an `newspaper`): Datum und Randnotiz für Meldungen aus der Vergangenheit, damit die Morgenzeitung nur Aktuelles bringt (Abschnitte 3, 7.8).
+- Inhalt: `akt1.json` 0.4.0 (Vorspann, Zeitungsausschnitte aus Sedlaks Mappe, Tag 10 über den Tag verteilt, neue Frage q4), `ui.json` 0.6.0 (Bereich `prologue`, `intro.clipping`, `intro.marginNote`, `intro.continue`, `aria.prologue`, `aria.deskEvent`).
 
 Änderungen gegenüber 0.5.2 (Auftrag 06b, Feinschliff nach dem ersten Durchspielen):
 - **Werkzeuge über Akt I verteilt** (Abschnitt 7, „Freischaltung der Werkzeuge“): höchstens ein neues Werkzeug je Tag, vorher ist es nicht am Tisch. Neue Freischaltung `unlock: marking` (Tag 5), Morgenzeitung schon ab Tag 2.
@@ -100,8 +108,13 @@ Die Typen folgen exakt dem JSON in `content/`. Alles, was hier nicht als optiona
 - Der Loader liest alle `content/*.json` außer `ui.json` und `kalender.json`, sortiert nach Dateinamen, und führt sie zu einem Inhalt zusammen.
 - Je Akt gibt es eine Datei (`akt1.json`, später `akt2.json` usw.). `meta` hat `version`, `akt`, `veranlagungsjahr`, `hinweis` und optional `kalenderStart` (Monat im Format `JJJJ-MM`, mit dem der Tischkalender in diesem Akt aufschlägt; ohne Angabe Jänner des Jahres nach `veranlagungsjahr`).
 - `meta` kommt aus der ersten Datei. Jede Datei hat ein eigenes `meta.version`, die Versionen aller Dateien werden im Fehlerfall mit ausgegeben.
+- Optional `prologue` je Datei (siehe unten). Es gehört zum Akt dieser Datei.
 - `rules`, `days` und `cases` werden aneinandergehängt. Doppelte Regel-IDs, Akten-IDs oder Tagesnummern sind ein Fehler.
 - `texts` wird schlüsselweise zusammengeführt. `texts.optionLabels` ist die Vereinigung aller Dateien. Kommt ein Schlüssel (auch in `optionLabels`) in zwei Dateien mit verschiedenem Wert vor, ist das ein Fehler. Pflichtschlüssel (`stampLabels`, `unnecessaryDelay`, `warning`, `emptyDay`) müssen nach dem Zusammenführen vorhanden sein, egal in welcher Datei.
+
+### Vorspann (`prologue`)
+
+Optional je Akt-Datei: eine Liste von Bildschirmen, die vor dem ersten Tag des Akts erscheinen. Jeder Bildschirm hat `text` und optional `title` und `provisional: true`. Mindestens ein Bildschirm, wenn das Feld da ist. Bilder kommen später (Porträts, Claude Design) und sind in dieser Version nicht vorgesehen.
 
 ### `texts`
 
@@ -124,19 +137,27 @@ Die Typen folgen exakt dem JSON in `content/`. Alles, was hier nicht als optiona
 
 ### Story-Ereignisse (`storyEvents`)
 
-Jedes Ereignis hat ein `type`. Die Felder je Typ:
+Jedes Ereignis hat ein `type`. Jedes Ereignis außer `actSummary` darf zusätzlich `at` tragen, den Zeitpunkt im Tag:
+
+- ohne `at` oder `"start"`: zum Tagesbeginn, wie bisher.
+- `{ "case": "<Akten-ID>" }`: gleich nachdem diese Akte an diesem Tag im Ausgangskorb liegt. Gemeint ist die Akte im Stapel dieses Tages, auch eine Folgeakte. Liegt die Akte an diesem Tag nicht im Stapel (zum Beispiel weil keine Folgeakte kam), erscheint das Ereignis am Tagesende.
+- `"end"`: am Tagesende, wenn die letzte Akte abgelegt ist, vor der Auswertung.
+
+Innerhalb desselben Zeitpunkts gilt die Reihenfolge im JSON. `actSummary` hat kein `at` und kommt immer nach der Auswertung.
+
+Die Felder je Typ:
 
 | `type` | Felder | Darstellung |
 | --- | --- | --- |
 | `note` | `from`, `text`, optional `title`, optional `keep: "drawer"` | Zettel (wie bisher), `title` als Überschrift. Mit `keep: "drawer"` kommt der Zettel nach dem Anzeigen in die Lade (Abschnitt 7.7). |
 | `dialog` | `from`, `text` | Sprechblase (wie bisher) |
-| `newspaper` | `from` (Name der Zeitung), `headline`, `text` | Zeitungsblatt mit Kopf `from`, Schlagzeile und kurzem Text |
+| `newspaper` | `from` (Name der Zeitung), `headline`, `text`, optional `clipping` mit `date` (Text, zum Beispiel „17. Dezember 2025“), `note` und `noteFrom` | Ohne `clipping` die Morgenzeitung wie bisher. Mit `clipping` ein ausgeschnittener Artikel: Kopf `from`, darunter `ui.intro.clipping` mit dem Datum, Schlagzeile und Text, am Rand die Randnotiz `note` in Handschrift mit `ui.intro.marginNote` für Screenreader. |
 | `call` | `from`, `text` | Telefonhörer mit „Anruf von {from}“ und Text |
 | `unlock` | `feature`: `calculator`, `calendar`, `pinboard`, `drawer` oder `marking` | `calculator` schaltet ab diesem Tag den Tischrechner frei und zeigt `ui.intro.unlockCalculator`, `calendar` den Tischkalender mit `ui.intro.unlockCalendar`, `pinboard` die Pinnwand mit `ui.intro.unlockPinboard`, `drawer` die Lade mit `ui.intro.unlockDrawer`, `marking` die Gegenüberstellung beim Ergänzungsersuchen (Abschnitt 4) mit `ui.intro.unlockMarking`. |
 | `event` | `id`, `text`, `options` (je `text`, `effects` mit `time`, `rating`, `gerri`, `home` als ganze Zahlen, `sets` als Liste von Merkern) | Ereigniskarte des Metagames. In dieser Version nur geprüft, nicht dargestellt. |
 | `actSummary` | `act` (Zahl) | Nach der Tagesauswertung dieses Tages erscheint der Schlussbildschirm des Akts (Abschnitt 4). |
 
-Ein unbekannter `type` ist ein Ladefehler. Jedes Story-Ereignis und jede Frage darf `provisional: true` tragen: Der Text ist eine Arbeitsfassung. Im Spiel hat das keine Wirkung, der Inhaltsbericht (Abschnitt 10) listet sie.
+Ein unbekannter `type` ist ein Ladefehler. Ebenso: `at` mit einem anderen Wert als `"start"`, `"end"` oder `{ "case": … }`; `at.case` mit einer Akte, die an diesem Tag weder im Stapel steht noch als Folgeakte kommen kann; `at` an `actSummary`; `clipping` ohne `date` oder mit `note` ohne `noteFrom`. Ein Zettel mit `keep: "drawer"` darf nicht vor dem `unlock: drawer` desselben Tages erscheinen, auch nicht über `at`. Jedes Story-Ereignis und jede Frage darf `provisional: true` tragen: Der Text ist eine Arbeitsfassung. Im Spiel hat das keine Wirkung, der Inhaltsbericht (Abschnitt 10) listet sie.
 
 ### Fragen (`questions`)
 
@@ -214,7 +235,8 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
 ## 4. Spielablauf
 
 1. **Startbildschirm:** Titel, Hinweis auf Fiktion und Vereinfachung, Buttons „Neues Spiel“ und „Fortsetzen“.
-2. **Tagesbeginn:** Karte mit „Tag N“ und `intro`-Text. Ein Spieldatum gibt es nicht, der Tag heißt nur „Tag N“. Daten in Belegen und Fristfällen sind Inhalt der Papiere und haben keine Wirkung auf den Ablauf. Danach die Story-Ereignisse des Tages in ihrer Reihenfolge (Abschnitt 3).
+1a. **Vorspann:** Nach „Neues Spiel“ und vor dem ersten Tag eines Akts zeigt das Spiel den `prologue` dieses Akts, ein Bildschirm nach dem anderen (`ui.prologue.next`, am Ende `ui.prologue.start`). `ui.prologue.skip` überspringt den Rest. Gesehen wird im Spielstand vermerkt, danach erscheint er nicht wieder. Ein Akt ohne `prologue` beginnt direkt mit dem Tag.
+2. **Tagesbeginn:** Karte mit „Tag N“ und `intro`-Text. Ein Spieldatum gibt es nicht, der Tag heißt nur „Tag N“. Daten in Belegen und Fristfällen sind Inhalt der Papiere und haben keine Wirkung auf den Ablauf. Danach die Story-Ereignisse des Tages ohne `at` in ihrer Reihenfolge (Abschnitt 3).
 3. **Schreibtisch:** Aufbau nach Abschnitt 7.1. Welches Werkzeug ab wann am Tisch ist, regelt Abschnitt 7, „Freischaltung der Werkzeuge“. Links der Eingang mit dem Aktenstapel und Zähler, darunter die Werkzeuge: Kodex (Abschnitt 6), ab `unlock: calendar` der Tischkalender, ab `unlock: calculator` der Tischrechner. In der Mitte die Unterlage, darunter der Griff der Lade. Rechts ab `unlock: pinboard` die Pinnwand, darunter Telefon, Stempelhalter und Ausgangskorb.
 4. **Akte bearbeiten:**
    - Der Spieler zieht die oberste Akte aus dem Eingang auf die Unterlage (oder klickt sie an, oder Enter bei Fokus). Sie schlägt sich auf: innen links der Prüfvermerk, rechts die Unterlagen in der Tasche (Abschnitt 7.2). Es liegt immer nur eine Akte am Tisch.
@@ -225,7 +247,8 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
    - **Anheften (ab der ersten Frage mit `source: "pin"`, Abschnitt 7.6):** Jede Zeile eines herausgezogenen Papiers oder eines Durchschlags zeigt beim Darüberfahren und bei Fokus eine Nadel (`aria.pinnableLine`). Ein Klick oder Enter darauf legt die Stelle als Hinweis in die Hand (`ui.pinboard.pinned`). Ein Klick auf einen Kanzleistempel legt den Vertreter in die Hand (`field: representative`). Jede Zeile hat eine Nadel, damit sie nichts verrät. Selbst angeheftete Hinweise, die zu keiner Frage passen, kann der Spieler wieder weglegen (`ui.pinboard.discard`). Mit aufgenommenem Stempel (also auch während der Gegenüberstellung) gibt es keine Nadeln. Papiere in der Tasche haben keine Nadel.
    - **Ablegen bringt Hinweise:** Liegt eine Akte im Ausgangskorb und gehört eine ihrer Stellen als `auto`-Hinweis zu einer Frage an der Wand, kommt sie in die Hand. `ui.pinboard.newClue` erscheint in der Live-Region.
    - Der Spieler nimmt einen der verfügbaren Stempel aus dem Halter und drückt ihn auf das Stempelfeld des Prüfvermerks (Abschnitt 7.3). Dann schließt er die Akte, die Unterlagen kommen dabei zurück in die Mappe, und zieht sie in den Ausgangskorb. Erst dann lässt sich die nächste Akte aus dem Eingang nehmen. Der Stempel ist endgültig, danach sind Prüfvermerk, Markierungen und Nachfrage gesperrt.
-5. **Tagesende:** Wenn der Stapel leer ist, erscheint die Auswertung.
+4a. **Ereignisse im Lauf des Tages:** Ereignisse mit `at: { case }` erscheinen am Tisch, sobald die Akte im Ausgangskorb liegt (Abschnitt 7.8). Solange sie offen sind, lässt sich keine Akte aus dem Eingang nehmen.
+5. **Tagesende:** Wenn der Stapel leer ist, erscheinen zuerst die Ereignisse mit `at: "end"` am Tisch, danach die Auswertung.
 6. **Folgeakten:** Eine Akte mit `followUp` kommt am angegebenen Tag zusätzlich in den Stapel, aber nur wenn der Spieler das Ergänzungsersuchen gestempelt hat. Sie kommt immer mit den Unterlagen aus `followUp.documents`, auch wenn die Nachfrage falsch gewählt war (der Fehler ist dann schon gezählt). Hat der Spieler einen Bescheid erlassen, kommt sie nicht. Folgeakten liegen im Stapel vor den Akten des Tages.
 7. **Leere Tage:** Ist der Stapel eines Tages leer, zeigt das Spiel `texts.emptyDay` und geht direkt zur Auswertung.
 8. **Abschluss eines Akts:** Nach der Auswertung eines Tages mit `actSummary` erscheint der Schlussbildschirm `ui.end` („Ende von Akt {act}“) mit der Übersicht Tag und Fehler. Gibt es danach keinen weiteren Tag, bleibt das Spiel dort stehen. Der Schlussbildschirm „Ende des Prototyps“ nach Tag 4 entfällt.
@@ -429,6 +452,12 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - Ein Zettel mit `keep: "drawer"` erscheint beim Tagesbeginn wie jeder Zettel. Danach steht `ui.drawer.stored` in der Live-Region.
 - Die Lade braucht keinen eigenen Spielstand: Ihr Inhalt ergibt sich aus dem Inhalt und dem aktuellen Tag.
 
+### 7.8 Vorspann und Ereignisse am Tisch
+
+- **Vorspann:** ein ruhiger Bildschirm mit Titel und Text, groß gesetzt, ohne Tisch, im Look des Startbildschirms. Weiter mit Klick, Enter oder Leertaste, Überspringen mit Escape oder `ui.prologue.skip`. Der Text steht vollständig im DOM, ohne Schreibmaschinen-Animation bei „Effekte aus“.
+- **Ereignisse am Tisch:** Zettel, Sprechblase, Anruf und Zeitung sehen aus wie zum Tagesbeginn, erscheinen aber als Overlay über dem Tisch (`aria.deskEvent`, Fokus auf das Ereignis, `ui.intro.continue` schließt es, Escape auch). Ein Anruf klingelt wie zum Tagesbeginn. `unlock` am Tisch zeigt seinen Freischaltungstext und schaltet das Werkzeug ab diesem Moment frei. Der Spieler kann vorher nichts am Tisch anfassen.
+- **Zeitungsausschnitt:** schmaler, schief ausgeschnittener Streifen statt ganzer Seite, Datum über der Schlagzeile, Randnotiz in Bleistift-Handschrift daneben. Doppelklick vergrößert wie bei der Zeitung.
+
 ## 8. Atmosphäre (vorbereitet)
 
 `src/ui/atmosphere` exportiert `mount(container)` und `setQuality(level)`. Das ist weiterhin ein Stub. Später kommt hier eine Ebene über dem Tisch mit `pointer-events: none` dazu, zuerst in leichter Form (CSS-Lichtkegel, 2D-Staub), danach optional Three.js. Das Spiel muss ohne diese Ebene vollständig funktionieren.
@@ -442,6 +471,7 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - **Freischaltungen (ab 0.5.3):** Beim Laden bekommt ein Spielstand jede Freischaltung, die der Inhalt bis zum gespeicherten Tag vorsieht und die ihm fehlt. So bekommen Spielstände ab Tag 5 von vor 0.5.3 `marking`.
 - **Pinnwand (ab 0.5.0):** `board` mit `placed` (je Frage-ID die Schlüssel der zugeordneten Hinweise), `pinned` (selbst angeheftete Stellen, die noch in der Hand liegen, je `{ case, document, line }` oder `{ case, field }`, bei Folgeakten zusätzlich `followUp: true`), `seenClues` und `seenAnswers` (für die Marke „neu“) und `misses`. Hand, sichtbare und beantwortete Fragen werden aus Inhalt und Spielstand berechnet, nicht gespeichert. Ein Spielstand ohne `board` bekommt eine leere Pinnwand. Einträge, deren Frage oder Fundstelle es im Inhalt nicht mehr gibt, fallen beim Laden still weg.
 - Nicht gespeichert werden die Lage von Papieren und Werkzeugen und eine offene, noch nicht gestempelte Akte. Nach dem Neuladen liegt diese Akte wieder zugeklappt oben im Eingang, ihre Entscheidungen sind leer.
+- **Vorspann und Ereignisse (ab 0.6.0):** `prologueSeen` (Liste der Akte, deren Vorspann gesehen ist) und `eventsShown` (je Tag die Positionen der schon gezeigten Ereignisse mit `at`). Nach dem Neuladen erscheint kein Ereignis doppelt und keines geht verloren: Ein Ereignis mit `at: { case }`, dessen Akte schon abgelegt war, aber das noch nicht gezeigt wurde, erscheint gleich beim Betreten des Tisches. Ein älterer Spielstand bekommt leere Listen, ein Spielstand nach Tag 1 gilt als „Vorspann von Akt 1 gesehen“.
 - „Neues Spiel“ fragt vor dem Überschreiben nach.
 
 ## 10. Arbeitsweise für Claude Code
@@ -498,12 +528,12 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - [ ] Loader-Tests mit je einem kaputten Beispiel: Hinweis auf eine Akte nach dem Tag der Frage; `given` mit einer Akte vom selben Tag; alle Hinweise `given`; `field` ungleich `representative`; Vertreter ohne sichtbaren Stempel; doppelte Frage-ID; `after` auf unbekannte oder spätere Frage; Kreis über `after`; `given` an einer Frage ohne `from`; Frage vor `unlock: pinboard`; `keep: "drawer"` vor `unlock: drawer`; `keep` an einem anderen Typ als `note`.
 - [ ] Zuordnen, Anheften, Weglegen, Durchschlag öffnen und die Lade gehen auch nur mit der Tastatur. Mit aufgenommenem Stempel gibt es keine Nadeln.
 - [ ] Die Pinnwand übersteht Neuladen (zugeordnete und angeheftete Hinweise, beantwortete Fragen). Ein Spielstand ohne `board` lädt weiterhin.
-- [ ] Die Zettel von Tag 10 mit `keep: "drawer"` liegen nach dem Tagesbeginn in der Lade und sind nach Neuladen noch dort.
+- [ ] Die Zettel von Tag 10 mit `keep: "drawer"` liegen nach dem Anzeigen in der Lade und sind nach Neuladen noch dort (ab 0.6.0 am Tagesende).
 - [ ] In der Tagesauswertung öffnet jede Regel-ID den Lesemodus an dieser Regel, Escape führt zurück, der Fokus liegt wieder auf der Regel.
 - [ ] An Tag 7 stehen keine Inhalte von Akten oder Fragen im DOM, die erst später kommen.
 - [ ] Bei 1280 × 720, 1920 × 1080 und 1024 × 768 passen Pinnwand-Platz und Lade-Griff auf den Tisch, und Pinnwand-Ansicht (Wand und Hand) und Lade-Ansicht sind vollständig sichtbar.
 - [ ] Bei „Effekte aus“ gibt es beim Zuordnen, beim Wackeln, beim Erscheinen der Antwort und beim Öffnen der Lade keine Animation.
-- [ ] `npm run content:report` listet die vorläufigen Texte von Akt I (ab 0.5.3 sechs: die Zeitung an Tag 2, Gerris Dialog an Tag 3, q1, q2, q3 und `e-tag9-gerri`).
+- [ ] `npm run content:report` listet alle vorläufigen Texte, auch Vorspann-Bildschirme und Ereignisse mit `at` (mit Zeitpunkt).
 
 ### Feinschliff (ab 0.5.3, Auftrag 06b)
 
@@ -516,6 +546,17 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - [ ] In Akt I gibt es an keiner Zeile eine Nadel und keine Durchschläge (Tag 7 und 10). Ein Unit-Test mit einer Frage mit `source: "pin"` zeigt beides.
 - [ ] Kringel bei „voll“, „reduziert“ und „aus“ wie beschrieben, `aria-pressed` korrekt.
 - [ ] Spielstände von vor 0.5.3 laden ohne Fehler (Tag 3, 6 und 9).
+
+### Vorspann und Tagesablauf (ab 0.6.0)
+
+- [ ] Nach „Neues Spiel“ erscheinen die drei Vorspann-Bildschirme von Akt I, danach Tag 1. Überspringen geht jederzeit. „Fortsetzen“ zeigt den Vorspann nicht noch einmal.
+- [ ] Tag 10: Gleich nach dem Ablegen der Folgeakte 9-2 erscheint Gerris Satz am Tisch. Kam keine Folgeakte (Bescheid an Tag 9), erscheint er am Tagesende. Am Tagesende erscheinen in dieser Reihenfolge: Lade freigeschaltet, Notizbuch, Beurteilung, Gerri, Anruf von Pernold, Johannas Nachricht. Danach die Auswertung, danach „Ende von Akt I“.
+- [ ] Die Lade klemmt an Tag 10 bis zum Tagesende.
+- [ ] Zeitungsausschnitte an Tag 4, 5 und 7 zeigen Datum und Randnotiz, die Morgenzeitung an Tag 6, 8, 9 und 10 nicht.
+- [ ] Neuladen mitten an Tag 10 (nach 9-2, vor dem Tagesende) zeigt Gerris Satz nicht noch einmal und verliert kein Ereignis am Tagesende.
+- [ ] Loader-Tests mit je einem kaputten Beispiel für jede neue Prüfung aus Abschnitt 3 (`at`-Werte, `at.case` ohne Akte, `at` an `actSummary`, `clipping` ohne `date`, `note` ohne `noteFrom`, `keep` vor `unlock: drawer` über `at`).
+- [ ] Ein Unit-Test zeigt, dass der Code keine Figur kennt: Eine Test-Inhaltsdatei mit anderem Vorspann und anderen Ereignissen mit `at` läuft ohne Codeänderung.
+- [ ] Vorspann und Ereignisse am Tisch gehen nur mit der Tastatur, bei „Effekte aus“ ohne Animation, und sind bei 1280 × 720, 1920 × 1080 und 1024 × 768 vollständig sichtbar.
 
 ## 12. Nicht Teil dieser Version
 
