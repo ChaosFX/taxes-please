@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { drawUntil, enter, fileAkte, freshStart, key, longTest, markKey, playDay, pullOut, solutionFor, solveNext, startAtDay, stampAkte, zoomNewspaper } from './helpers';
+import { LONG, drawUntil, enter, fileAkte, freshStart, key, longTest, markKey, playDay, pullOut, solutionFor, solveNext, startAtDay, stampAkte, zoomNewspaper } from './helpers';
 
 /**
  * Auftrag 02: Jeder Text, den der Spieler sieht oder ein Screenreader vorliest,
@@ -108,7 +108,7 @@ async function check(page: Page, where: string) {
 
 const flip = (v: string) => (v === 'anerkennen' ? 'streichen' : 'anerkennen');
 
-test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', async ({ page }) => {
+test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', LONG, async ({ page }) => {
   longTest(180_000);
   await freshStart(page);
   await check(page, 'Startbildschirm');

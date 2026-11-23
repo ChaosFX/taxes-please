@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { SMOKE, drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, stampAkte, startAtDay, zoomNewspaper } from './helpers';
+import { LONG, SMOKE, drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, stampAkte, startAtDay, zoomNewspaper } from './helpers';
 
 const FOLLOW_UP_DAYS: Record<number, string> = { 4: '3-4/folge', 5: '4-1/folge', 6: '5-3/folge', 7: '6-3/folge', 8: '7-3/folge', 10: '9-2/folge' };
 const eventsOf = (day: number): { type: string; feature?: string }[] => raw.days.find((d: { day: number }) => d.day === day).storyEvents;
@@ -9,7 +9,7 @@ const eventsOf = (day: number): { type: string; feature?: string }[] => raw.days
  * pad, papers out of the pocket, Akte into the outbox), once with the keyboard only.
  */
 for (const way of ['drag', 'keys'] as const) {
-test(`Akt I richtig durchspielen (${way === 'drag' ? 'Maus mit Ziehen' : 'nur Tastatur'}) mit Neuladen: null Fehler an allen zehn Tagen, dann „Ende von Akt I“`, async ({ page }) => {
+test(`Akt I richtig durchspielen (${way === 'drag' ? 'Maus mit Ziehen' : 'nur Tastatur'}) mit Neuladen: null Fehler an allen zehn Tagen, dann „Ende von Akt I“`, LONG, async ({ page }) => {
   longTest(300_000);
   await freshStart(page);
   await key(page, 'new-game').click();

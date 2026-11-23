@@ -14,6 +14,9 @@ export function longTest(ms: number) {
  */
 export const SMOKE = { tag: '@smoke' };
 
+/** Long tests (playing all of Akt I): the CI runs them only on a push to main. */
+export const LONG = { tag: '@long' };
+
 /** Akt I straight from the JSON (independent of src/core). */
 export const raw = JSON.parse(readFileSync(join(import.meta.dirname, '..', '..', 'content', 'akt1.json'), 'utf8'));
 

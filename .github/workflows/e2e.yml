@@ -2,8 +2,8 @@ name: E2E tests
 
 # Runs the Playwright suite against the Pages build in Chromium (Chrome, Edge),
 # Firefox and WebKit (Safari, smoke set only: tests tagged @smoke). WebKit does
-# not install on every Linux, so the
-# full browser matrix runs here.
+# not install on every Linux, so the full browser matrix runs here. Long tests
+# (@long) run only on a push to main.
 
 on:
   push:
@@ -38,9 +38,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: npx playwright test --project=${{ matrix.browser }} ${GREP:+--grep "$GREP"}
+      # Long tests (@long) only on a push to main; a given grep picks its own tests.
+      - run: |
+          if [ -n "$GREP" ]; then set -- --grep "$GREP"
+          elif [ "$EVENT" != push ]; then set -- --grep-invert @long
+          fi
+          npx playwright test --project=${{ matrix.browser }} "$@"
         env:
           GREP: ${{ inputs.grep }}
+          EVENT: ${{ github.event_name }}
       - uses: actions/upload-artifact@v4
         if: failure() || inputs.grep != ''
         with:
