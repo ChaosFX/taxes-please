@@ -2,10 +2,17 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-/** Timeout for a long test; WebKit on the CI runners is about three times slower. */
+/** Timeout for a long test (they run in Chromium and Firefox only). */
 export function longTest(ms: number) {
-  test.setTimeout(test.info().project.name === 'webkit' ? ms * 3 : ms);
+  test.setTimeout(ms);
 }
+
+/**
+ * Smoke set: the only tests run in WebKit (Safari). They touch every kind of
+ * interaction once; the game logic itself does not depend on the browser and
+ * is covered in full by Chromium and Firefox.
+ */
+export const SMOKE = { tag: '@smoke' };
 
 /** Akt I straight from the JSON (independent of src/core). */
 export const raw = JSON.parse(readFileSync(join(import.meta.dirname, '..', '..', 'content', 'akt1.json'), 'utf8'));

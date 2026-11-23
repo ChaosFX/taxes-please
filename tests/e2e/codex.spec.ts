@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { freshStart, key, openAkte, raw, startAtDay, stampAkte } from './helpers';
+import { SMOKE, freshStart, key, openAkte, raw, startAtDay, stampAkte } from './helpers';
 
 /**
  * Auftrag 04: der Kodex als Buch (SPEC 6). Most tests run with „Effekte aus“,
@@ -112,7 +112,7 @@ test('Tag 1: Titel, Text und Fundstelle von R54 stehen nirgends im DOM, Reiter T
   await expect(key(page, 'codex-book')).toBeFocused();
 });
 
-test('Öffnen mit K, Blättern mit Pfeiltasten bis R9, Escape, Neuladen, wieder an derselben Stelle', async ({ page }) => {
+test('Öffnen mit K, Blättern mit Pfeiltasten bis R9, Escape, Neuladen, wieder an derselben Stelle', SMOKE, async ({ page }) => {
   await openAtDesk(page, 10);
   await expect(page.locator('.book')).toBeFocused();
   for (let i = 0; i < 40 && !(await fullyVisibleRules(page)).includes('R9'); i++) await page.keyboard.press('ArrowLeft');

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, stampAkte, startAtDay, zoomNewspaper } from './helpers';
+import { SMOKE, drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, stampAkte, startAtDay, zoomNewspaper } from './helpers';
 
 const FOLLOW_UP_DAYS: Record<number, string> = { 4: '3-4/folge', 5: '4-1/folge', 6: '5-3/folge', 7: '6-3/folge', 8: '7-3/folge', 10: '9-2/folge' };
 const eventsOf = (day: number): { type: string; feature?: string }[] => raw.days.find((d: { day: number }) => d.day === day).storyEvents;
@@ -46,7 +46,7 @@ async function oneWrong(page: Page, day: number, akteId: string, wrong: (s: Retu
   return page.locator(`.result[data-akte="${akteId}"] .errors li`);
 }
 
-test('falscher Betrag: genau ein Fehler mit eingegebenem und richtigem Betrag', async ({ page }) => {
+test('falscher Betrag: genau ein Fehler mit eingegebenem und richtigem Betrag', SMOKE, async ({ page }) => {
   const errs = await oneWrong(page, 8, '8-1', (s) => ({ ...s, amounts: { ...s.amounts, d1: '301' } }));
   await expect(errs).toHaveText(['Kamera: Absetzung 2025: 301,00 € → 300,00 €']);
   const result = page.locator('.result[data-akte="8-1"]');
@@ -239,7 +239,7 @@ test('Betragsfeld: verschiedene Schreibweisen, Format nach dem Verlassen', async
   await expect(key(page, 'amt-d3')).toHaveValue('');
 });
 
-test('Morgenzeitung und Anruf an den Tagen laut JSON, Zeitung liegt am Tisch', async ({ page }) => {
+test('Morgenzeitung und Anruf an den Tagen laut JSON, Zeitung liegt am Tisch', SMOKE, async ({ page }) => {
   await startAtDay(page, 4);
   await expect(page.locator('.day-card .newspaper .masthead')).toHaveText('Donau-Kurier');
   await expect(page.locator('.day-card .call')).toHaveCount(0);
@@ -313,7 +313,7 @@ test('Ermahnung ab drei Fehlern, Auswertung zeigt Lösung und Fundstelle', async
   await expect(first.locator('.rule-refs a').first()).toHaveText('§ 16 Abs. 1 erster Satz EStG');
 });
 
-test('eine Akte vollständig mit der Tastatur', async ({ page }) => {
+test('eine Akte vollständig mit der Tastatur', SMOKE, async ({ page }) => {
   await freshStart(page);
   /** Tabs to the element with data-key and presses Enter. Fails if unreachable. */
   const press = async (k: string) => {

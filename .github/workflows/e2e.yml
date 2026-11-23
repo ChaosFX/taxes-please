@@ -1,7 +1,8 @@
 name: E2E tests
 
 # Runs the Playwright suite against the Pages build in Chromium (Chrome, Edge),
-# Firefox and WebKit (Safari). WebKit does not install on every Linux, so the
+# Firefox and WebKit (Safari, smoke set only: tests tagged @smoke). WebKit does
+# not install on every Linux, so the
 # full browser matrix runs here.
 
 on:

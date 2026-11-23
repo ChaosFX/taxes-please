@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { documentsOf, freshStart, inboxCount, key, openAkte, pullOut, raw, startAtDay, stampAkte } from './helpers';
+import { SMOKE, documentsOf, freshStart, inboxCount, key, openAkte, pullOut, raw, startAtDay, stampAkte } from './helpers';
 
 /** Auftrag 05, Etappe A: Tischplan, Mappe, Werkzeuge, Kalender (SPEC 7.1 bis 7.5, 11). */
 
@@ -25,7 +25,7 @@ async function toDesk(page: Page, effects: 'aus' | 'voll' = 'aus') {
   await key(page, 'begin').click();
 }
 
-test('Akte aus dem Eingang auf die Unterlage ziehen; eine zweite wird abgewiesen und gleitet zurück', async ({ page }) => {
+test('Akte aus dem Eingang auf die Unterlage ziehen; eine zweite wird abgewiesen und gleitet zurück', SMOKE, async ({ page }) => {
   await toDesk(page);
   await expect(inboxCount(page)).toHaveText('Eingang (3)');
   const pad = await padBox(page);
@@ -49,7 +49,7 @@ test('Akte aus dem Eingang auf die Unterlage ziehen; eine zweite wird abgewiesen
   await expect(page.locator('.pruefvermerk')).toHaveAttribute('data-akte', '1-1');
 });
 
-test('Unterlagen herausziehen und auf die Tasche zurückziehen; Schließen holt alle zurück', async ({ page }) => {
+test('Unterlagen herausziehen und auf die Tasche zurückziehen; Schließen holt alle zurück', SMOKE, async ({ page }) => {
   await toDesk(page);
   await openAkte(page);
   const pad = await padBox(page);

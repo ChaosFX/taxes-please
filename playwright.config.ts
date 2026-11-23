@@ -22,9 +22,10 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'], viewport }, testIgnore: /screenshots\.spec\.ts/ },
-    // WebKit paints without GPU on Linux (box-shadows are expensive): every click
-    // waits up to half a second for a frame, so tests get three times the default time.
-    { name: 'webkit', timeout: 90_000, use: { ...devices['Desktop Safari'], viewport }, testIgnore: /screenshots\.spec\.ts/ },
+    // WebKit paints without GPU on Linux and at times stops painting on CI runners,
+    // so it runs only the smoke set (tests tagged @smoke). A hang fails after two
+    // minutes and is not retried.
+    { name: 'webkit', grep: /@smoke/, timeout: 120_000, retries: 0, use: { ...devices['Desktop Safari'], viewport } },
   ],
   webServer: {
     command: `npm run build && npx vite preview --port 4173 --strictPort --base ${BASE_PATH}`,

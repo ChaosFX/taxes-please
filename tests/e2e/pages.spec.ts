@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { BASE_PATH } from './base-path';
-import { fileAkte, freshStart, key, openAkte, solveNext, stampAkte } from './helpers';
+import { SMOKE, fileAkte, freshStart, key, openAkte, solveNext, stampAkte } from './helpers';
 
 /**
  * Auftrag 02, Aufgabe 5: The build works under the GitHub Pages sub-path.
  * Every request stays under the sub-path and succeeds; font, audio and the
  * content (bundled into the script) are found; reloading on the desk works.
  */
-test('Unterpfad: alle Dateien gefunden, Schrift und Ton geladen, Neuladen am Schreibtisch', async ({ page }) => {
+test('Unterpfad: alle Dateien gefunden, Schrift und Ton geladen, Neuladen am Schreibtisch', SMOKE, async ({ page }) => {
   const bad: string[] = [];
   page.on('response', (r) => {
     const url = new URL(r.url());

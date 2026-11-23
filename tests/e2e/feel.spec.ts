@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { freshStart, key, openAkte, pullOut, stampAkte } from './helpers';
+import { SMOKE, freshStart, key, openAkte, pullOut, stampAkte } from './helpers';
 
 /** Auftrag 01: Ziehen, Zoom, Stempel-Effekt, Einstellungen; auf dem Arbeitstisch aus Auftrag 05. */
 
@@ -76,7 +76,7 @@ test('Papier mit der Maus ziehen; zuletzt angefasstes liegt oben', async ({ page
   expect(Math.abs(again.x - after.x)).toBeLessThan(2);
 });
 
-test('Papier per Touch ziehen', async ({ page }) => {
+test('Papier per Touch ziehen', SMOKE, async ({ page }) => {
   await toDeskWithAkte(page);
   const a = key(page, 'paper-1');
   const before = await box(a);
@@ -116,7 +116,7 @@ test('Effekte voll: Stempel schlägt auf und die Arbeitsfläche wackelt', async 
   await expect(key(page, 'pos-p1-anerkennen')).toBeDisabled();
 });
 
-test('Zoom per Doppelklick und per Tastatur', async ({ page }) => {
+test('Zoom per Doppelklick und per Tastatur', SMOKE, async ({ page }) => {
   await toDeskWithAkte(page);
   const a = key(page, 'paper-0');
   await a.dblclick();
