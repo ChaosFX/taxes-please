@@ -1,3 +1,5 @@
+import * as board from './board';
+import { EMPTY_BOARD, type BoardState, type ClueRef } from './board';
 import { DEFAULT_CODEX, type CodexProgress } from './codex';
 import { samePair, evaluate } from './evaluate';
 import { getAkte } from './loader';
@@ -31,6 +33,8 @@ export interface GameState {
   settings: Settings;
   /** Reading progress in the codex (SPEC 6.7, 9). Saves without it get DEFAULT_CODEX. */
   codex: CodexProgress;
+  /** What the player did at the pinboard (SPEC 9). Saves without it get an empty board. */
+  board: BoardState;
 }
 
 export const DEFAULT_SETTINGS: Settings = { effects: 'voll', volume: 0.7, music: 0.5 };
@@ -92,6 +96,7 @@ export function newGame(content: Content, settings: Settings = DEFAULT_SETTINGS)
     tools: [],
     settings,
     codex: { ...DEFAULT_CODEX },
+    board: EMPTY_BOARD,
   };
   return startDay(content, empty, first);
 }
@@ -278,4 +283,34 @@ export function rememberCodexPlace(state: GameState, lastRuleId: string): GameSt
 export function markDeliverySeen(state: GameState, day: number): GameState {
   if (state.codex.seenDay >= day) return state;
   return { ...state, codex: { ...state.codex, seenDay: day } };
+}
+
+// ---------- Pinboard (SPEC 4, 7.6) ----------
+
+/** The pinboard is on the desk from `unlock: pinboard` on. */
+export const hasPinboard = (state: GameState): boolean => state.tools.includes('pinboard');
+
+/** Pins a place into the hand. Only with the pinboard on the desk. */
+export function pinClue(content: Content, state: GameState, ref: ClueRef): { state: GameState; result: board.PinResult } {
+  if (!hasPinboard(state)) return { state, result: 'invalid' };
+  const r = board.pin(content, board.boardContext(state), ref);
+  return { state: r.board === state.board ? state : { ...state, board: r.board }, result: r.result };
+}
+
+/** Lays a card from the hand on a question. Never touches errors or results (SPEC 5). */
+export function placeClue(content: Content, state: GameState, key: string, questionId: string): { state: GameState; result: board.PlaceResult } {
+  if (!hasPinboard(state)) return { state, result: 'invalid' };
+  const r = board.place(content, board.boardContext(state), key, questionId);
+  return { state: r.board === state.board ? state : { ...state, board: r.board }, result: r.result };
+}
+
+export function discardClue(state: GameState, key: string): GameState {
+  const b = board.discard(board.boardContext(state), key);
+  return b === state.board ? state : { ...state, board: b };
+}
+
+/** Everything in the hand and on the wall has been seen (the pinboard was open). */
+export function seeBoard(content: Content, state: GameState): GameState {
+  const b = board.markBoardSeen(content, board.boardContext(state));
+  return b === state.board ? state : { ...state, board: b };
 }

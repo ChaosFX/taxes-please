@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:local": "playwright test --project=chromium --project=firefox",
-    "screenshots": "playwright test --project=chromium tests/e2e/screenshots.spec.ts"
+    "screenshots": "playwright test --project=chromium tests/e2e/screenshots.spec.ts",
+    "content:report": "node tools/content-report.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",

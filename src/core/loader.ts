@@ -249,36 +249,89 @@ function crossCheck(c: Content): string[] {
     if (!c.texts.falseDiscrepancy) problems.push('texts.falseDiscrepancy fehlt, wird für Widersprüche gebraucht');
   }
 
-  // Story events and traces (traces are only checked in this version).
+  // Story events: ids of event cards, notes kept in the drawer (SPEC 3).
   const eventIds: string[] = [];
-  const traceIds: string[] = [];
-  for (const day of c.days) {
-    for (const e of day.storyEvents) if (e.type === 'event') eventIds.push(e.id);
-    for (const tr of day.traces ?? []) {
-      traceIds.push(tr.id);
-      const label = `Tag ${day.day}, Spur ${tr.id}`;
-      for (const link of tr.links) {
-        const k = c.cases.find((x) => x.id === link.case);
-        if (!k) {
-          problems.push(`${label}: unbekannte Akte ${link.case}`);
-          continue;
-        }
-        if ('field' in link) {
-          if (!(link.field in k)) problems.push(`${label}: Akte ${k.id} hat kein Feld „${link.field}“`);
-          continue;
-        }
-        const docs = [...k.documents, ...(k.followUp?.documents ?? [])];
-        const doc = docs.find((d) => d.title === link.document);
-        if (!doc) problems.push(`${label}: Akte ${k.id} hat kein Dokument „${link.document}“`);
-        else if (!doc.lines.some(([l]) => l === link.line)) problems.push(`${label}: Akte ${k.id}, Dokument „${link.document}“ hat keine Zeile „${link.line}“`);
-      }
+  const days = [...c.days].sort((a, b) => a.day - b.day);
+  /** Day and index of the first unlock of a tool, to check what comes before it. */
+  const unlockedAt = (tool: string): { day: number; index: number } | null => {
+    for (const d of days) {
+      const i = d.storyEvents.findIndex((e) => e.type === 'unlock' && e.feature === tool);
+      if (i >= 0) return { day: d.day, index: i };
     }
+    return null;
+  };
+  const drawer = unlockedAt('drawer');
+  for (const day of days) {
+    day.storyEvents.forEach((e, i) => {
+      if (e.type === 'event') eventIds.push(e.id);
+      if (e.type === 'note' && e.keep === 'drawer' && (!drawer || drawer.day > day.day || (drawer.day === day.day && drawer.index > i))) {
+        problems.push(`Tag ${day.day}, storyEvents.${i}: Zettel mit keep „drawer“, aber die Lade ist noch nicht freigeschaltet`);
+      }
+    });
   }
   for (const d of duplicates(eventIds)) problems.push(`Ereignis-ID doppelt: ${d}`);
-  for (const d of duplicates(traceIds)) problems.push(`Spur-ID doppelt: ${d}`);
+  problems.push(...checkQuestions(c, scheduled, unlockedAt('pinboard')?.day ?? null));
 
   return problems;
 }
+
+/** Questions for the pinboard (SPEC 3, Fragen): clues, `given`, `after` and the unlock of the pinboard. */
+function checkQuestions(c: Content, scheduled: Map<string, number>, pinboardDay: number | null): string[] {
+  const problems: string[] = [];
+  const all = c.days.flatMap((d) => (d.questions ?? []).map((q) => ({ q, day: d.day })));
+  for (const d of duplicates(all.map((x) => x.q.id))) problems.push(`Frage-ID doppelt: ${d}`);
+  const byId = new Map(all.map((x) => [x.q.id, x]));
+
+  for (const { q, day } of all) {
+    const at = `Tag ${day}, Frage ${q.id}`;
+    if (pinboardDay === null || pinboardDay > day) problems.push(`${at}: die Pinnwand ist an diesem Tag noch nicht freigeschaltet`);
+    if (q.clues.every((k) => k.given)) problems.push(`${at}: mindestens ein Hinweis darf nicht „given“ sein`);
+    for (const d of duplicates(q.clues.map(clueRefKey))) problems.push(`${at}: Hinweis doppelt: ${d}`);
+    q.clues.forEach((clue, i) => {
+      const label = `${at}, Hinweis ${i + 1}`;
+      const k = c.cases.find((x) => x.id === clue.case);
+      if (!k) {
+        problems.push(`${label}: unbekannte Akte ${clue.case}`);
+        return;
+      }
+      const caseDay = scheduled.get(k.id);
+      if (caseDay !== undefined && caseDay > day) problems.push(`${label}: Akte ${k.id} kommt erst an Tag ${caseDay}, die Frage hängt ab Tag ${day}`);
+      if (clue.given && caseDay !== undefined && caseDay >= day) problems.push(`${label}: vorgegebener Hinweis aus Akte ${k.id} muss vor Tag ${day} kommen`);
+      if ('field' in clue) {
+        if (clue.field !== 'representative') problems.push(`${label}: Feld „${clue.field}“ gibt es nicht, erlaubt ist nur „representative“`);
+        else if (!k.representative?.stampVisible || !k.documents.some((d) => d.stamp)) {
+          problems.push(`${label}: Akte ${k.id} hat keinen sichtbaren Kanzleistempel`);
+        }
+        return;
+      }
+      // Only the papers of the Akte itself, not those of its follow-up.
+      const doc = k.documents.find((d) => d.title === clue.document);
+      if (!doc) problems.push(`${label}: Akte ${k.id} hat kein Dokument „${clue.document}“`);
+      else if (!doc.lines.some(([l]) => l === clue.line)) problems.push(`${label}: Akte ${k.id}, Dokument „${clue.document}“ hat keine Zeile „${clue.line}“`);
+    });
+    if (q.after !== undefined) {
+      const prev = byId.get(q.after);
+      if (!prev) problems.push(`${at}: after zeigt auf unbekannte Frage ${q.after}`);
+      else if (prev.day > day) problems.push(`${at}: after zeigt auf Frage ${q.after} von Tag ${prev.day}, die später kommt`);
+    }
+  }
+  // Circles over `after`.
+  for (const { q, day } of all) {
+    const seen = new Set<string>([q.id]);
+    for (let next = q.after; next !== undefined; next = byId.get(next)?.q.after) {
+      if (seen.has(next)) {
+        problems.push(`Tag ${day}, Frage ${q.id}: Kreis über after`);
+        break;
+      }
+      seen.add(next);
+    }
+  }
+  return problems;
+}
+
+/** Key of a place in the content for the checks: case, document and line, or case and field. */
+const clueRefKey = (k: { case: string; document?: string; line?: string; field?: string }) =>
+  k.field !== undefined ? `${k.case}, ${k.field}` : `${k.case}, ${k.document}, ${k.line}`;
 
 function kindOf(k: Case): Akte['kind'] {
   switch (k.type) {

@@ -28,34 +28,43 @@ export const EventEffectsSchema = z.strictObject({
   home: z.number().int(),
 });
 
+/** A text that is still a draft (SPEC 3); no effect in the game, listed by `npm run content:report`. */
+const provisional = z.literal(true).optional();
+
 export const StoryEventSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('note'), from: text, text, title: text.optional() }),
-  z.object({ type: z.literal('dialog'), from: text, text }),
-  z.object({ type: z.literal('newspaper'), from: text, headline: text, text }),
-  z.object({ type: z.literal('call'), from: text, text }),
-  z.object({ type: z.literal('unlock'), feature: ToolSchema }),
-  z.object({
+  z.strictObject({ type: z.literal('note'), from: text, text, title: text.optional(), keep: z.literal('drawer').optional(), provisional }),
+  z.strictObject({ type: z.literal('dialog'), from: text, text, provisional }),
+  z.strictObject({ type: z.literal('newspaper'), from: text, headline: text, text, provisional }),
+  z.strictObject({ type: z.literal('call'), from: text, text, provisional }),
+  z.strictObject({ type: z.literal('unlock'), feature: ToolSchema, provisional }),
+  z.strictObject({
     type: z.literal('event'),
     id: text,
     text,
-    provisional: z.literal(true).optional(),
+    provisional,
     options: z
       .array(z.object({ text, effects: EventEffectsSchema, sets: z.array(text) }))
       .min(1),
   }),
-  z.object({ type: z.literal('actSummary'), act: z.number().int().positive() }),
+  z.strictObject({ type: z.literal('actSummary'), act: z.number().int().positive(), provisional }),
 ]);
 
-export const TraceLinkSchema = z.union([
-  z.strictObject({ case: text, document: text, line: text }),
-  z.strictObject({ case: text, field: text }),
+/** Where a clue is found: a line of a paper, or the office stamp of the representative (SPEC 3, Fragen). */
+export const ClueSchema = z.union([
+  z.strictObject({ case: text, document: text, line: text, given: z.literal(true).optional(), source: z.enum(['auto', 'pin']).optional() }),
+  z.strictObject({ case: text, field: text, given: z.literal(true).optional(), source: z.enum(['auto', 'pin']).optional() }),
 ]);
 
-export const TraceSchema = z.object({
+/** An open question on the pinboard (SPEC 3, 7.6). */
+export const QuestionSchema = z.strictObject({
   id: text,
-  label: text,
-  links: z.array(TraceLinkSchema).min(2),
-  reward: z.object({ type: z.literal('note'), from: text, text }),
+  text,
+  from: text.optional(),
+  group: text.optional(),
+  after: text.optional(),
+  clues: z.array(ClueSchema).min(1),
+  answer: z.strictObject({ text, from: text.optional() }),
+  provisional,
 });
 
 export const DaySchema = z.object({
@@ -64,7 +73,7 @@ export const DaySchema = z.object({
   stamps: z.array(StampSchema).min(1),
   cases: z.array(text),
   storyEvents: z.array(StoryEventSchema),
-  traces: z.array(TraceSchema).optional(),
+  questions: z.array(QuestionSchema).optional(),
 });
 
 export const DocumentSchema = z.object({

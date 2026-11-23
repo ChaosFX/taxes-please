@@ -236,25 +236,126 @@ describe('loadContent: Querprüfungen', () => {
     expect(problems(() => loadContent(c))).toContain('Akte 7-2: variantOf zeigt auf unbekannte Akte 7-9');
   });
 
-  describe('Spuren', () => {
-    it('meldet unbekannte Akte, Dokument, Zeile und Feld', () => {
-      const c = raw();
-      const [l1, l2] = day(c, 7).traces[0].links;
-      l1.line = 'Datum';
-      l2.document = 'Lieferschein';
-      day(c, 10).traces[0].links[0].field = 'steuerberater';
-      day(c, 10).traces[0].links[1].case = '4-9';
-      const p = problems(() => loadContent(c));
-      expect(p).toContain('Tag 7, Spur t1: Akte 5-3, Dokument „Rechnung Eventservice GmbH“ hat keine Zeile „Datum“');
-      expect(p).toContain('Tag 7, Spur t1: Akte 7-3 hat kein Dokument „Lieferschein“');
-      expect(p).toContain('Tag 10, Spur t2: Akte 2-4 hat kein Feld „steuerberater“');
-      expect(p).toContain('Tag 10, Spur t2: unbekannte Akte 4-9');
+  describe('Fragen der Pinnwand (SPEC 3)', () => {
+    const q = (c: any, id: string) => c.days.flatMap((d: any) => d.questions ?? []).find((x: any) => x.id === id);
+    const p = (c: any) => problems(() => loadContent(c));
+
+    it('lädt die Fragen von Akt I ohne Fehler', () => {
+      expect(p(raw())).toEqual([]);
     });
-    it('verlangt mindestens zwei Verweise', () => {
+    it('meldet unbekannte Akte, Dokument und Zeile', () => {
       const c = raw();
-      day(c, 7).traces[0].links.pop();
-      expect(problems(() => loadContent(c)).some((x) => x.startsWith('Tag 7, traces.0.links'))).toBe(true);
+      q(c, 'q1').clues[1].line = 'Datum';
+      q(c, 'q2').clues[0].document = 'Lieferschein';
+      q(c, 'q3').clues[2].case = '4-9';
+      expect(p(c)).toEqual(
+        expect.arrayContaining([
+          'Tag 7, Frage q1, Hinweis 2: Akte 7-3, Dokument „Rechnung Eventservice GmbH“ hat keine Zeile „Datum“',
+          'Tag 7, Frage q2, Hinweis 1: Akte 2-4 hat kein Dokument „Lieferschein“',
+          'Tag 10, Frage q3, Hinweis 3: unbekannte Akte 4-9',
+        ]),
+      );
     });
+    it('verlinkt nur Unterlagen der Akte selbst, nicht die der Folgeakte', () => {
+      const c = raw();
+      const k = c.cases.find((x: any) => x.followUp && c.days.find((d: any) => d.cases.includes(x.id)).day < 7);
+      const doc = k.followUp.documents.find((d: any) => !k.documents.some((o: any) => o.title === d.title));
+      q(c, 'q1').clues[1] = { case: k.id, document: doc.title, line: doc.lines[0][0] };
+      expect(p(c)).toContain(`Tag 7, Frage q1, Hinweis 2: Akte ${k.id} hat kein Dokument „${doc.title}“`);
+    });
+    it('meldet einen Hinweis auf eine Akte nach dem Tag der Frage', () => {
+      const c = raw();
+      q(c, 'q1').clues[1] = { case: '8-1', document: kase(c, '8-1').documents[0].title, line: kase(c, '8-1').documents[0].lines[0][0] };
+      expect(p(c)).toContain('Tag 7, Frage q1, Hinweis 2: Akte 8-1 kommt erst an Tag 8, die Frage hängt ab Tag 7');
+    });
+    it('meldet given mit einer Akte vom selben Tag', () => {
+      const c = raw();
+      q(c, 'q3').clues[2].given = true;
+      q(c, 'q3').clues[0].given = undefined;
+      expect(p(c)).toContain('Tag 10, Frage q3, Hinweis 3: vorgegebener Hinweis aus Akte 10-4 muss vor Tag 10 kommen');
+    });
+    it('meldet eine Frage, deren Hinweise alle given sind', () => {
+      const c = raw();
+      q(c, 'q1').clues[1] = { ...q(c, 'q1').clues[0] };
+      q(c, 'q1').clues[1].line = 'Rechnungsnummer';
+      q(c, 'q1').clues.pop();
+      expect(p(c)).toContain('Tag 7, Frage q1: mindestens ein Hinweis darf nicht „given“ sein');
+    });
+    it('meldet field ungleich representative', () => {
+      const c = raw();
+      q(c, 'q3').clues[2].field = 'steuerberater';
+      expect(p(c)).toContain('Tag 10, Frage q3, Hinweis 3: Feld „steuerberater“ gibt es nicht, erlaubt ist nur „representative“');
+    });
+    it('meldet einen Vertreter ohne sichtbaren Stempel', () => {
+      const c = raw();
+      kase(c, '10-4').representative.stampVisible = false;
+      expect(p(c)).toContain('Tag 10, Frage q3, Hinweis 3: Akte 10-4 hat keinen sichtbaren Kanzleistempel');
+    });
+    it('meldet eine doppelte Frage-ID', () => {
+      const c = raw();
+      q(c, 'q3').id = 'q1';
+      expect(p(c)).toContain('Frage-ID doppelt: q1');
+    });
+    it('meldet after auf eine unbekannte Frage', () => {
+      const c = raw();
+      q(c, 'q2').after = 'q9';
+      expect(p(c)).toContain('Tag 7, Frage q2: after zeigt auf unbekannte Frage q9');
+    });
+    it('meldet after auf eine spätere Frage', () => {
+      const c = raw();
+      q(c, 'q2').after = 'q3';
+      expect(p(c)).toContain('Tag 7, Frage q2: after zeigt auf Frage q3 von Tag 10, die später kommt');
+    });
+    it('meldet einen Kreis über after', () => {
+      const c = raw();
+      q(c, 'q1').after = 'q2';
+      expect(p(c)).toEqual(expect.arrayContaining(['Tag 7, Frage q1: Kreis über after', 'Tag 7, Frage q2: Kreis über after']));
+    });
+    it('meldet eine Frage vor unlock: pinboard', () => {
+      const c = raw();
+      day(c, 6).questions = [q(c, 'q2')];
+      day(c, 6).questions[0] = { ...q(c, 'q2'), id: 'q0', after: undefined };
+      expect(p(c)).toContain('Tag 6, Frage q0: die Pinnwand ist an diesem Tag noch nicht freigeschaltet');
+    });
+    it('meldet ein unbekanntes Feld an einer Frage', () => {
+      const c = raw();
+      q(c, 'q1').reward = 'x';
+      expect(p(c).some((x) => x.startsWith('Tag 7, questions.0'))).toBe(true);
+    });
+  });
+
+  describe('Lade (SPEC 3, 7.7)', () => {
+    const notes = (c: any, n: number) => day(c, n).storyEvents.filter((e: any) => e.type === 'note');
+    it('meldet keep: "drawer" vor unlock: drawer', () => {
+      const c = raw();
+      const i = day(c, 6).storyEvents.findIndex((e: any) => e.type === 'note');
+      day(c, 6).storyEvents[i].keep = 'drawer';
+      expect(problems(() => loadContent(c))).toContain(`Tag 6, storyEvents.${i}: Zettel mit keep „drawer“, aber die Lade ist noch nicht freigeschaltet`);
+    });
+    it('meldet keep: "drawer" am selben Tag vor der Freischaltung', () => {
+      const c = raw();
+      const events = day(c, 10).storyEvents;
+      const unlock = events.findIndex((e: any) => e.type === 'unlock');
+      const [u] = events.splice(unlock, 1);
+      events.push(u);
+      const i = events.findIndex((e: any) => e.keep === 'drawer');
+      expect(problems(() => loadContent(c))).toContain(`Tag 10, storyEvents.${i}: Zettel mit keep „drawer“, aber die Lade ist noch nicht freigeschaltet`);
+    });
+    it('meldet keep an einem anderen Typ als note', () => {
+      const c = raw();
+      const i = day(c, 10).storyEvents.findIndex((e: any) => e.type === 'dialog');
+      day(c, 10).storyEvents[i].keep = 'drawer';
+      expect(problems(() => loadContent(c)).some((x) => x.startsWith(`Tag 10, storyEvents.${i}`))).toBe(true);
+    });
+    it('Akt I hat zwei Zettel in der Lade an Tag 10', () => {
+      expect(notes(raw(), 10).filter((e: any) => e.keep === 'drawer')).toHaveLength(2);
+    });
+  });
+
+  it('nimmt provisional an jedem Story-Ereignis an', () => {
+    const c = raw();
+    for (const d of c.days) for (const e of d.storyEvents) e.provisional = true;
+    expect(problems(() => loadContent(c))).toEqual([]);
   });
 
   it('Fehlermeldung ist lesbar', () => {
