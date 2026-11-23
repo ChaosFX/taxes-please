@@ -2,6 +2,10 @@
 
 Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in diesem Repo parallel geführt. Jede Änderung steht hier mit Datum, Datei und Version.
 
+## 23.11.2026
+
+- `SPEC.md` 0.4.1 (Abschnitt 2): Testzuschnitt nach Bericht 05 festgeschrieben. Chromium und Firefox alle e2e-Tests, WebKit nur `@smoke` (2 Minuten, keine Wiederholung), `@long` nur bei Push auf `main`. Neue e2e-Tests kurz halten. Abweichung 2 aus Bericht 05 damit erledigt.
+
 ## 22.11.2026
 
 - `SPEC.md` 0.4.0: Arbeitstisch zum Anfassen (Abschnitte 4, 6.1, 6.1a, 6.2, 7.1 bis 7.5, 9, 10, 11, 12): Eingang und Werkzeugleiste links, Akte als Mappe mit Tasche, Unterlagen fliegen beim Schließen zurück, Stempel nehmen und aufdrücken, Ablegen durch Ziehen, nur eine Akte am Tisch, Kodex am Tisch aufgeschlagen und Lesemodus mit K. Neuer Tischkalender mit `content/kalender.json`, `unlock: calendar`, `meta.kalenderStart`. „Papiere im Raster“ entfällt. `auftraege/05-arbeitstisch.md` und `auftraege/05-prototyp-arbeitstisch.html` angelegt.

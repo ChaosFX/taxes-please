@@ -1,6 +1,6 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 22.11.2026 · Version 0.4.0 · passt zu `content/akt1.json` Version 0.3.2, `content/ui.json` Version 0.4.0 und `content/kalender.json` Version 0.1.0
+Stand: 23.11.2026 · Version 0.4.1 · passt zu `content/akt1.json` Version 0.3.2, `content/ui.json` Version 0.4.0 und `content/kalender.json` Version 0.1.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
@@ -43,6 +43,7 @@ Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakte
 - GSAP für Animationen ist erlaubt (kostenlos unter der GSAP Standard License, alle Plugins einschließlich Flip), ebenso reine CSS-Transitions und die Web Animations API. Das Ziehen bleibt eigene Logik mit Pointer Events (Abschnitt 7). Kein Three.js; die Atmosphäre-Ebene (Abschnitt 8) bleibt als leeres Modul vorbereitet.
 - Vitest für Unit-Tests von `core` und für die Inhaltsvalidierung.
 - Playwright für Screenshots der Hauptansichten (siehe Abschnitt 10) und für die e2e-Tests.
+- **Browser und Testzuschnitt in CI (seit 0.4.1):** Chromium und Firefox führen alle e2e-Tests aus. WebKit (Safari) führt nur die Tests mit dem Tag `@smoke` aus, mit 2 Minuten Zeitlimit und ohne Wiederholung. Lange Tests tragen `@long` (Durchspieltests mit Maus und mit Tastatur, Prüfung der Text-Herkunft) und laufen nur bei Push auf `main`, nicht bei Pull Requests oder manuellen Läufen. Der `@smoke`-Satz deckt mindestens ab: Start und Unterpfad, Akte ziehen, Unterlagen herausziehen, Stempeln mit Maus und Tastatur, Zeitung, Zoom, Touch und Kodex. Neue e2e-Tests werden kurz gehalten. Abnahmekriterien „in Chromium, Firefox und WebKit“ gelten in diesem Zuschnitt.
 - Spielstand in `localStorage`, Zugriffe in `try/catch` gekapselt.
 - Build als statische Seite, Veröffentlichung über GitHub Pages (Projektseite unter einem Unterpfad, daher relativer `base` in Vite).
 - Sprache der Oberfläche: Deutsch (Österreich). Beträge im Format `1.200,00 €`.
