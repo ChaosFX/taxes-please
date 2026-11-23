@@ -22,4 +22,22 @@ test('diag newspaper hit test', async ({ page }) => {
   });
   console.log('DIAG', JSON.stringify(info));
   console.log('DIAG box', JSON.stringify(await paper.boundingBox()));
+  const scrolls = () =>
+    page.evaluate(() => {
+      const out: string[] = [`win ${scrollX},${scrollY}`];
+      for (const n of document.querySelectorAll('*')) if (n.scrollTop || n.scrollLeft) out.push(`${n.tagName}.${[...n.classList].join('.')} ${n.scrollLeft},${n.scrollTop}`);
+      return out;
+    });
+  console.log('DIAG scroll before', JSON.stringify(await scrolls()));
+  await paper.scrollIntoViewIfNeeded();
+  console.log('DIAG scroll after', JSON.stringify(await scrolls()));
+  console.log('DIAG box after', JSON.stringify(await paper.boundingBox()));
+  const b = (await paper.boundingBox())!;
+  console.log('DIAG hit after', await page.evaluate(([x, y]) => { const n = document.elementFromPoint(x!, y!); return n ? n.tagName + '.' + n.className : 'null'; }, [b.x + b.width / 2, b.y + b.height / 2]));
+  try {
+    await paper.dblclick({ trial: true, timeout: 5000 });
+    console.log('DIAG trial ok');
+  } catch (e) {
+    console.log('DIAG trial failed', String(e).split('\n').slice(0, 12).join(' | '));
+  }
 });
