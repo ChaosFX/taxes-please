@@ -1,10 +1,14 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 23.11.2026 · Version 0.5.0 · passt zu `content/akt1.json` Version 0.3.4, `content/ui.json` Version 0.5.0 und `content/kalender.json` Version 0.1.0
+Stand: 23.11.2026 · Version 0.5.1 · passt zu `content/akt1.json` Version 0.3.5, `content/ui.json` Version 0.5.1 und `content/kalender.json` Version 0.1.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
 Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakten und 54 Kodexregeln (davon 5 Hinweise ohne eigenen Fall). Inhalt und Lösungen stehen in `content/akt1.json`, einer Datei für den ganzen Akt. Spätere Akte bekommen je eine eigene Datei (`akt2.json` usw.).
+
+Änderungen gegenüber 0.5.0:
+- `given` nur an Fragen mit `from`, der Loader meldet `given` ohne `from` als Fehler (Abschnitt 3).
+- Inhaltsbericht: Akt I hat vier vorläufige Texte (q1 bis q3, `e-tag9-gerri`).
 
 Änderungen gegenüber 0.4.1:
 - **Pinnwand mit Fragen ab Tag 7** (`unlock: pinboard`, Abschnitte 3, 4 und 7.6, Auftrag 06), nach dem Vorbild des Case Boards in Alan Wake 2: An der Wand hängen offene Fragen. Hinweise sammeln sich in einer Hand. Der Spieler legt einen Hinweis auf die Frage, zu der er passt. Sind alle Hinweise einer Frage da, ist sie beantwortet, die Antwort erscheint, und Folgefragen können auftauchen. Falsch legen kostet nichts.
@@ -126,7 +130,7 @@ Eine Frage gehört zu dem Tag, unter dem sie steht. Dargestellt wird sie an der 
 
 - `id` (über alle Tage eindeutig), `text` (die Frage), `clues` (mindestens einer), `answer` (`text`, optional `from`), optional `from` (Figur, die die Frage stellt, ohne Angabe ist es Daniels eigene Frage), optional `group` (Überschrift der Spalte an der Wand, zum Beispiel ein Firmenname), optional `after` (ID einer Frage, die zuerst beantwortet sein muss), optional `provisional: true`.
 - Ein Hinweis (`clues[]`) ist eine Fundstelle: `case` und entweder `document` mit `line` oder `field` (nur `representative`, der Kanzleistempel). Dazu optional:
-  - `given: true`: Der Hinweis hängt von Anfang an an der Frage, mit dem Vermerk `ui.pinboard.given` (Figur aus `from` der Frage).
+  - `given: true`: Der Hinweis hängt von Anfang an an der Frage, mit dem Vermerk `ui.pinboard.given` (Figur aus `from` der Frage). Nur an Fragen mit `from` erlaubt.
   - `source: "pin"`: Der Hinweis kommt nicht von selbst. Der Spieler muss die Stelle mit der Nadel anheften. Ohne Angabe gilt `source: "auto"`.
 - **Wann eine Frage an der Wand hängt:** ab Beginn ihres Tages, mit `after` erst, wenn die vorige Frage beantwortet ist.
 - **Wann ein Hinweis in die Hand kommt:** bei `auto`, sobald seine Akte im Ausgangskorb liegt und die Frage an der Wand hängt, egal in welcher Reihenfolge. Bei `pin`, wenn der Spieler die Stelle angeheftet hat. Ein Hinweis, der zu mehreren offenen Fragen gehört, liegt nur einmal in der Hand.
@@ -140,6 +144,7 @@ Der Loader prüft:
 - `field` ist nur `representative`. Die Akte hat dann einen `representative` mit `stampVisible: true` und mindestens ein Dokument mit `stamp`.
 - Jede Akte eines Hinweises kommt spätestens am Tag der Frage in den Stapel. Akten von Hinweisen mit `given` kommen vorher, damit die Wand nur zeigt, was der Spieler schon gesehen hat.
 - Mindestens ein Hinweis je Frage ist nicht `given`.
+- `given` nur an Fragen mit `from`. Ein vorgegebener Hinweis ohne `from` ist ein Ladefehler.
 - `after` zeigt auf eine existierende Frage desselben oder eines früheren Tages, ohne Kreis.
 - Ein Tag mit Fragen hat die Pinnwand an diesem oder einem früheren Tag freigeschaltet. Ein Zettel mit `keep: "drawer"` steht an einem Tag, an dem die Lade schon oder im selben Tag vorher freigeschaltet ist.
 
@@ -452,7 +457,7 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - [ ] Ein Hinweis auf der falschen Frage bleibt in der Hand, erhöht `board.misses` und ändert die Fehlerzahl nicht.
 - [ ] Unit-Tests in `core`: sichtbare Fragen (Tag, `after`, Kette), Inhalt der Hand (`auto` vor und nach dem Ablegen, Akte vor der Frage abgelegt, `pin`, Hinweis zu zwei Fragen nur einmal), Zuordnen, beantwortet, Durchschläge inklusive Folgeakten.
 - [ ] Ein Unit-Test zeigt, dass der Code keine Figur kennt: Eine Test-Inhaltsdatei mit anderer Figur, anderer Gruppe und einer Frage mit `source: "pin"` wird ohne Codeänderung dargestellt und lässt sich lösen.
-- [ ] Loader-Tests mit je einem kaputten Beispiel: Hinweis auf eine Akte nach dem Tag der Frage; `given` mit einer Akte vom selben Tag; alle Hinweise `given`; `field` ungleich `representative`; Vertreter ohne sichtbaren Stempel; doppelte Frage-ID; `after` auf unbekannte oder spätere Frage; Kreis über `after`; Frage vor `unlock: pinboard`; `keep: "drawer"` vor `unlock: drawer`; `keep` an einem anderen Typ als `note`.
+- [ ] Loader-Tests mit je einem kaputten Beispiel: Hinweis auf eine Akte nach dem Tag der Frage; `given` mit einer Akte vom selben Tag; alle Hinweise `given`; `field` ungleich `representative`; Vertreter ohne sichtbaren Stempel; doppelte Frage-ID; `after` auf unbekannte oder spätere Frage; Kreis über `after`; `given` an einer Frage ohne `from`; Frage vor `unlock: pinboard`; `keep: "drawer"` vor `unlock: drawer`; `keep` an einem anderen Typ als `note`.
 - [ ] Zuordnen, Anheften, Weglegen, Durchschlag öffnen und die Lade gehen auch nur mit der Tastatur. Im Markiermodus gibt es keine Nadeln.
 - [ ] Die Pinnwand übersteht Neuladen (zugeordnete und angeheftete Hinweise, beantwortete Fragen). Ein Spielstand ohne `board` lädt weiterhin.
 - [ ] Die Zettel von Tag 10 mit `keep: "drawer"` liegen nach dem Tagesbeginn in der Lade und sind nach Neuladen noch dort.
@@ -460,7 +465,7 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - [ ] An Tag 7 stehen keine Inhalte von Akten oder Fragen im DOM, die erst später kommen.
 - [ ] Bei 1280 × 720, 1920 × 1080 und 1024 × 768 passen Pinnwand-Platz und Lade-Griff auf den Tisch, und Pinnwand-Ansicht (Wand und Hand) und Lade-Ansicht sind vollständig sichtbar.
 - [ ] Bei „Effekte aus“ gibt es beim Zuordnen, beim Wackeln, beim Erscheinen der Antwort und beim Öffnen der Lade keine Animation.
-- [ ] `npm run content:report` listet die vorläufigen Texte von Akt I (die drei Fragen).
+- [ ] `npm run content:report` listet die vier vorläufigen Texte von Akt I (q1, q2, q3 und `e-tag9-gerri`).
 
 ## 12. Nicht Teil dieser Version
 

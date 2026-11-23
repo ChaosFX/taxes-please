@@ -296,6 +296,7 @@ function checkQuestions(c: Content, scheduled: Map<string, number>, pinboardDay:
       }
       const caseDay = scheduled.get(k.id);
       if (caseDay !== undefined && caseDay > day) problems.push(`${label}: Akte ${k.id} kommt erst an Tag ${caseDay}, die Frage hängt ab Tag ${day}`);
+      if (clue.given && q.from === undefined) problems.push(`${label}: vorgegebener Hinweis braucht eine Figur in „from“ der Frage`);
       if (clue.given && caseDay !== undefined && caseDay >= day) problems.push(`${label}: vorgegebener Hinweis aus Akte ${k.id} muss vor Tag ${day} kommen`);
       if ('field' in clue) {
         if (clue.field !== 'representative') problems.push(`${label}: Feld „${clue.field}“ gibt es nicht, erlaubt ist nur „representative“`);

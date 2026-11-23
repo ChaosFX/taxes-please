@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "0.3.4",
+    "version": "0.3.5",
     "akt": 1,
     "veranlagungsjahr": 2025,
     "kalenderStart": "2026-04",
@@ -638,7 +638,7 @@
     },
     {
       "day": 7,
-      "intro": "Heute geht es um Ausgaben, die der Betrieb zahlt, die aber nicht oder nur teilweise abzugsfähig sind. An der Wand neben Ihrem Tisch hängt seit heute eine Pinnwand. Wenn Ihnen zwischen zwei Akten etwas auffällt, verbinden Sie die Stellen mit einem Faden.",
+      "intro": "Heute geht es um Ausgaben, die der Betrieb zahlt, die aber nicht oder nur teilweise abzugsfähig sind. An der Wand neben Ihrem Tisch hängt seit heute eine Pinnwand. Dort hängen Fragen. Was Sie in Ihren Akten dazu finden, sammelt sich unten an der Pinnwand. Ordnen Sie es der passenden Frage zu.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["7-1", "7-2", "7-3", "7-4", "7-5"],
       "storyEvents": [

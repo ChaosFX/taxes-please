@@ -274,6 +274,11 @@ describe('loadContent: Querprüfungen', () => {
       q(c, 'q3').clues[0].given = undefined;
       expect(p(c)).toContain('Tag 10, Frage q3, Hinweis 3: vorgegebener Hinweis aus Akte 10-4 muss vor Tag 10 kommen');
     });
+    it('meldet given an einer Frage ohne from', () => {
+      const c = raw();
+      delete q(c, 'q1').from;
+      expect(p(c)).toContain('Tag 7, Frage q1, Hinweis 1: vorgegebener Hinweis braucht eine Figur in „from“ der Frage');
+    });
     it('meldet eine Frage, deren Hinweise alle given sind', () => {
       const c = raw();
       q(c, 'q1').clues[1] = { ...q(c, 'q1').clues[0] };
