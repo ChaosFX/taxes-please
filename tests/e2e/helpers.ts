@@ -73,6 +73,18 @@ export async function freshStart(page: Page) {
 
 export const key = (page: Page, k: string) => page.locator(`[data-key="${k}"]`);
 
+/**
+ * Double-clicks the morning paper on the desk to zoom it. WebKit's
+ * `document.elementsFromPoint` misses the two-column text of the rotated paper
+ * and reports `<html>`, so Playwright's hit-target check never passes there,
+ * although `elementFromPoint` and real clicks hit the paper. In WebKit the check
+ * is skipped; Chromium and Firefox keep it.
+ */
+export async function zoomNewspaper(page: Page, paper: Locator = key(page, 'newspaper-0')): Promise<void> {
+  const webkit = page.context().browser()?.browserType().name() === 'webkit';
+  await paper.dblclick({ force: webkit });
+}
+
 /** Takes the top Akte from the inbox: it opens on the desk (SPEC 7.2). Returns its id. */
 export async function openAkte(page: Page): Promise<string> {
   await key(page, 'stack').click();

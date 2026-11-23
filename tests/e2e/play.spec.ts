@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, stampAkte, startAtDay } from './helpers';
+import { drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, stampAkte, startAtDay, zoomNewspaper } from './helpers';
 
 const FOLLOW_UP_DAYS: Record<number, string> = { 4: '3-4/folge', 5: '4-1/folge', 6: '5-3/folge', 7: '6-3/folge', 8: '7-3/folge', 10: '9-2/folge' };
 const eventsOf = (day: number): { type: string; feature?: string }[] => raw.days.find((d: { day: number }) => d.day === day).storyEvents;
@@ -247,7 +247,7 @@ test('Morgenzeitung und Anruf an den Tagen laut JSON, Zeitung liegt am Tisch', a
   const paper = page.locator('.stage .paper.newspaper');
   await expect(paper).toHaveCount(1);
   await expect(paper).toHaveAttribute('aria-roledescription', 'Morgenzeitung');
-  await paper.dblclick();
+  await zoomNewspaper(page, paper);
   await expect(page.locator('dialog.zoom .newspaper')).toBeVisible();
   await page.keyboard.press('Escape');
   // Still there with an Akte on the desk.

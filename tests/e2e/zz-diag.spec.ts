@@ -33,7 +33,7 @@ test('diag newspaper hit test', async ({ page }) => {
   console.log('DIAG scroll after', JSON.stringify(await scrolls()));
   console.log('DIAG box after', JSON.stringify(await paper.boundingBox()));
   const b = (await paper.boundingBox())!;
-  console.log('DIAG hit after', await page.evaluate(([x, y]) => { const n = document.elementFromPoint(x!, y!); return n ? n.tagName + '.' + n.className : 'null'; }, [b.x + b.width / 2, b.y + b.height / 2]));
+  console.log('DIAG hit after', await page.evaluate(([x, y]) => { const n = document.elementFromPoint(x!, y!); const all = document.elementsFromPoint(x!, y!).map((e) => e.tagName).join('>'); return (n ? n.tagName + '.' + n.className : 'null') + ' | all: ' + all; }, [b.x + b.width / 2, b.y + b.height / 2]));
   try {
     await paper.dblclick({ trial: true, timeout: 5000 });
     console.log('DIAG trial ok');

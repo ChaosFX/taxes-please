@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { drawUntil, enter, freshStart, key, markKey, openAkte, playDay, pullOut, solutionFor, startAtDay, stampAkte } from './helpers';
+import { drawUntil, enter, freshStart, key, markKey, openAkte, playDay, pullOut, solutionFor, startAtDay, stampAkte, zoomNewspaper } from './helpers';
 
 /** Screenshots of the main views (SPEC section 10.3). Output: screenshots/. */
 const shot = (name: string) => `screenshots/${name}.png`;
@@ -14,7 +14,7 @@ test('Screenshots Akt I (SPEC 10.3)', async ({ page }) => {
   await startAtDay(page, 4);
   await page.screenshot({ path: shot('02-tag4-morgenzeitung-intro'), fullPage: true });
   await key(page, 'begin').click();
-  await key(page, 'newspaper-0').dblclick();
+  await zoomNewspaper(page);
   await page.waitForTimeout(250);
   await page.screenshot({ path: shot('03-morgenzeitung-zoom') });
   await page.keyboard.press('Escape');

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { drawUntil, enter, fileAkte, freshStart, key, longTest, markKey, playDay, pullOut, solutionFor, solveNext, startAtDay, stampAkte } from './helpers';
+import { drawUntil, enter, fileAkte, freshStart, key, longTest, markKey, playDay, pullOut, solutionFor, solveNext, startAtDay, stampAkte, zoomNewspaper } from './helpers';
 
 /**
  * Auftrag 02: Jeder Text, den der Spieler sieht oder ein Screenreader vorliest,
@@ -210,7 +210,7 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await startAtDay(page, 5);
   await check(page, 'Tag 5 Beginn');
   await drawUntil(page, '5-3');
-  await key(page, 'newspaper-0').dblclick();
+  await zoomNewspaper(page);
   await check(page, 'Zeitung gezoomt');
   await page.keyboard.press('Escape');
   await pullOut(page, 0);
