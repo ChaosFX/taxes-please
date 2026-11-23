@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "title": {
     "heading": "Taxes Please",
     "year": "Veranlagungsjahr {year}",
@@ -15,7 +15,9 @@
     "newspaper": "Morgenzeitung",
     "call": "Anruf von {from}",
     "unlockCalculator": "Neben dem Kodex steht ab heute ein Tischrechner.",
-    "unlockCalendar": "Neben dem Kodex liegt ab heute ein Tischkalender."
+    "unlockCalendar": "Neben dem Kodex liegt ab heute ein Tischkalender.",
+    "unlockPinboard": "Neben dem Telefon hängt ab heute eine Pinnwand. Im Modus „Anheften“ kommt jede Zeile einer Akte als Karte dorthin.",
+    "unlockDrawer": "Die unterste Lade geht heute endlich auf."
   },
   "desk": {
     "day": "Tag {day}",
@@ -109,7 +111,8 @@
     "discrepancyHeading": "Widersprüche: ",
     "errorAbout": ": {detail}",
     "inquiryCorrect": "Richtige Frage: {correct}",
-    "inquiryAnswer": "Antwort: {answer}"
+    "inquiryAnswer": "Antwort: {answer}",
+    "ruleJump": "Regel {id} im Kodex nachlesen"
   },
   "end": {
     "heading": "Ende von Akt {act}",
@@ -137,6 +140,44 @@
     "countStart": "Beginn: {date}. Jetzt das Ende anklicken.",
     "countResult": "{from} bis {to}: {days} Tage Abstand.",
     "countResultOne": "{from} bis {to}: 1 Tag Abstand."
+  },
+  "pinboard": {
+    "label": "Pinnwand",
+    "cardCount": "{count} Karten",
+    "new": "neu",
+    "open": "Pinnwand ansehen",
+    "close": "Zurück zum Tisch",
+    "pinMode": "Anheften",
+    "pinHint": "Wählen Sie eine Zeile oder einen Kanzleistempel, um ihn an die Pinnwand zu heften.",
+    "pinned": "Angeheftet: {text}",
+    "alreadyPinned": "Diese Stelle hängt schon an der Pinnwand.",
+    "full": "Die Pinnwand ist voll. Nehmen Sie zuerst eine Karte ab.",
+    "cardTitle": "Akte {id} · {name}",
+    "cardLine": "{document} – {line}",
+    "cardStamp": "Kanzleistempel",
+    "remove": "Abnehmen",
+    "threadStart": "Faden",
+    "threadTarget": "Mit welcher Karte verbinden? Escape bricht ab.",
+    "threadCancel": "Abbrechen",
+    "threadRemove": "Fäden lösen",
+    "threadHeld": "Der Faden hält.",
+    "noMatch": "Der Faden hält nicht.",
+    "solved": "Spur: {label}",
+    "solvedNotice": "Eine Spur auf der Pinnwand ist vollständig.",
+    "empty": "Noch hängt nichts an der Pinnwand. Im Modus „Anheften“ kommt jede Zeile einer Akte als Karte hierher.",
+    "archive": "Erledigte Akten",
+    "archiveDay": "Tag {day}",
+    "archiveEmpty": "Noch keine erledigten Akten.",
+    "copy": "Durchschlag",
+    "copyClose": "Durchschlag schließen"
+  },
+  "drawer": {
+    "label": "Lade",
+    "stuck": "Die Lade klemmt.",
+    "title": "Lade",
+    "empty": "Die Lade ist leer.",
+    "close": "Lade schließen",
+    "stored": "Der Zettel kommt in die Lade."
   },
   "settings": {
     "heading": "Einstellungen",
@@ -181,6 +222,14 @@
     "calendarHoliday": "{date}, {name}",
     "inbox": "Eingang mit {count} Akten",
     "folder": "Akte {id}, {name}",
-    "folderStamped": "Akte {id}, {name}, gestempelt mit {stamp}"
+    "folderStamped": "Akte {id}, {name}, gestempelt mit {stamp}",
+    "pinboard": "Pinnwand mit {count} Karten",
+    "pinboardWall": "Korkwand",
+    "pinCard": "Karte: {text}",
+    "thread": "Faden von {a} zu {b}",
+    "pinnableLine": "{label} anheften",
+    "pinnableStamp": "Kanzleistempel {stamp} anheften",
+    "drawer": "Lade",
+    "copy": "Durchschlag der Akte {id}, {name}"
   }
 }

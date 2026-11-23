@@ -4,6 +4,9 @@ Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in
 
 ## 23.11.2026
 
+- `SPEC.md` 0.5.0: Pinnwand, Spuren, Lade (Abschnitte 3, 4, 5, 7.1, 7.6, 7.7, 9, 11, 12). Anheftmodus, Durchschläge erledigter Akten, Fäden halten nur innerhalb einer Spur, Zettel der gelösten Spur an der Wand. Lade klemmt bis `unlock: drawer`, danach Zettel mit `keep: "drawer"`. Regel-IDs der Tagesauswertung springen in den Kodex. Spielstand um `pinboard`. `auftraege/06-pinnwand-spuren-lade.md` und `auftraege/06-prototyp-pinnwand.html` angelegt. Liegt auf dem Branch `auftrag-06-pinnwand`.
+- `content/akt1.json` 0.3.4: `keep: "drawer"` an den beiden Zetteln von Sedlak an Tag 10 (Notizbuch, Beurteilung). Sonst keine Änderung.
+- `content/ui.json` 0.5.0: neu `intro.unlockPinboard`, `intro.unlockDrawer`, `evaluation.ruleJump`, Bereiche `pinboard` und `drawer`, `aria.pinboard`, `aria.pinboardWall`, `aria.pinCard`, `aria.thread`, `aria.pinnableLine`, `aria.pinnableStamp`, `aria.drawer`, `aria.copy`.
 - `content/akt1.json` 0.3.3: Story-Durchgang Akt I, neun neue und vier geänderte Story-Ereignisse (Zuhause, Wallner, Gerri, Sedlak, Pernold), keine Änderung an Akten, Regeln oder Spuren. Nur vorhandene Typen. `SPEC.md` nennt jetzt `akt1.json` 0.3.3.
 - `SPEC.md` 0.4.1 (Abschnitt 2): Testzuschnitt nach Bericht 05 festgeschrieben. Chromium und Firefox alle e2e-Tests, WebKit nur `@smoke` (2 Minuten, keine Wiederholung), `@long` nur bei Push auf `main`. Neue e2e-Tests kurz halten. Abweichung 2 aus Bericht 05 damit erledigt.
 

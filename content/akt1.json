@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "0.3.3",
+    "version": "0.3.4",
     "akt": 1,
     "veranlagungsjahr": 2025,
     "kalenderStart": "2026-04",
@@ -788,13 +788,15 @@
           "type": "note",
           "from": "Sedlak",
           "title": "Notizbuch, erste Seite",
-          "text": "Brandl zahlt der Eventservice bar. Edlinger zahlt derselben Firma Konzerte, die in seinem Tourneeplan nicht stehen. Die Kopien liegen im Schließfach, nicht in diesem Haus. Wenn Sie das lesen, sitzen Sie an meinem Tisch. Es tut mir leid. Und danke."
+          "text": "Brandl zahlt der Eventservice bar. Edlinger zahlt derselben Firma Konzerte, die in seinem Tourneeplan nicht stehen. Die Kopien liegen im Schließfach, nicht in diesem Haus. Wenn Sie das lesen, sitzen Sie an meinem Tisch. Es tut mir leid. Und danke.",
+          "keep": "drawer"
         },
         {
           "type": "note",
           "from": "Sedlak",
           "title": "Beurteilung, Kopie",
-          "text": "Auf der letzten Beurteilung ist das Wort „Rückstände“ unterstrichen. Daneben stehen drei Aktenzahlen. Hinter jeder steht: „Antwort ausständig.“"
+          "text": "Auf der letzten Beurteilung ist das Wort „Rückstände“ unterstrichen. Daneben stehen drei Aktenzahlen. Hinter jeder steht: „Antwort ausständig.“",
+          "keep": "drawer"
         },
         {
           "type": "dialog",
