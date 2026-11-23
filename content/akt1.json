@@ -664,15 +664,18 @@
           "text": "Pinnwand? Die hat der Sedlak auch gehabt. Am Ende hat er mehr Fäden gespannt als Akten erledigt. Nur so als Tipp."
         }
       ],
-      "traces": [
+      "questions": [
         {
-          "id": "t1",
-          "label": "Rechnungsnummern der Eventservice GmbH",
-          "links": [
+          "id": "q1",
+          "group": "Eventservice GmbH",
+          "from": "Sedlak",
+          "text": "Rechnung ES-2025-117 an Brandl, 15. Dezember. Wer hat die 118 bekommen?",
+          "clues": [
             {
               "case": "5-3",
               "document": "Rechnung Eventservice GmbH",
-              "line": "Rechnungsnummer"
+              "line": "Rechnungsnummer",
+              "given": true
             },
             {
               "case": "7-3",
@@ -680,17 +683,28 @@
               "line": "Rechnungsnummer"
             }
           ],
-          "seed": {
-            "from": "Sedlak",
-            "text": "Eventservice GmbH. Rechnung ES-2025-117 an Brandl, 15. Dezember. Wer hat die 118 bekommen?",
-            "links": [0],
-            "provisional": true
-          },
-          "reward": {
-            "type": "note",
+          "answer": {
             "from": "Sedlak",
             "text": "Zwei Rechnungen an zwei Tagen, und dazwischen keine einzige. Eine Firma mit so wenig Kunden braucht trotzdem Mitarbeiter. Wer arbeitet dort?"
-          }
+          },
+          "provisional": true
+        },
+        {
+          "id": "q2",
+          "group": "Eventservice GmbH",
+          "after": "q1",
+          "text": "Wer arbeitet bei der Eventservice GmbH?",
+          "clues": [
+            {
+              "case": "2-4",
+              "document": "Arbeitnehmerveranlagung 2025",
+              "line": "Arbeitgeber"
+            }
+          ],
+          "answer": {
+            "text": "Martina Wolf, Eventmanagerin. Ihre Erklärung kam mit dem Stempel von Pernold & Partner."
+          },
+          "provisional": true
         }
       ]
     },
@@ -819,35 +833,33 @@
           "act": 1
         }
       ],
-      "traces": [
+      "questions": [
         {
-          "id": "t2",
-          "label": "Kanzleistempel Pernold & Partner",
-          "links": [
+          "id": "q3",
+          "group": "Pernold & Partner",
+          "from": "Sedlak",
+          "text": "Pernold & Partner. Bei der Wolf, beim Edlinger. Wer noch?",
+          "clues": [
             {
               "case": "2-4",
-              "field": "representative"
+              "field": "representative",
+              "given": true
             },
             {
               "case": "4-3",
-              "field": "representative"
+              "field": "representative",
+              "given": true
             },
             {
               "case": "10-4",
               "field": "representative"
             }
           ],
-          "seed": {
-            "from": "Sedlak",
-            "text": "Pernold & Partner. Bei der Wolf, beim Edlinger. Wer noch?",
-            "links": [0, 1],
-            "provisional": true
-          },
-          "reward": {
-            "type": "note",
+          "answer": {
             "from": "Sedlak",
             "text": "Der Stempel sitzt immer unten links, immer schief, immer gleich. Wie viele Akten mit diesem Stempel liegen noch in diesem Haus?"
-          }
+          },
+          "provisional": true
         }
       ]
     }
