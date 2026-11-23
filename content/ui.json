@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.5.1",
   "title": {
     "heading": "Taxes Please",
     "year": "Veranlagungsjahr {year}",
@@ -154,6 +154,7 @@
     "questionFrom": "Frage von {from}",
     "questionOwn": "Offene Frage",
     "answered": "beantwortet",
+    "progress": "{have} von {total} Hinweisen",
     "given": "von {from} angeheftet",
     "answer": "Antwort",
     "newClue": "Neuer Hinweis für die Pinnwand: {text}",

@@ -4,6 +4,7 @@ Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in
 
 ## 23.11.2026
 
+- `content/ui.json` 0.5.1 (Auftrag 06, Claude Code): neu `pinboard.progress` („{have} von {total} Hinweisen“) für den Fortschritt einer Frage an der Wand (SPEC 7.6). Kein Schlüssel entfernt.
 - `SPEC.md` 0.5.0: Pinnwand mit Fragen nach dem Vorbild des Case Boards in Alan Wake 2 (Abschnitte 3, 4, 5, 7.1, 7.6, 7.7, 9, 10, 11, 12). Fragen an der Wand, Hinweise in einer Hand, Zuordnen auf die passende Frage, Folgefragen über `after`. Hinweise kommen beim Ablegen von selbst (`auto`) oder mit der Nadel (`pin`), vorgegebene mit `given`. `traces` mit freien Fäden entfallen. Lade klemmt bis `unlock: drawer`, danach Zettel mit `keep: "drawer"`. Regel-IDs der Tagesauswertung springen in den Kodex. `provisional` an Story-Ereignissen und Fragen, Inhaltsbericht `npm run content:report`. Spielstand um `board`. `auftraege/06-pinnwand-fragen-lade.md` und `auftraege/06-prototyp-pinnwand.html` angelegt. Liegt auf dem Branch `auftrag-06-pinnwand`.
 - `content/akt1.json` 0.3.4: `traces` durch `questions` ersetzt (q1 und q2 an Tag 7, q3 an Tag 10, alle `provisional`). `keep: "drawer"` an den beiden Zetteln von Sedlak an Tag 10.
 - `content/ui.json` 0.5.0: neu `intro.unlockPinboard`, `intro.unlockDrawer`, `evaluation.ruleJump`, Bereiche `pinboard` und `drawer`, `aria.pinboard`, `aria.pinCard`, `aria.question`, `aria.questionAnswered`, `aria.hand`, `aria.pinnableLine`, `aria.pinnableStamp`, `aria.drawer`, `aria.copy`.

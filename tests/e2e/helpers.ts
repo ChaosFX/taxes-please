@@ -276,7 +276,18 @@ export async function playDay(page: Page, opts: { reloadAfter?: number; answer?:
  * played perfectly: a save in the format of src/core (version 2) is put into
  * localStorage. Follow-ups due that day come first; tools unlocked so far are on.
  */
-export async function startAtDay(page: Page, day: number, opts: { effects?: 'aus' | 'reduziert' | 'voll'; codex?: { lastRuleId: string; seenDay: number } } = {}) {
+export interface StartOpts {
+  effects?: 'aus' | 'reduziert' | 'voll';
+  codex?: { lastRuleId: string; seenDay: number };
+  /** All Akten of the days before lie in the outbox, solved correctly (for the pinboard). */
+  filed?: boolean;
+  /** Stack of the day instead of the one from the content (e.g. one Akte only). */
+  queue?: string[];
+  /** Pinboard state of the save (SPEC 9). */
+  board?: object;
+}
+
+export async function startAtDay(page: Page, day: number, opts: StartOpts = {}) {
   const tools: string[] = [];
   for (const d of raw.days) {
     if (d.day > day) continue;
@@ -285,14 +296,16 @@ export async function startAtDay(page: Page, day: number, opts: { effects?: 'aus
   const followUps = raw.cases
     .filter((c: { followUp?: { arrivesOnDay: number } }) => c.followUp?.arrivesOnDay === day)
     .map((c: { id: string }) => `${c.id}/folge`);
-  const queue = [...followUps, ...raw.days.find((d: { day: number }) => d.day === day).cases];
+  const queue = opts.queue ?? [...followUps, ...raw.days.find((d: { day: number }) => d.day === day).cases];
+  const results = opts.filed ? filedBefore(day) : [];
   const save = {
     version: 2,
     day,
     phase: 'intro',
     queue,
     current: null,
-    results: [],
+    results,
+    ...(opts.board ? { board: opts.board } : {}),
     pendingFollowUps: [],
     tools,
     settings: { effects: opts.effects ?? 'voll', volume: 0.7, music: 0.5 },
@@ -308,6 +321,20 @@ export async function startAtDay(page: Page, day: number, opts: { effects?: 'aus
   await key(page, 'continue').click();
   await expect(page.locator('.day-card h1')).toHaveText(`Tag ${day}`);
 }
+
+/** Results of all Akten (and follow-ups) of the days before `day`, solved correctly. */
+function filedBefore(day: number) {
+  const out: { akteId: string; day: number; answer: object; errors: [] }[] = [];
+  for (const d of raw.days) {
+    if (d.day >= day) continue;
+    const follow = raw.cases.filter((c: { followUp?: { arrivesOnDay: number } }) => c.followUp?.arrivesOnDay === d.day).map((c: { id: string }) => `${c.id}/folge`);
+    for (const id of [...follow, ...d.cases]) out.push({ akteId: id, day: d.day, answer: { positions: {}, stamp: solutionFor(id).stamp }, errors: [] });
+  }
+  return out;
+}
+
+/** Saved game state from localStorage. */
+export const savedState = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('taxes-please/save/v1') ?? 'null'));
 
 /** Draws Akten (solving those before) until `id` is on the desk. */
 export async function drawUntil(page: Page, id: string) {

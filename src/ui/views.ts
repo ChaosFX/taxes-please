@@ -7,7 +7,8 @@ import { OFFEN } from '../core/schema';
 import { isAmountDecision, type Akte, type Answer, type CaseError, type Content, type EDecision, type PositionVerdict, type Rule, type Stamp } from '../core/types';
 import { h } from './dom';
 import { amountText, choiceLabel, optionLabel, pairText, playerVerdictLabel, stampLabel, verdictLabel } from './labels';
-import { storyEvent } from './story';
+import { newQuestionsOfDay } from '../core/board';
+import { questionNotice, storyEvent } from './story';
 import { t, textsReady } from './text';
 
 export interface ScreenActions {
@@ -16,6 +17,8 @@ export interface ScreenActions {
   beginWork(): void;
   advanceDay(): void;
   toStart(): void;
+  /** Opens the codex in reading mode at a rule (SPEC 5, Sprung in den Kodex). */
+  readRule(ruleId: string): void;
 }
 
 // ---------- Errors in the summary: built from data only ----------
@@ -100,6 +103,8 @@ export function introView(content: Content, state: GameState, a: ScreenActions):
       h('h1', {}, t('intro.day', { day: d.day })),
       h('p', {}, d.intro),
       d.storyEvents.map(storyEvent),
+      // New questions on the pinboard come after the story events (SPEC 4.9).
+      state.tools.includes('pinboard') ? newQuestionsOfDay(content, d.day).map(questionNotice) : null,
       h('button', { class: 'primary', 'data-key': 'begin', onclick: a.beginWork }, t('intro.begin')),
     ),
   );
@@ -107,18 +112,21 @@ export function introView(content: Content, state: GameState, a: ScreenActions):
 
 // ---------- Summary ----------
 
-function ruleRef(rule: Rule): HTMLElement {
+/** A rule in the summary: its id opens the reading mode at it (SPEC 5); `at` keeps the key unique per result. */
+function ruleRef(rule: Rule, at: string, a: ScreenActions): HTMLElement {
   return h(
     'li',
     {},
+    h('button', { class: 'rule-jump', 'data-key': `rule-${at}-${rule.id}`, 'aria-label': t('evaluation.ruleJump', { id: rule.id }), onclick: () => a.readRule(rule.id) }, rule.id),
     h('strong', {}, rule.title),
     t('evaluation.ruleSeparator'),
     h('a', { href: rule.sourceUrl, target: '_blank', rel: 'noopener noreferrer' }, rule.source),
   );
 }
 
-function solution(content: Content, akte: Akte, answer: Answer): HTMLElement {
-  const rules = (ids: string[]) => h('ul', { class: 'rule-refs' }, ids.map((id) => ruleRef(content.rules.find((r) => r.id === id)!)));
+function solution(content: Content, akte: Akte, answer: Answer, a: ScreenActions): HTMLElement {
+  let n = 0;
+  const rules = (ids: string[]) => h('ul', { class: 'rule-refs' }, ids.map((id) => ruleRef(content.rules.find((r) => r.id === id)!, `${akte.id}-${n++}`, a)));
   const stamp = h('p', {}, h('strong', {}, t('evaluation.correctStamp')), stampLabel(content, correctAnswer(akte).stamp!));
   const item = (heading: string, value: string, explanation: string, ruleIds: string[], ...extra: (HTMLElement | null)[]) =>
     h('div', { class: 'solution-item' }, h('p', {}, h('strong', {}, heading), value), ...extra, h('p', { class: 'explanation' }, explanation), rules(ruleIds));
@@ -206,7 +214,7 @@ export function summaryView(content: Content, state: GameState, a: ScreenActions
             }),
         ),
         ok ? null : h('ul', { class: 'errors' }, r.errors.map((e) => errorLine(content, akte, e))),
-        h('details', { open: !ok }, h('summary', {}, t('evaluation.solution')), solution(content, akte, r.answer)),
+        h('details', { open: !ok }, h('summary', {}, t('evaluation.solution')), solution(content, akte, r.answer, a)),
       );
     }),
     h('button', { class: 'primary', 'data-key': 'advance', onclick: a.advanceDay }, t('evaluation.closeDay')),

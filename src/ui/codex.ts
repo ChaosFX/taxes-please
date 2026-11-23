@@ -156,6 +156,8 @@ export interface BookEnv {
   onSeen: () => void;
   /** The book has closed; `lastRuleId` is the rule read last (empty: register). */
   onClose: (lastRuleId: string) => void;
+  /** Opens at this rule instead of the usual place (jump from the summary, SPEC 5). */
+  startRule?: string;
 }
 
 interface Page {
@@ -970,6 +972,7 @@ export class CodexBook {
 
   private openAnchor(): Anchor {
     const env = this.env!;
+    if (env.startRule && env.content.rules.some((r) => r.id === env.startRule && r.day <= env.day)) return { kind: 'rule', id: env.startRule };
     const target = codexOpenTarget(env.content.rules, env.day, env.progress);
     return target.kind === 'register' ? { kind: 'front' } : target;
   }

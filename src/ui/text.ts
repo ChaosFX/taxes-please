@@ -18,7 +18,7 @@ const KEYS = {
   end: ['heading', 'colDay', 'colErrors', 'toStart'],
   calculator: ['heading', 'clear', 'equals', 'decimal', 'error', 'add', 'subtract', 'multiply', 'divide'],
   calendar: ['heading', 'prevMonth', 'nextMonth', 'monthYear', 'countHint', 'countStart', 'countResult', 'countResultOne'],
-  pinboard: ['label', 'newClues', 'new', 'close', 'hand', 'handEmpty', 'placeHint', 'placed', 'wrong', 'questionFrom', 'questionOwn', 'answered', 'given', 'answer', 'newClue', 'questionNotice', 'questionNoticeOwn', 'solvedNotice', 'pinned', 'alreadyPinned', 'discard', 'empty', 'cardTitle', 'cardLine', 'cardStamp', 'archive', 'archiveDay', 'archiveEmpty', 'copy', 'copyClose'],
+  pinboard: ['label', 'newClues', 'new', 'close', 'hand', 'handEmpty', 'placeHint', 'placed', 'wrong', 'questionFrom', 'questionOwn', 'answered', 'progress', 'given', 'answer', 'newClue', 'questionNotice', 'questionNoticeOwn', 'solvedNotice', 'pinned', 'alreadyPinned', 'discard', 'empty', 'cardTitle', 'cardLine', 'cardStamp', 'archive', 'archiveDay', 'archiveEmpty', 'copy', 'copyClose'],
   drawer: ['label', 'stuck', 'title', 'empty', 'close', 'stored'],
   settings: ['heading', 'effects', 'effectsAus', 'effectsReduziert', 'effectsVoll', 'sound', 'volume', 'music', 'percent'],
   error: ['heading'],
