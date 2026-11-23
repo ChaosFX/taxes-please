@@ -1,6 +1,6 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 23.11.2026 · Version 0.4.1 · passt zu `content/akt1.json` Version 0.3.2, `content/ui.json` Version 0.4.0 und `content/kalender.json` Version 0.1.0
+Stand: 23.11.2026 · Version 0.4.1 · passt zu `content/akt1.json` Version 0.3.3, `content/ui.json` Version 0.4.0 und `content/kalender.json` Version 0.1.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 

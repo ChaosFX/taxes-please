@@ -4,6 +4,7 @@ Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in
 
 ## 23.11.2026
 
+- `content/akt1.json` 0.3.3: Story-Durchgang Akt I, neun neue und vier geänderte Story-Ereignisse (Zuhause, Wallner, Gerri, Sedlak, Pernold), keine Änderung an Akten, Regeln oder Spuren. Nur vorhandene Typen. `SPEC.md` nennt jetzt `akt1.json` 0.3.3.
 - `SPEC.md` 0.4.1 (Abschnitt 2): Testzuschnitt nach Bericht 05 festgeschrieben. Chromium und Firefox alle e2e-Tests, WebKit nur `@smoke` (2 Minuten, keine Wiederholung), `@long` nur bei Push auf `main`. Neue e2e-Tests kurz halten. Abweichung 2 aus Bericht 05 damit erledigt.
 
 ## 22.11.2026
