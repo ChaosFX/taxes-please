@@ -1,3 +1,4 @@
+import { boardFromSave } from './board';
 import { codexProgress } from './codex';
 import { STATE_VERSION, startDay, toolsUntil, type GameState } from './game';
 import type { Content } from './types';
@@ -32,12 +33,14 @@ export function saveGame(store: KeyValueStore | null, state: GameState): boolean
 }
 
 /** Shape shared by both save versions. */
-interface StoredState extends Omit<GameState, 'version' | 'phase' | 'tools' | 'codex'> {
+interface StoredState extends Omit<GameState, 'version' | 'phase' | 'tools' | 'codex' | 'board'> {
   version: 1 | typeof STATE_VERSION;
   phase: string;
   tools?: GameState['tools'];
   /** Missing in saves before SPEC 0.3.2. */
   codex?: unknown;
+  /** Missing in saves before SPEC 0.5.0. */
+  board?: unknown;
 }
 
 function isStoredState(v: unknown): v is StoredState {
@@ -73,6 +76,7 @@ export function migrateV1(content: Content, old: StoredState): GameState {
     phase: old.phase as GameState['phase'],
     tools: toolsUntil(content, old.day),
     codex: codexProgress(old.codex),
+    board: boardFromSave(content, old.board),
   };
   if (old.day < PROTOTYPE_LAST_DAY && old.phase !== 'finished') return base;
 
@@ -115,8 +119,8 @@ export function loadGame(store: KeyValueStore | null, content: Content): GameSta
   if (!saved) return null;
   try {
     if (saved.version === 1) return shelveUnstamped(migrateV1(content, saved));
-    // A save without `codex` (before SPEC 0.3.2) keeps everything else (SPEC 9).
-    return shelveUnstamped({ ...(saved as Omit<GameState, 'codex'>), codex: codexProgress(saved.codex) } as GameState);
+    // A save without `codex` (before SPEC 0.3.2) or `board` (before 0.5.0) keeps everything else (SPEC 9).
+    return shelveUnstamped({ ...(saved as Omit<GameState, 'codex' | 'board'>), codex: codexProgress(saved.codex), board: boardFromSave(content, saved.board) } as GameState);
   } catch {
     return null;
   }

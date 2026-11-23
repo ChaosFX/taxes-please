@@ -4,6 +4,7 @@ import type { CalendarContent, Content, EffectsLevel, GameState, Settings } from
 import * as atmosphere from './atmosphere';
 import { CodexBook, loadBookFonts, type BookEnv } from './codex';
 import { deskView, type DeskActions, type DeskUi } from './desk';
+import { PinboardView, openDrawer } from './pinboard';
 import { h } from './dom';
 import { EFFECT_LEVELS, applyEffects, defaultSettings, loadSavedGame, loadSettings, saveSettings } from './settings';
 import { fitStage, stageScale } from './stage';
@@ -111,7 +112,13 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
       screen = 'game';
       update({ ...saved, settings });
     },
-    beginWork: () => state && update(core.beginWork(state)),
+    beginWork: () => {
+      if (!state) return;
+      update(core.beginWork(state));
+      // Notes kept in the drawer have gone there (SPEC 7.7).
+      if (state.phase === 'desk' && core.dayInfo(content, state.day).storyEvents.some((e) => e.type === 'note' && e.keep === 'drawer')) table.say('drawer.stored');
+    },
+    readRule: (ruleId) => openCodexAt(ruleId),
     advanceDay: () => {
       if (!state) return;
       update(core.advanceDay(content, state));
@@ -242,7 +249,56 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
       render();
     },
     file: () => table.file(),
+    pin: (place) => {
+      if (!state?.current) return;
+      const ref = core.refOnAkte(content, state.current.akteId, place);
+      const r = core.pinClue(content, state, ref);
+      if (r.result === 'pinned') {
+        update(r.state);
+        table.say('pinboard.pinned', { text: core.clueValue(content, ref) });
+      } else if (r.result === 'already') table.say('pinboard.alreadyPinned');
+    },
+    openPinboard: () => openPinboard(),
+    drawer: () => {
+      if (!state) return;
+      if (!state.tools.includes('drawer')) {
+        table.say('drawer.stuck');
+        const el = root.querySelector<HTMLElement>('.drawer-handle');
+        if (el && settings.effects === 'voll') {
+          el.classList.remove('stuck');
+          void el.offsetWidth;
+          el.classList.add('stuck');
+          el.addEventListener('animationend', () => el.classList.remove('stuck'), { once: true });
+        }
+        return;
+      }
+      putStampBack();
+      openDrawer(core.drawerNotes(content, state.day), boardHost);
+    },
   };
+
+  /** Pinboard and drawer are dialogs: while open the desk is not re-rendered (like the reading mode). */
+  const boardHost = {
+    content,
+    state: () => state,
+    save: (next: GameState) => {
+      state = next;
+      core.saveGame(store, state);
+    },
+    effects: () => settings.effects,
+    sound: (name: 'paper' | 'file') => sound.play(name),
+    closed: (back: string) => {
+      focusNext = back;
+      render();
+    },
+  };
+  const pinboard = new PinboardView(boardHost);
+
+  function openPinboard(): void {
+    if (!state || state.phase !== 'desk' || !core.hasPinboard(state) || pinboard.isOpen) return;
+    putStampBack();
+    pinboard.open('pinboard');
+  }
 
   /** Puts the carried stamp back into the holder; the question choice closes again. */
   function putStampBack(): void {
@@ -296,15 +352,37 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     });
   }
 
-  // Taste K opens the codex on the desk, unless a text field has focus (SPEC 6.1). The open book handles K itself.
+  /** Opens the reading mode at a rule from the summary (SPEC 5); Escape returns to the button. */
+  function openCodexAt(ruleId: string): void {
+    if (!state || state.phase !== 'summary' || book.isOpen) return;
+    const back = document.activeElement as HTMLElement | null;
+    state = core.rememberCodexPlace(state, ruleId);
+    core.saveGame(store, state);
+    book.open({
+      ...codexEnv(state.day),
+      startRule: ruleId,
+      // The summary stays as it is (open solutions too): saved without re-render, focus back on the rule.
+      onClose: (lastRuleId) => {
+        if (!state) return;
+        state = core.rememberCodexPlace(state, lastRuleId);
+        core.saveGame(store, state);
+        back?.focus({ preventScroll: true });
+      },
+    });
+  }
+
+  // Taste K opens the codex, P the pinboard on the desk, unless a text field has focus (SPEC 6.1, 7.6). Open dialogs handle their keys themselves.
   window.addEventListener('keydown', (e) => {
-    if ((e.key !== 'k' && e.key !== 'K') || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+    const k = e.key.toLowerCase();
+    if ((k !== 'k' && k !== 'p') || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
     if (book.isOpen || screen !== 'game' || state?.phase !== 'desk') return;
     const target = e.target as HTMLElement | null;
     if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return;
     if (document.querySelector('dialog[open]')) return;
+    if (k === 'p' && !core.hasPinboard(state)) return;
     e.preventDefault();
-    openCodex();
+    if (k === 'k') openCodex();
+    else openPinboard();
   });
 
   function settingsPanel(): HTMLElement {

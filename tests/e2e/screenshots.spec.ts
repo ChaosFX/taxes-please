@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { drawUntil, enter, freshStart, key, markKey, openAkte, playDay, pullOut, solutionFor, startAtDay, stampAkte, zoomNewspaper } from './helpers';
+import { dragTo, drawUntil, enter, freshStart, key, markKey, openAkte, playDay, pullOut, solutionFor, startAtDay, stampAkte, zoomNewspaper } from './helpers';
 
 /** Screenshots of the main views (SPEC section 10.3). Output: screenshots/. */
 const shot = (name: string) => `screenshots/${name}.png`;
@@ -244,4 +244,76 @@ test('Screenshots Kodex als Buch', async ({ page }) => {
   await page.keyboard.press('k');
   await settle(page);
   await page.screenshot({ path: shot('kodex-10-1280x720') });
+});
+
+test('Screenshots Pinnwand und Lade (Auftrag 06)', async ({ page }) => {
+  test.setTimeout(120_000);
+  const ES118 = '7-3|Rechnung Eventservice GmbH|Rechnungsnummer';
+  const WOLF = '2-4|Arbeitnehmerveranlagung 2025|Arbeitgeber';
+
+  // Day 7: the new question as a note, then the desk with the cork board.
+  await startAtDay(page, 7, { filed: true, queue: ['7-3', '7-1'] });
+  await calm(page);
+  await page.screenshot({ path: shot('40-tag7-intro-neue-frage'), fullPage: true });
+  await key(page, 'begin').click();
+  await calm(page);
+  await page.screenshot({ path: shot('41-tag7-tisch-pinnwand') });
+
+  // File 7-3: the clue comes into the hand.
+  const id = await openAkte(page);
+  await enter(page, id, solutionFor(id));
+  await key(page, 'pinboard').click();
+  await calm(page);
+  await page.screenshot({ path: shot('42-pinnwand-vor-zuordnen') });
+  const card = key(page, `card-${ES118}`);
+  const q1 = (await key(page, 'q-q1').boundingBox())!;
+  const b = (await card.boundingBox())!;
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(q1.x + q1.width / 2, q1.y + q1.height / 2, { steps: 8 });
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: shot('43-pinnwand-ziehen-ueber-q1') });
+  await page.mouse.up();
+  await calm(page);
+  await page.screenshot({ path: shot('44-pinnwand-q1-geloest-q2') });
+  await page.keyboard.press('Escape');
+
+  // Day 10: all three answered, carbon copy open, the drawer.
+  await startAtDay(page, 10, { filed: true, queue: ['10-4', '10-1'], board: { placed: { q1: [ES118], q2: [WOLF] }, pinned: [], seenClues: [], seenAnswers: ['q1', 'q2'], misses: 0 } });
+  await key(page, 'begin').click();
+  await calm(page);
+  await page.screenshot({ path: shot('45-tag10-tisch-lade') });
+  const id10 = await openAkte(page);
+  await enter(page, id10, solutionFor(id10));
+  await key(page, 'pinboard').click();
+  await key(page, 'card-10-4|@representative').click();
+  await key(page, 'q-q3').click();
+  await calm(page);
+  await page.screenshot({ path: shot('46-pinnwand-alle-beantwortet') });
+  await key(page, 'copy-4-3').click();
+  await calm(page);
+  await page.screenshot({ path: shot('47-pinnwand-durchschlag') });
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  await key(page, 'drawer').click();
+  await calm(page);
+  await page.screenshot({ path: shot('48-lade-tag10') });
+  await page.keyboard.press('Escape');
+
+  // Needles on a paper on the desk.
+  await openAkte(page);
+  await pullOut(page, 0);
+  await key(page, 'paper-0').locator('tr.pinnable').nth(1).hover();
+  await calm(page);
+  await page.screenshot({ path: shot('49-nadel-an-zeile') });
+
+  // Summary: jump into the codex.
+  await startAtDay(page, 1, { queue: ['1-1'] });
+  await key(page, 'begin').click();
+  const id1 = await openAkte(page);
+  await enter(page, id1, solutionFor(id1));
+  await page.locator('.result details > summary').first().click();
+  await page.locator('.rule-jump').first().click();
+  await calm(page);
+  await page.screenshot({ path: shot('50-auswertung-sprung-kodex') });
 });

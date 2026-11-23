@@ -21,7 +21,8 @@ import type {
   TaxpayerSchema,
   TextsSchema,
   ToolSchema,
-  TraceSchema,
+  ClueSchema,
+  QuestionSchema,
 } from './schema';
 
 export type Stamp = z.infer<typeof StampSchema>;
@@ -31,7 +32,8 @@ export type PlayerVerdict = Exclude<PositionVerdict, 'offen'>;
 export type Rule = z.infer<typeof RuleSchema>;
 export type StoryEvent = z.infer<typeof StoryEventSchema>;
 export type Tool = z.infer<typeof ToolSchema>;
-export type Trace = z.infer<typeof TraceSchema>;
+export type Clue = z.infer<typeof ClueSchema>;
+export type Question = z.infer<typeof QuestionSchema>;
 export type Day = z.infer<typeof DaySchema>;
 export type Document = z.infer<typeof DocumentSchema>;
 export type Position = z.infer<typeof PositionSchema>;

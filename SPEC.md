@@ -1,10 +1,21 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 23.11.2026 · Version 0.4.1 · passt zu `content/akt1.json` Version 0.3.3, `content/ui.json` Version 0.4.0 und `content/kalender.json` Version 0.1.0
+Stand: 23.11.2026 · Version 0.5.0 · passt zu `content/akt1.json` Version 0.3.4, `content/ui.json` Version 0.5.0 und `content/kalender.json` Version 0.1.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
 Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakten und 54 Kodexregeln (davon 5 Hinweise ohne eigenen Fall). Inhalt und Lösungen stehen in `content/akt1.json`, einer Datei für den ganzen Akt. Spätere Akte bekommen je eine eigene Datei (`akt2.json` usw.).
+
+Änderungen gegenüber 0.4.1:
+- **Pinnwand mit Fragen ab Tag 7** (`unlock: pinboard`, Abschnitte 3, 4 und 7.6, Auftrag 06), nach dem Vorbild des Case Boards in Alan Wake 2: An der Wand hängen offene Fragen. Hinweise sammeln sich in einer Hand. Der Spieler legt einen Hinweis auf die Frage, zu der er passt. Sind alle Hinweise einer Frage da, ist sie beantwortet, die Antwort erscheint, und Folgefragen können auftauchen. Falsch legen kostet nichts.
+- **Hinweise kommen von selbst oder mit der Nadel:** Ein Hinweis kommt in die Hand, sobald seine Akte im Ausgangskorb liegt und die Frage an der Wand hängt (Standard), oder erst, wenn der Spieler die Stelle selbst mit der Nadel anheftet (`source: "pin"`). Vorgegebene Hinweise (`given`) hängen schon an der Frage. Damit lässt sich die Schwierigkeit jeder Frage über die Daten einstellen.
+- Die Spuren (`traces`) mit freien Fäden entfallen und werden durch Fragen (`questions`) ersetzt.
+- **Vorläufige Story-Texte:** `provisional: true` ist an jedem Story-Ereignis und an jeder Frage erlaubt. Es hat im Spiel keine Wirkung. `npm run content:report` listet alle vorläufigen Texte.
+- Lade ab Tag 10 (`unlock: drawer`, Abschnitt 7.7): Zettel mit `keep: "drawer"` bleiben nach dem Tagesbeginn in der Lade und lassen sich jederzeit wieder lesen. Vorher klemmt die Lade.
+- Regel-IDs in der Tagesauswertung öffnen den Lesemodus des Kodex an dieser Regel (Abschnitt 5).
+- Spielstand um `board` erweitert (Abschnitt 9).
+- Die Pinnwand erzeugt keine Fehler. Die Bewertung der Akten ändert sich nicht.
+- **Grundsatz:** Der Code kennt keine Figur, keine Firma und keinen Story-Text. Fragen, Hinweise, Antworten und wer sie stellt, stehen nur in den Daten.
 
 Änderungen gegenüber 0.3.2:
 - Der Arbeitstisch wird zum Ablauf mit den Händen (Abschnitt 7.1 bis 7.5, Auftrag 05): links Eingang und Werkzeuge, in der Mitte die Unterlage, rechts Stempelhalter und Ausgangskorb. Die Akte ist eine Mappe, die man auf die Unterlage zieht und aufschlägt. Unterlagen werden herausgezogen und fliegen beim Schließen zurück. Stempel werden aufgenommen und aufgedrückt, die zugeklappte Akte wird in den Ausgangskorb gezogen. Es liegt immer nur eine Akte am Tisch.
@@ -91,7 +102,7 @@ Die Typen folgen exakt dem JSON in `content/`. Alles, was hier nicht als optiona
 
 ### `Day`
 
-`day`, `intro`, `stamps` (verfügbare Stempel), `cases` (IDs in Reihenfolge, darf leer sein), `storyEvents` (Liste in Anzeigereihenfolge), optional `traces` (Spuren für die Pinnwand, siehe unten).
+`day`, `intro`, `stamps` (verfügbare Stempel), `cases` (IDs in Reihenfolge, darf leer sein), `storyEvents` (Liste in Anzeigereihenfolge), optional `questions` (Fragen für die Pinnwand, siehe unten).
 
 ### Story-Ereignisse (`storyEvents`)
 
@@ -99,19 +110,38 @@ Jedes Ereignis hat ein `type`. Die Felder je Typ:
 
 | `type` | Felder | Darstellung |
 | --- | --- | --- |
-| `note` | `from`, `text`, optional `title` | Zettel (wie bisher), `title` als Überschrift |
+| `note` | `from`, `text`, optional `title`, optional `keep: "drawer"` | Zettel (wie bisher), `title` als Überschrift. Mit `keep: "drawer"` kommt der Zettel nach dem Anzeigen in die Lade (Abschnitt 7.7). |
 | `dialog` | `from`, `text` | Sprechblase (wie bisher) |
 | `newspaper` | `from` (Name der Zeitung), `headline`, `text` | Zeitungsblatt mit Kopf `from`, Schlagzeile und kurzem Text |
 | `call` | `from`, `text` | Telefonhörer mit „Anruf von {from}“ und Text |
-| `unlock` | `feature`: `calculator`, `calendar`, `pinboard` oder `drawer` | `calculator` schaltet ab diesem Tag den Tischrechner frei und zeigt `ui.intro.unlockCalculator`, `calendar` den Tischkalender mit `ui.intro.unlockCalendar`. `pinboard` und `drawer` werden geprüft, aber in dieser Version nicht dargestellt. |
-| `event` | `id`, `text`, `options` (je `text`, `effects` mit `time`, `rating`, `gerri`, `home` als ganze Zahlen, `sets` als Liste von Merkern), optional `provisional: true` | Ereigniskarte des Metagames. In dieser Version nur geprüft, nicht dargestellt. |
+| `unlock` | `feature`: `calculator`, `calendar`, `pinboard` oder `drawer` | `calculator` schaltet ab diesem Tag den Tischrechner frei und zeigt `ui.intro.unlockCalculator`, `calendar` den Tischkalender mit `ui.intro.unlockCalendar`, `pinboard` die Pinnwand mit `ui.intro.unlockPinboard`, `drawer` die Lade mit `ui.intro.unlockDrawer`. |
+| `event` | `id`, `text`, `options` (je `text`, `effects` mit `time`, `rating`, `gerri`, `home` als ganze Zahlen, `sets` als Liste von Merkern) | Ereigniskarte des Metagames. In dieser Version nur geprüft, nicht dargestellt. |
 | `actSummary` | `act` (Zahl) | Nach der Tagesauswertung dieses Tages erscheint der Schlussbildschirm des Akts (Abschnitt 4). |
 
-Ein unbekannter `type` ist ein Ladefehler.
+Ein unbekannter `type` ist ein Ladefehler. Jedes Story-Ereignis und jede Frage darf `provisional: true` tragen: Der Text ist eine Arbeitsfassung. Im Spiel hat das keine Wirkung, der Inhaltsbericht (Abschnitt 10) listet sie.
 
-### Spuren (`traces`, nur geprüft)
+### Fragen (`questions`)
 
-`id`, `label`, `links` (mindestens zwei, je `case` und entweder `document` mit `line` oder `field`), `reward` (`type: "note"`, `from`, `text`). Der Loader prüft, dass jede verlinkte Akte, jedes Dokument (Titel) und jede Zeile (Label) existiert und dass `field` ein vorhandenes Feld der Akte ist (zum Beispiel `representative`). Die Pinnwand selbst kommt in einem späteren Auftrag.
+Eine Frage gehört zu dem Tag, unter dem sie steht. Dargestellt wird sie an der Pinnwand (Abschnitt 7.6).
+
+- `id` (über alle Tage eindeutig), `text` (die Frage), `clues` (mindestens einer), `answer` (`text`, optional `from`), optional `from` (Figur, die die Frage stellt, ohne Angabe ist es Daniels eigene Frage), optional `group` (Überschrift der Spalte an der Wand, zum Beispiel ein Firmenname), optional `after` (ID einer Frage, die zuerst beantwortet sein muss), optional `provisional: true`.
+- Ein Hinweis (`clues[]`) ist eine Fundstelle: `case` und entweder `document` mit `line` oder `field` (nur `representative`, der Kanzleistempel). Dazu optional:
+  - `given: true`: Der Hinweis hängt von Anfang an an der Frage, mit dem Vermerk `ui.pinboard.given` (Figur aus `from` der Frage).
+  - `source: "pin"`: Der Hinweis kommt nicht von selbst. Der Spieler muss die Stelle mit der Nadel anheften. Ohne Angabe gilt `source: "auto"`.
+- **Wann eine Frage an der Wand hängt:** ab Beginn ihres Tages, mit `after` erst, wenn die vorige Frage beantwortet ist.
+- **Wann ein Hinweis in die Hand kommt:** bei `auto`, sobald seine Akte im Ausgangskorb liegt und die Frage an der Wand hängt, egal in welcher Reihenfolge. Bei `pin`, wenn der Spieler die Stelle angeheftet hat. Ein Hinweis, der zu mehreren offenen Fragen gehört, liegt nur einmal in der Hand.
+- **Beantwortet** ist eine Frage, wenn alle ihre Hinweise an ihr hängen (vorgegebene zählen mit).
+
+**Grundsatz:** Der Code kennt keine Figur, keine Firma und keinen Story-Text. Wer fragt, was gefragt wird, welche Stellen antworten, wie viel vorgegeben ist und wie die Antwort lautet, steht nur in den Daten. Die Menge an `given` und `auto` je Frage ist der Schwierigkeitsregler (Akt I: viel Vorgabe, alles `auto`; später weniger Vorgabe und mehr `pin`).
+
+Der Loader prüft:
+
+- Jede Akte, jedes Dokument (Titel) und jede Zeile (Label) eines Hinweises existiert. Verlinkt werden nur die Unterlagen der Akte selbst, nicht die einer Folgeakte.
+- `field` ist nur `representative`. Die Akte hat dann einen `representative` mit `stampVisible: true` und mindestens ein Dokument mit `stamp`.
+- Jede Akte eines Hinweises kommt spätestens am Tag der Frage in den Stapel. Akten von Hinweisen mit `given` kommen vorher, damit die Wand nur zeigt, was der Spieler schon gesehen hat.
+- Mindestens ein Hinweis je Frage ist nicht `given`.
+- `after` zeigt auf eine existierende Frage desselben oder eines früheren Tages, ohne Kreis.
+- Ein Tag mit Fragen hat die Pinnwand an diesem oder einem früheren Tag freigeschaltet. Ein Zettel mit `keep: "drawer"` steht an einem Tag, an dem die Lade schon oder im selben Tag vorher freigeschaltet ist.
 
 ### `Case`
 
@@ -120,7 +150,7 @@ Gemeinsame Felder:
 - `id`, `type`, optional `story: true`, optional `variantOf` (ID einer anderen Akte, nur Information, keine Wirkung im Spiel).
 - `taxpayer`: `name`, optional `job`, optional `employer`. Ohne `job` zeigt der Kopf `ui.desk.akteNoJob`.
 - optional `representative` mit `name` und `stampVisible`.
-- `documents`: Liste von Papieren (`kind`: `erklaerung` oder `beleg`, `title`, `lines` als Label-Wert-Paare, optional `stamp`). Dokumenttitel sind je Akte eindeutig, Zeilen-Labels je Dokument eindeutig. Widersprüche und Spuren verweisen über Titel und Label.
+- `documents`: Liste von Papieren (`kind`: `erklaerung` oder `beleg`, `title`, `lines` als Label-Wert-Paare, optional `stamp`). Dokumenttitel sind je Akte eindeutig, Zeilen-Labels je Dokument eindeutig. Widersprüche und Hinweise verweisen über Titel und Label.
 - `correctStamp`: `bescheid` oder `ergaenzung`.
 - optional `followUp`: Unterlagen, die an einem späteren Tag als neue Akte eintreffen, mit eigener Lösung. Bei `werbungskosten` mit `positions`, bei `entscheidungen` mit `decisions`, jeweils mit `documents` und `correctStamp`.
 
@@ -165,18 +195,22 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
 
 1. **Startbildschirm:** Titel, Hinweis auf Fiktion und Vereinfachung, Buttons „Neues Spiel“ und „Fortsetzen“.
 2. **Tagesbeginn:** Karte mit „Tag N“ und `intro`-Text. Ein Spieldatum gibt es nicht, der Tag heißt nur „Tag N“. Daten in Belegen und Fristfällen sind Inhalt der Papiere und haben keine Wirkung auf den Ablauf. Danach die Story-Ereignisse des Tages in ihrer Reihenfolge (Abschnitt 3).
-3. **Schreibtisch:** Aufbau nach Abschnitt 7.1. Links der Eingang mit dem Aktenstapel und Zähler, darunter die Werkzeuge: Kodex (Abschnitt 6), ab `unlock: calendar` der Tischkalender, ab `unlock: calculator` der Tischrechner. In der Mitte die Unterlage. Rechts Stempelhalter und Ausgangskorb.
+3. **Schreibtisch:** Aufbau nach Abschnitt 7.1. Links der Eingang mit dem Aktenstapel und Zähler, darunter die Werkzeuge: Kodex (Abschnitt 6), ab `unlock: calendar` der Tischkalender, ab `unlock: calculator` der Tischrechner. In der Mitte die Unterlage, darunter der Griff der Lade. Rechts ab `unlock: pinboard` die Pinnwand, darunter Telefon, Stempelhalter und Ausgangskorb.
 4. **Akte bearbeiten:**
    - Der Spieler zieht die oberste Akte aus dem Eingang auf die Unterlage (oder klickt sie an, oder Enter bei Fokus). Sie schlägt sich auf: innen links der Prüfvermerk, rechts die Unterlagen in der Tasche (Abschnitt 7.2). Es liegt immer nur eine Akte am Tisch.
    - Der Prüfvermerk listet je nach Typ die Positionen (anerkennen, streichen), die Frage mit Optionen oder die Entscheidungen. Bei `entscheidungen` hat jede Zeile entweder Schaltflächen für die Optionen oder ein Eingabefeld für den Betrag. Das Eingabefeld akzeptiert Eingaben wie `4236,7`, `4.236,70` und `4236.70` und zeigt den Betrag nach dem Verlassen des Felds im Format `4.236,70 €`.
    - Bei Entscheidungen oder Positionen mit `offen` ist keine Option richtig. Der Spieler lässt sie unentschieden und stempelt das Ergänzungsersuchen.
    - **Widerspruch markieren:** Ein Schalter „Widerspruch markieren“ im Prüfvermerk schaltet einen Markiermodus ein. Darin wählt der Spieler eine Zeile in einem herausgezogenen Papier und dann eine Zeile in einem anderen herausgezogenen Papier derselben Akte. Papiere in der Tasche sind im Markiermodus nicht anklickbar. Das Paar erscheint als Markierung im Prüfvermerk und auf beiden Papieren. Markierungen lassen sich aufheben. Der Markiermodus ist bei jeder Akte verfügbar, auch ohne `discrepancies`, damit er nichts verrät. Die Zeilen sind nur im Markiermodus anklickbar, damit das Ziehen der Papiere nicht gestört wird. Im Prüfvermerk steht eine Liste der Paare mit „aufheben“ je Paar und „Markierungen aufheben“ für alle. Auch per Tastatur bedienbar.
    - **Nachfrage:** Hat die Akte eine `inquiry` und nimmt der Spieler den Stempel „Ergänzungsersuchen“ auf, erscheint im Prüfvermerk über dem Stempelfeld die Auswahl der Fragen (`prompt`, `options[].label`). Das Stempelfeld nimmt den Stempel erst nach der Wahl an. Legt der Spieler den Stempel zurück, schließt sich die Auswahl wieder. Akten ohne `inquiry` stempeln wie bisher.
+   - **Anheften (ab Pinnwand):** Jede Zeile eines herausgezogenen Papiers oder eines Durchschlags zeigt beim Darüberfahren und bei Fokus eine Nadel (`aria.pinnableLine`). Ein Klick oder Enter darauf legt die Stelle als Hinweis in die Hand (`ui.pinboard.pinned`). Ein Klick auf einen Kanzleistempel legt den Vertreter in die Hand (`field: representative`). Jede Zeile hat eine Nadel, damit sie nichts verrät. Selbst angeheftete Hinweise, die zu keiner Frage passen, kann der Spieler wieder weglegen (`ui.pinboard.discard`). Im Markiermodus und mit aufgenommenem Stempel gibt es keine Nadeln. Papiere in der Tasche haben keine Nadel.
+   - **Ablegen bringt Hinweise:** Liegt eine Akte im Ausgangskorb und gehört eine ihrer Stellen als `auto`-Hinweis zu einer Frage an der Wand, kommt sie in die Hand. `ui.pinboard.newClue` erscheint in der Live-Region.
    - Der Spieler nimmt einen der verfügbaren Stempel aus dem Halter und drückt ihn auf das Stempelfeld des Prüfvermerks (Abschnitt 7.3). Dann schließt er die Akte, die Unterlagen kommen dabei zurück in die Mappe, und zieht sie in den Ausgangskorb. Erst dann lässt sich die nächste Akte aus dem Eingang nehmen. Der Stempel ist endgültig, danach sind Prüfvermerk, Markierungen und Nachfrage gesperrt.
 5. **Tagesende:** Wenn der Stapel leer ist, erscheint die Auswertung.
 6. **Folgeakten:** Eine Akte mit `followUp` kommt am angegebenen Tag zusätzlich in den Stapel, aber nur wenn der Spieler das Ergänzungsersuchen gestempelt hat. Sie kommt immer mit den Unterlagen aus `followUp.documents`, auch wenn die Nachfrage falsch gewählt war (der Fehler ist dann schon gezählt). Hat der Spieler einen Bescheid erlassen, kommt sie nicht. Folgeakten liegen im Stapel vor den Akten des Tages.
 7. **Leere Tage:** Ist der Stapel eines Tages leer, zeigt das Spiel `texts.emptyDay` und geht direkt zur Auswertung.
 8. **Abschluss eines Akts:** Nach der Auswertung eines Tages mit `actSummary` erscheint der Schlussbildschirm `ui.end` („Ende von Akt {act}“) mit der Übersicht Tag und Fehler. Gibt es danach keinen weiteren Tag, bleibt das Spiel dort stehen. Der Schlussbildschirm „Ende des Prototyps“ nach Tag 4 entfällt.
+9. **Pinnwand:** ab `unlock: pinboard` (Abschnitt 7.6). Sie läuft neben den Akten her und hat keinen Einfluss auf Stapel, Bewertung oder Tagesende. Zum Tagesbeginn erscheint jede neue Frage ohne `after` nach den Story-Ereignissen als Zettel (`ui.pinboard.questionNotice` beziehungsweise `ui.pinboard.questionNoticeOwn`).
+10. **Lade:** ab `unlock: drawer` (Abschnitt 7.7).
 
 ## 5. Bewertung und Auswertung
 
@@ -189,6 +223,8 @@ Der Loader prüft wie bisher alle Querverweise und zusätzlich:
 - **Nachfragen:** Eine gewählte Frage, die nicht `inquiry.correct` ist, zählt als ein Fehler mit `texts.wrongInquiry`.
 - Die Tagesauswertung zeigt pro Akte: richtig oder falsch, die richtige Lösung (bei Beträgen den richtigen Betrag und den eingegebenen), die `explanation`, bei Widersprüchen deren `explanation`, bei Nachfragen die gewählte und die richtige Frage samt `answer` der gewählten Frage, und die verlinkten Kodexregeln mit Fundstelle.
 - Ab `texts.warning.minErrors` Fehlern an einem Tag erscheint die Ermahnung (`from`, `text`). Das hat weiterhin keine Folgen.
+- **Sprung in den Kodex:** Jede verlinkte Regel in der Tagesauswertung ist eine Schaltfläche (zugängliche Beschriftung `ui.evaluation.ruleJump`). Sie öffnet den Lesemodus (6.2) an dieser Regel und setzt `codex.lastRuleId`. Escape oder Schließen führt zurück in die Auswertung, der Fokus liegt wieder auf der Schaltfläche.
+- **Die Pinnwand** erzeugt keine Fehler und erscheint nicht in der Fehlerzahl. Ein Hinweis, der nicht zur Frage passt, zählt nur in `board.misses` (Abschnitt 9) und hat in dieser Version keine Wirkung.
 - Die Bewertung ist eine reine Funktion in `core` und vollständig getestet.
 
 ## 6. Kodex als Buch
@@ -292,7 +328,8 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - **Links, Werkzeugleiste:** oben der Eingang (Aktenstapel mit Zähler `ui.desk.stack`), darunter die Plätze für Kodex, Kalender und Rechner. Ein Werkzeug, das noch nicht freigeschaltet ist, hat keinen Platz in der Leiste und keinen Eintrag im DOM.
 - **Mitte, Unterlage:** die grüne Schreibunterlage. Hier liegen die offene Akte, herausgezogene Papiere, Kodex, Kalender, Rechner und die Morgenzeitung. Nichts lässt sich so ablegen, dass es über den Rand der Unterlage ragt.
 - **Rechts:** oben das Telefon für Anrufe, darunter der Stempelhalter mit den Stempeln des Tages (`Day.stamps`), unten der Ausgangskorb (`ui.desk.outbox`) mit Zähler.
-- **Ablageflächen als Daten:** Eingang, Werkzeugplätze, Unterlage, Stempelhalter und Ausgangskorb stehen in einer einzigen Tabelle im Code (Name, Lage, was dort angenommen wird). Lade mit Notizbuch (`drawer`, Tag 10) und Pinnwand (`pinboard`, Tag 7) kommen in einem späteren Auftrag als weitere Einträge dazu, ohne dass der Tisch umgebaut werden muss.
+- **Ablageflächen als Daten:** Eingang, Werkzeugplätze, Unterlage, Stempelhalter, Ausgangskorb, Pinnwand (ab Tag 7) und Lade stehen in einer einzigen Tabelle im Code (Name, Lage, was dort angenommen wird).
+- **Pinnwand und Lade am Tisch (ab 0.5.0):** Die Pinnwand hängt als Korkfläche oben in der rechten Leiste über dem Telefon. Stempelhalter und Ausgangskorb dürfen dafür niedriger werden. Die Lade hat einen Griff an der Vorderkante des Tisches unter der Unterlage. Die Unterlage darf dafür unten etwas kürzer werden. Weicht die Lage ab, weil sonst etwas nicht passt, im Bericht begründen.
 - **Ziehen zwischen Flächen:** Beim Loslassen entscheidet die Fläche unter dem Zeiger. Nimmt sie das Objekt nicht an, gleitet es an seinen letzten gültigen Platz zurück, mit kurzer Meldung, wenn es einen Grund gibt (zum Beispiel `ui.desk.oneAkteOnly`). Meldungen stehen in einer Live-Region.
 
 ### 7.2 Akte als Mappe
@@ -328,6 +365,28 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - **Tage zählen:** Ein Klick auf einen Tag setzt den Beginn (`ui.calendar.countStart`), ein Klick auf einen zweiten Tag das Ende. Dazwischen liegende Tage sind hinterlegt, darunter steht der Abstand in Kalendertagen (`ui.calendar.countResult`, bei 1 `ui.calendar.countResultOne`). Ein dritter Klick beginnt neu. Ohne Auswahl steht `ui.calendar.countHint` da. Der Kalender rechnet keine Fristen aus und überträgt nichts in den Prüfvermerk.
 - Monatswechsel und Auswahl werden nicht gespeichert.
 
+### 7.6 Pinnwand
+
+Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise in einer Hand, Ablegen auf die passende Frage. Referenz für Ablauf und Gefühl ist der Prototyp `auftraege/06-prototyp-pinnwand.html`.
+
+- **Am Tisch:** Vor `unlock: pinboard` hat die Pinnwand keinen Platz und keinen Eintrag im DOM. Danach zeigt die Korkfläche in der rechten Leiste, wie viele Hinweise neu in der Hand liegen (`ui.pinboard.newClues`), und die Marke `ui.pinboard.new`, solange eine neu beantwortete Frage noch nicht angesehen wurde. Klick, Enter oder Taste P öffnen die Pinnwand-Ansicht.
+- **Pinnwand-Ansicht:** ein Dialog über dem Tisch wie der Lesemodus des Kodex. Oben die Korkwand, unten die Hand (`ui.pinboard.hand`) mit dem Hinweis `ui.pinboard.placeHint`. Schließen mit Escape, P oder `ui.pinboard.close`, der Fokus kehrt zurück. Eine Seitenleiste `ui.pinboard.archive` listet die Durchschläge abgelegter Akten nach Tag.
+- **Wand:** Die Fragen stehen in Spalten nach `group` (Überschrift), innerhalb einer Spalte in der Reihenfolge, in der sie aufgetaucht sind. Eine Frage ist ein gelber Zettel mit blauer Nadel, Kopf `ui.pinboard.questionFrom` oder `ui.pinboard.questionOwn`, darunter der Fortschritt (zum Beispiel „1 von 2 Hinweisen“). Rechts daneben hängen die schon zugeordneten Hinweise, mit rotem Faden zur Frage, vorgegebene mit `ui.pinboard.given`. Die Lage an der Wand berechnet das Spiel, der Spieler muss nichts ordnen.
+- **Hinweis-Karten** zeigen Akte und Name (`ui.pinboard.cardTitle`), Dokument und Zeile (`ui.pinboard.cardLine`) und den Wert, beim Vertreter `ui.pinboard.cardStamp`. Neue Karten tragen `ui.pinboard.new`, bis die Hand einmal offen war.
+- **Zuordnen:** Eine Karte aus der Hand auf eine offene Frage ziehen (die Frage hebt sich beim Darüberziehen hervor). Ohne Ziehen: Karte anklicken oder mit Enter wählen (sie hebt sich, alle offenen Fragen sind als Ziel markiert), dann Frage anklicken oder Enter. Escape hebt die Wahl auf.
+  - **Passt:** Die Karte wandert an die Frage, `ui.pinboard.placed`.
+  - **Passt nicht:** Die Frage wackelt kurz (nur bei „voll“), die Karte bleibt in der Hand, `ui.pinboard.wrong`, `board.misses` steigt um eins. Sonst keine Folge.
+- **Beantwortet:** Der Zettel wird grün mit Haken (`ui.pinboard.answered`), die Antwort (`answer.text`, Kopf `ui.pinboard.answer` und gegebenenfalls `answer.from`) hängt daneben, `ui.pinboard.solvedNotice`. Folgefragen mit `after` erscheinen sofort. Beantwortet bleibt beantwortet.
+- **Leere Wand:** `ui.pinboard.empty`, leere Hand: `ui.pinboard.handEmpty`, keine Durchschläge: `ui.pinboard.archiveEmpty`.
+- **Logik in `core`:** sichtbare Fragen, Inhalt der Hand, Prüfung beim Zuordnen, beantwortete Fragen, Durchschläge aus dem Spielstand. Alles reine Funktionen mit Tests.
+
+### 7.7 Lade
+
+- Der Griff der Lade ist von Tag 1 an zu sehen (Ausnahme zur Regel „kein Platz vor der Freischaltung“, weil die Lade ein Teil des Tisches ist). Vor `unlock: drawer` zeigt ein Klick `ui.drawer.stuck`, die Lade ruckelt kurz (nur bei „voll“).
+- Ab `unlock: drawer` öffnen Klick oder Enter die Lade-Ansicht (`ui.drawer.title`), ein Dialog wie die Pinnwand. Darin liegen alle Zettel mit `keep: "drawer"` der Tage bis heute in der Reihenfolge, in der sie kamen. Sie lassen sich lesen und zoomen, aber nicht anheften. Leer: `ui.drawer.empty`. Schließen mit Escape oder `ui.drawer.close`.
+- Ein Zettel mit `keep: "drawer"` erscheint beim Tagesbeginn wie jeder Zettel. Danach steht `ui.drawer.stored` in der Live-Region.
+- Die Lade braucht keinen eigenen Spielstand: Ihr Inhalt ergibt sich aus dem Inhalt und dem aktuellen Tag.
+
 ## 8. Atmosphäre (vorbereitet)
 
 `src/ui/atmosphere` exportiert `mount(container)` und `setQuality(level)`. Das ist weiterhin ein Stub. Später kommt hier eine Ebene über dem Tisch mit `pointer-events: none` dazu, zuerst in leichter Form (CSS-Lichtkegel, 2D-Staub), danach optional Three.js. Das Spiel muss ohne diese Ebene vollständig funktionieren.
@@ -338,6 +397,7 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - Gespeichert werden: aktueller Tag, Ergebnisse je Akte (inklusive eingegebener Beträge, Markierungen und gewählter Nachfrage), Fehler je Tag, offene Folgeakten, freigeschaltete Werkzeuge, Einstellungen, Kodex-Lesestand (`codex.lastRuleId`: ID der zuletzt gelesenen Regel oder leer für das Inhaltsverzeichnis, und `codex.seenDay`: höchster Tag, dessen Lieferung der Spieler gesehen hat). Ein älterer Spielstand ohne `codex` bekommt `lastRuleId` leer und `seenDay` 0, der Rest bleibt erhalten.
 - Die Einstellungen sind `effects` (aus, reduziert, voll), Lautstärke (0 = aus) und `music` (Musiklautstärke, Standard 0,5, 0 = aus). Ein älterer Spielstand ohne einzelne Felder bekommt für diese die Standardwerte aus `DEFAULT_SETTINGS`, ohne dass der übrige Spielstand verloren geht.
 - **Spielstände aus Version 0.2:** Ein Spielstand, der an Tag 4 oder danach steht (Ende des Prototyps), wird so übernommen, dass der Spieler mit Tag 4 weiterspielt. Die Ergebnisse von Tag 1 bis 3 bleiben erhalten. Die Folgeakte von 3-4 kommt an Tag 4, wenn sie damals offen war. Ein Test deckt das ab.
+- **Pinnwand (ab 0.5.0):** `board` mit `placed` (je Frage-ID die Schlüssel der zugeordneten Hinweise), `pinned` (selbst angeheftete Stellen, die noch in der Hand liegen, je `{ case, document, line }` oder `{ case, field }`, bei Folgeakten zusätzlich `followUp: true`), `seenClues` und `seenAnswers` (für die Marke „neu“) und `misses`. Hand, sichtbare und beantwortete Fragen werden aus Inhalt und Spielstand berechnet, nicht gespeichert. Ein Spielstand ohne `board` bekommt eine leere Pinnwand. Einträge, deren Frage oder Fundstelle es im Inhalt nicht mehr gibt, fallen beim Laden still weg.
 - Nicht gespeichert werden die Lage von Papieren und Werkzeugen und eine offene, noch nicht gestempelte Akte. Nach dem Neuladen liegt diese Akte wieder zugeklappt oben im Eingang, ihre Entscheidungen sind leer.
 - „Neues Spiel“ fragt vor dem Überschreiben nach.
 
@@ -347,7 +407,8 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 2. Dann die Oberfläche für die neuen Teile ohne Animationen, danach Optik nach Abschnitt 7.
 3. Nach jedem Oberflächen-Schritt Screenshots mit Playwright erstellen (Startbildschirm, Schreibtisch mit offener Akte vom Typ `entscheidungen` mit Betragsfeld, Markiermodus mit einem Paar, Nachfrage-Auswahl, Morgenzeitung, Rechner, Kodex offen mit Hinweisregel, Tagesauswertung mit Betrag und Widerspruch, dazu für den Arbeitstisch: leerer Tisch an Tag 1, offene Mappe mit Unterlagen in der Tasche, offene Mappe mit drei herausgezogenen Papieren und Kodex am Tisch, aufgenommener Stempel über dem Stempelfeld, zugeklappte gestempelte Akte, Tisch an Tag 8 mit Kalender und Rechner aufgeschlagen, Kalender April 2026 mit Auswahl, Schlussbildschirm Akt I, dazu die Kodex-Ansichten aus Abschnitt 6: zugeklappt an Tag 1 und an Tag 10, aufgeschlagen mit Inhaltsverzeichnis, aufgeschlagen mit Hinweisregel, aufgeschlagen mit Suchtreffern und markiertem Wort, gesperrte Seite, schmale Ansicht mit Einzelseite) und selbst prüfen: Ist der Text lesbar, überlappt nichts, sind alle Bedienelemente sichtbar?
 4. Inhalte nie im Code ändern. Fällt ein Fehler im JSON auf, im Bericht melden statt stillschweigend anzupassen. Fehlt ein Spieltext im JSON, ebenfalls melden und nicht im Code erfinden. Für fehlende Oberflächentexte gilt die Regel des jeweiligen Auftrags.
-5. Änderungen an `src/core`, die ein Auftrag nicht vorsieht, nur machen, wenn sie zwingend sind, und im Bericht begründen.
+5. **Inhaltsbericht:** `npm run content:report` gibt für alle Inhaltsdateien eine Liste aus: Tage mit Akten, Regeln und Fragen, dazu alle Texte mit `provisional: true` mit Tag und Fundort. Er dient dem Chat beim Überarbeiten der Story und läuft ohne Browser.
+6. Änderungen an `src/core`, die ein Auftrag nicht vorsieht, nur machen, wenn sie zwingend sind, und im Bericht begründen.
 
 ## 11. Abnahmekriterien
 
@@ -384,6 +445,23 @@ Referenz ist der HTML-Prototyp aus der Konzeptphase: Holztisch, grüne Schreibun
 - [ ] Bei 1280 × 720, 1920 × 1080 und 1024 × 768 passt der ganze Tisch ins Fenster, nichts ist abgeschnitten, Akte, Kodex und Kalender lassen sich nebeneinander auf die Unterlage legen.
 - [ ] Bei „Effekte aus“ gibt es beim Aufschlagen, Zurückfliegen, Stempeln und Ablegen keine Animation.
 
+### Pinnwand mit Fragen und Lade (ab 0.5.0)
+
+- [ ] Die Pinnwand erscheint an Tag 7 und nicht vorher, die Lade klemmt bis Tag 10 (`ui.drawer.stuck`) und geht dann auf.
+- [ ] Frage q1 an Tag 7: Nach dem Ablegen von 7-3 liegt ES-2025-118 in der Hand. Auf q1 gelegt ist q1 beantwortet, die Antwort erscheint, q2 taucht auf. Der Hinweis zu q2 (Arbeitgeber aus 2-4) liegt sofort in der Hand, weil 2-4 schon abgelegt ist. Frage q3 an Tag 10 mit dem Kanzleistempel aus 10-4. Je ein kurzer e2e-Test, der mit einem Spielstand am jeweiligen Tag beginnt.
+- [ ] Ein Hinweis auf der falschen Frage bleibt in der Hand, erhöht `board.misses` und ändert die Fehlerzahl nicht.
+- [ ] Unit-Tests in `core`: sichtbare Fragen (Tag, `after`, Kette), Inhalt der Hand (`auto` vor und nach dem Ablegen, Akte vor der Frage abgelegt, `pin`, Hinweis zu zwei Fragen nur einmal), Zuordnen, beantwortet, Durchschläge inklusive Folgeakten.
+- [ ] Ein Unit-Test zeigt, dass der Code keine Figur kennt: Eine Test-Inhaltsdatei mit anderer Figur, anderer Gruppe und einer Frage mit `source: "pin"` wird ohne Codeänderung dargestellt und lässt sich lösen.
+- [ ] Loader-Tests mit je einem kaputten Beispiel: Hinweis auf eine Akte nach dem Tag der Frage; `given` mit einer Akte vom selben Tag; alle Hinweise `given`; `field` ungleich `representative`; Vertreter ohne sichtbaren Stempel; doppelte Frage-ID; `after` auf unbekannte oder spätere Frage; Kreis über `after`; Frage vor `unlock: pinboard`; `keep: "drawer"` vor `unlock: drawer`; `keep` an einem anderen Typ als `note`.
+- [ ] Zuordnen, Anheften, Weglegen, Durchschlag öffnen und die Lade gehen auch nur mit der Tastatur. Im Markiermodus gibt es keine Nadeln.
+- [ ] Die Pinnwand übersteht Neuladen (zugeordnete und angeheftete Hinweise, beantwortete Fragen). Ein Spielstand ohne `board` lädt weiterhin.
+- [ ] Die Zettel von Tag 10 mit `keep: "drawer"` liegen nach dem Tagesbeginn in der Lade und sind nach Neuladen noch dort.
+- [ ] In der Tagesauswertung öffnet jede Regel-ID den Lesemodus an dieser Regel, Escape führt zurück, der Fokus liegt wieder auf der Regel.
+- [ ] An Tag 7 stehen keine Inhalte von Akten oder Fragen im DOM, die erst später kommen.
+- [ ] Bei 1280 × 720, 1920 × 1080 und 1024 × 768 passen Pinnwand-Platz und Lade-Griff auf den Tisch, und Pinnwand-Ansicht (Wand und Hand) und Lade-Ansicht sind vollständig sichtbar.
+- [ ] Bei „Effekte aus“ gibt es beim Zuordnen, beim Wackeln, beim Erscheinen der Antwort und beim Öffnen der Lade keine Animation.
+- [ ] `npm run content:report` listet die vorläufigen Texte von Akt I (die drei Fragen).
+
 ## 12. Nicht Teil dieser Version
 
-Weiterspielen am Schlussbildschirm (kommt mit Akt II), Regel-ID in der Tagesauswertung als Sprung in den Kodex (Vorschlag für einen späteren Auftrag), Pinnwand und Spuren (Darstellung), Lade mit Notizbuch, Metagame (Tagesbudget, Beurteilung, Vertrauen, Zuhause, Ereigniskarten), Begründung beim Stempel (Auswahl der Regel-ID), Bedingungen auf Merker oder frühere Entscheidungen, Fristen im Spielablauf (der Tischkalender ist nur ein Werkzeug), Lade und Pinnwand am Tisch, Three.js-Atmosphäre, Akte ab Akt II, weitere Musikstücke.
+Weiterspielen am Schlussbildschirm (kommt mit Akt II), Kartei mit Suche über alle Akten (Prototyp vorhanden, kommt, wenn Fragen mit `source: "pin"` häufiger werden), freie Fäden zwischen Karten, Personenkarten nach dem Profiling in Alan Wake 2, eigener Aktenvermerk des Spielers an der Pinnwand, Wirkung von `board.misses` (kommt mit dem Metagame), Metagame (Tagesbudget, Beurteilung, Vertrauen, Zuhause, Ereigniskarten), Begründung beim Stempel (Auswahl der Regel-ID), Bedingungen auf Merker oder frühere Entscheidungen, Fristen im Spielablauf (der Tischkalender ist nur ein Werkzeug), Three.js-Atmosphäre, Akte ab Akt II, weitere Musikstücke.

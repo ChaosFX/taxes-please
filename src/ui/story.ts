@@ -1,4 +1,4 @@
-import type { StoryEvent } from '../core/types';
+import type { Question, StoryEvent } from '../core/types';
 import { h } from './dom';
 import { t } from './text';
 
@@ -17,7 +17,7 @@ export function newspaperSheet(e: Newspaper, attrs: Record<string, string | numb
 
 /**
  * One story event at the start of the day. Events that this version only
- * checks (`event`, `unlock` of pinboard or drawer, `actSummary`) show nothing.
+ * checks (`event`, `actSummary`) show nothing.
  */
 export function storyEvent(e: StoryEvent): HTMLElement | null {
   switch (e.type) {
@@ -43,9 +43,20 @@ export function storyEvent(e: StoryEvent): HTMLElement | null {
     case 'unlock':
       if (e.feature === 'calculator') return h('p', { class: 'unlock calculator-unlock' }, t('intro.unlockCalculator'));
       if (e.feature === 'calendar') return h('p', { class: 'unlock calendar-unlock' }, t('intro.unlockCalendar'));
-      return null;
+      if (e.feature === 'pinboard') return h('p', { class: 'unlock pinboard-unlock' }, t('intro.unlockPinboard'));
+      return h('p', { class: 'unlock drawer-unlock' }, t('intro.unlockDrawer'));
     case 'event':
     case 'actSummary':
       return null;
   }
+}
+
+/** A new question on the pinboard, shown as a note at the start of its day (SPEC 4.9). */
+export function questionNotice(q: Question): HTMLElement {
+  return h(
+    'figure',
+    { class: 'note question-notice', 'data-question': q.id },
+    h('figcaption', { class: 'notice-head' }, q.from ? t('pinboard.questionNotice', { from: q.from }) : t('pinboard.questionNoticeOwn')),
+    h('blockquote', {}, q.text),
+  );
 }

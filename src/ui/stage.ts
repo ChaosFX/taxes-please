@@ -27,9 +27,10 @@ export interface Point {
   y: number;
 }
 
-/** Left rail (inbox and tools), green pad, right rail (phone, stamps, outbox). */
+/** Left rail (inbox and tools), green pad, right rail (pinboard, phone, stamps, outbox). */
 export const LEFT_RAIL: Rect = { x: 0, y: 0, w: 200, h: STAGE_H };
-export const PAD: Rect = { x: 212, y: 14, w: 1026, h: 782 };
+/** The pad ends above the front edge of the desk, where the drawer has its handle (SPEC 7.1). */
+export const PAD: Rect = { x: 212, y: 14, w: 1026, h: 742 };
 export const RIGHT_RAIL: Rect = { x: 1250, y: 0, w: 190, h: STAGE_H };
 
 /** Places in the rails. */
@@ -38,14 +39,18 @@ export const SLOTS = {
   codex: { x: 16, y: 222, w: 168, h: 200 },
   calendar: { x: 16, y: 444, w: 168, h: 136 },
   calculator: { x: 16, y: 602, w: 168, h: 190 },
-  phone: { x: 1268, y: 54, w: 154, h: 76 },
-  rack: { x: 1262, y: 148, w: 166, h: 300 },
-  outbox: { x: 1262, y: 466, w: 166, h: 328 },
+  /** Cork board at the top of the right rail, from `unlock: pinboard` (SPEC 7.1, 7.6). */
+  pinboard: { x: 1262, y: 14, w: 166, h: 150 },
+  phone: { x: 1268, y: 172, w: 154, h: 62 },
+  rack: { x: 1262, y: 242, w: 166, h: 272 },
+  outbox: { x: 1262, y: 528, w: 166, h: 266 },
+  /** Handle of the drawer at the front edge of the desk, below the pad (SPEC 7.7). */
+  drawer: { x: 625, y: 764, w: 200, h: 38 },
 } as const satisfies Record<string, Rect>;
 
 /** What can be dropped somewhere. */
 export type Thing = 'folder' | 'paper' | 'codex' | 'calendar' | 'calculator' | 'newspaper';
-export type ZoneName = 'pocket' | 'inbox' | 'tools' | 'pad' | 'rack' | 'outbox';
+export type ZoneName = 'pocket' | 'inbox' | 'tools' | 'pad' | 'rack' | 'outbox' | 'pinboard' | 'drawer';
 
 export interface Zone {
   name: ZoneName;
@@ -56,7 +61,8 @@ export interface Zone {
 
 /**
  * The drop areas of the desk (SPEC 7.1), in hit-test order: the first zone
- * under the pointer decides. Drawer and pinboard come later as further rows.
+ * under the pointer decides. Pinboard and drawer take nothing that is dragged:
+ * they open with a click (SPEC 7.6, 7.7).
  */
 export const ZONES: readonly Zone[] = [
   { name: 'pocket', rect: null, accepts: ['paper'] },
@@ -65,6 +71,8 @@ export const ZONES: readonly Zone[] = [
   { name: 'pad', rect: PAD, accepts: ['folder', 'paper', 'codex', 'calendar', 'calculator', 'newspaper'] },
   { name: 'rack', rect: SLOTS.rack, accepts: [] },
   { name: 'outbox', rect: SLOTS.outbox, accepts: ['folder'] },
+  { name: 'pinboard', rect: SLOTS.pinboard, accepts: [] },
+  { name: 'drawer', rect: SLOTS.drawer, accepts: [] },
 ];
 
 export const inRect = (p: Point, r: Rect) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;

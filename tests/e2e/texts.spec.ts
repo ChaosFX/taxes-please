@@ -235,6 +235,39 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   while (await page.locator('.screen.desk').isVisible()) await solveNext(page);
   await check(page, 'Auswertung Nachfrage');
 
+  // Day 7: pinboard with a question, a clue, a wrong try, the answer, a carbon copy and needles (Auftrag 06).
+  await startAtDay(page, 7, { filed: true, queue: ['7-3', '7-1'] });
+  await check(page, 'Tag 7 neue Frage');
+  await key(page, 'begin').click();
+  await key(page, 'drawer').click();
+  await check(page, 'Lade klemmt');
+  await key(page, 'stack').click();
+  await enter(page, '7-3', solutionFor('7-3'));
+  await check(page, 'Meldung neuer Hinweis');
+  await key(page, 'pinboard').click();
+  await check(page, 'Pinnwand mit Hinweis');
+  await page.locator('.clue-card.in-hand').first().click();
+  await check(page, 'Hinweis gewählt');
+  await key(page, 'q-q1').click();
+  await check(page, 'Frage beantwortet');
+  await key(page, 'copy-2-4').click();
+  await check(page, 'Durchschlag');
+  await page.locator('.pinnable-stamp').click();
+  await check(page, 'Durchschlag angeheftet');
+  await key(page, 'copy-close').click();
+  await key(page, 'pb-close').click();
+  await key(page, 'stack').click();
+  await pullOut(page, 0);
+  await key(page, 'paper-0').locator('tr.pinnable').first().hover();
+  await check(page, 'Nadel am Papier');
+
+  // Day 10: the drawer.
+  await startAtDay(page, 10, { queue: ['10-1'] });
+  await key(page, 'begin').click();
+  await key(page, 'drawer').click();
+  await check(page, 'Lade offen');
+  await page.keyboard.press('Escape');
+
   // Day 8 and 9: calculator, amounts (wrong and unreadable), phone call.
   await startAtDay(page, 8);
   await check(page, 'Tag 8 Freischaltung Rechner');
@@ -268,6 +301,10 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await check(page, 'Tag 10 Notizbuch');
   await playDay(page);
   await check(page, 'Auswertung Tag 10');
+  await page.locator('.result details > summary').first().click();
+  await page.locator('.rule-jump').first().click();
+  await check(page, 'Sprung in den Kodex');
+  await page.keyboard.press('Escape');
   await key(page, 'advance').click();
   await check(page, 'Ende von Akt I');
 

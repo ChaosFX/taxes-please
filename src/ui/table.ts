@@ -22,7 +22,7 @@ import {
   type Rect,
   type Spot,
 } from './stage';
-import { t, type UiKey } from './text';
+import { t, type UiKey, type UiParams } from './text';
 
 /** What the table needs from the app. */
 export interface TableHost {
@@ -266,13 +266,13 @@ export class Table implements TableHooks {
   // ---------- Messages ----------
 
   /** A short message in the live region of the stage (SPEC 7.1). */
-  say(key: UiKey): void {
+  say(key: UiKey, params: UiParams = {}): void {
     const live = this.live;
     live.textContent = '';
     live.classList.remove('show');
     // A fresh text node, so the same message is read again.
     requestAnimationFrame(() => {
-      live.textContent = t(key);
+      live.textContent = t(key, params);
       live.classList.add('show');
     });
     clearTimeout(this.messageTimer);
@@ -510,7 +510,13 @@ export class Table implements TableHooks {
     void this.move([key], 'glide', () => {
       this.host.sound('file');
       this.host.focus('stack');
-      this.host.update(core.fileCurrent(this.host.content, s));
+      const next = core.fileCurrent(this.host.content, s);
+      this.host.update(next);
+      // Filing may bring a clue for a question on the pinboard (SPEC 4).
+      if (core.hasPinboard(next)) {
+        const gained = core.cluesGained(this.host.content, core.boardContext(s), core.boardContext(next));
+        if (gained[0]) this.say('pinboard.newClue', { text: core.clueValue(this.host.content, gained[0].ref) });
+      }
     });
   }
 

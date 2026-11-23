@@ -1,7 +1,8 @@
 import { fromCents, parseAmount } from '../core/amount';
 import type { CalcKey, CalcState } from '../core/calculator';
 import { formatEuro } from '../core/format';
-import { dayInfo, resultsOfDay, type GameState } from '../core/game';
+import { boardContext, newClues, unseenAnswers, visibleQuestions, isAnswered } from '../core/board';
+import { dayInfo, hasPinboard, resultsOfDay, type GameState } from '../core/game';
 import { getAkte, optionValue } from '../core/loader';
 import type { CalendarContent } from '../core/schema';
 import {
@@ -21,6 +22,7 @@ import { closedBook } from './codex';
 import { h } from './dom';
 import { akteHeading, akteLabel, choiceLabel, optionLabel, pairText, playerVerdictLabel, stampLabel } from './labels';
 import { paperRotation } from './paper-interaction';
+import { makePinnable, type PinPlace } from './pin-lines';
 import { LEFT_RAIL, PAD, RIGHT_RAIL, SLOTS, STAGE_H, STAGE_W, objTransform, type Spot } from './stage';
 import { newspaperSheet } from './story';
 import { t } from './text';
@@ -49,6 +51,12 @@ export interface DeskActions {
   clearMarks(): void;
   calc(key: CalcKey): void;
   file(): void;
+  /** Pins a line or the office stamp of a paper on the desk into the hand (SPEC 4). */
+  pin(place: PinPlace): void;
+  /** Opens the pinboard view (SPEC 7.6). */
+  openPinboard(): void;
+  /** The drawer: stuck before `unlock: drawer`, else the drawer view (SPEC 7.7). */
+  drawer(): void;
 }
 
 /** Desk state that lives only in the interface; reset when a new Akte lands on the desk. */
@@ -180,9 +188,19 @@ interface PaperOpts {
   answer: Answer;
   ui: DeskUi;
   a: DeskActions;
+  /** Lines carry needles (pinboard on the desk, paper on the pad, no mark mode, no stamp in the hand). */
+  pinnable?: boolean;
 }
 
 function paper(doc: Document, docIndex: number, o: PaperOpts): HTMLElement {
+  const el = paperSheet(doc, docIndex, o);
+  if (o.pinnable && o.loose && !o.ui.markMode && !o.ui.carrying) {
+    makePinnable(el, doc, { key: `line-${docIndex}`, stampPinnable: !!o.akte.representative?.stampVisible, onPin: o.a.pin });
+  }
+  return el;
+}
+
+function paperSheet(doc: Document, docIndex: number, o: PaperOpts): HTMLElement {
   const { akte, answer, ui, a } = o;
   const marks = answer.marks ?? [];
   // Only papers on the pad can be marked; those in the pocket are not clickable then (SPEC 4).
@@ -577,6 +595,39 @@ function outbox(content: Content, state: GameState): HTMLElement {
   );
 }
 
+/** Cork board in the right rail (SPEC 7.1, 7.6): new clues and an unseen answer show on it. */
+function pinboardSpot(content: Content, state: GameState, a: DeskActions): HTMLElement {
+  const ctx = boardContext(state);
+  const fresh = newClues(content, ctx).length;
+  const answered = unseenAnswers(content, ctx).length > 0;
+  const open = visibleQuestions(content, ctx).filter((q) => !isAnswered(state.board, q)).length;
+  return h(
+    'button',
+    {
+      class: 'pinboard-spot',
+      style: slotStyle(SLOTS.pinboard),
+      'data-key': 'pinboard',
+      'aria-label': t('aria.pinboard', { count: open }),
+      'aria-keyshortcuts': 'P',
+      onclick: a.openPinboard,
+    },
+    h('span', { class: 'cork-label' }, t('pinboard.label')),
+    h('span', { class: 'cork-notes', 'aria-hidden': 'true' }, visibleQuestions(content, ctx).slice(0, 3).map((q) => h('span', { class: `cork-note${isAnswered(state.board, q) ? ' done' : ''}` }))),
+    fresh ? h('span', { class: 'cork-count' }, t('pinboard.newClues', { count: fresh })) : null,
+    answered ? h('span', { class: 'cork-new' }, t('pinboard.new')) : null,
+  );
+}
+
+/** Handle of the drawer at the front edge of the desk: there from day 1 (SPEC 7.7). */
+function drawerHandle(a: DeskActions): HTMLElement {
+  return h(
+    'button',
+    { class: 'drawer-handle', style: slotStyle(SLOTS.drawer), 'data-key': 'drawer', 'aria-label': t('aria.drawer'), onclick: a.drawer },
+    h('span', { class: 'drawer-grip', 'aria-hidden': 'true' }),
+    h('span', { class: 'drawer-label' }, t('drawer.label')),
+  );
+}
+
 function phone(): HTMLElement {
   return h('div', { class: 'desk-phone', style: slotStyle(SLOTS.phone), 'aria-hidden': 'true' }, h('span', { class: 'phone' }));
 }
@@ -673,7 +724,7 @@ export function deskView(env: DeskEnv): HTMLElement {
       akte.documents.forEach((doc, i) => {
         const at = table.papers[i];
         if (!at) return;
-        const el = paper(doc, i, { loose: true, akte, answer, ui, a });
+        const el = paper(doc, i, { loose: true, akte, answer, ui, a, pinnable: hasPinboard(state) });
         activatable(el, (kbd) => hooks.activate({ kind: 'paper', index: i }, kbd));
         el.addEventListener('dblclick', (e) => {
           if (!(e.target as HTMLElement).closest('button')) hooks.zoom(el);
@@ -725,8 +776,10 @@ export function deskView(env: DeskEnv): HTMLElement {
     h('span', { class: 'day-label' }, t('desk.day', { day: state.day })),
     inbox(content, state, hooks),
     tools.map((tool) => (table.tools[tool] ? h('div', { class: `slot tool-slot slot-${tool}`, style: slotStyle(SLOTS[tool]), 'aria-hidden': 'true' }) : closedTool(tool, env))),
+    hasPinboard(state) ? pinboardSpot(content, state, a) : null,
     phone(),
     outbox(content, state),
+    drawerHandle(a),
     // After the objects: Tab goes from the Prüfvermerk and the papers on to the stamps.
     objects,
     rack(content, state, ui, akte, a),
