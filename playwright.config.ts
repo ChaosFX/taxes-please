@@ -17,7 +17,8 @@ export default defineConfig({
   testDir: 'tests/e2e',
   // CI runners are slower and share their CPU: one retry, reported as „flaky“.
   retries: process.env.CI ? 1 : 0,
-  use: { baseURL: `http://localhost:4173${BASE_PATH}`, viewport },
+  // Trace of the retry run lands in test-results/ and is uploaded by the CI on failure.
+  use: { baseURL: `http://localhost:4173${BASE_PATH}`, viewport, trace: 'on-first-retry' },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'], viewport } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'], viewport }, testIgnore: /screenshots\.spec\.ts/ },
