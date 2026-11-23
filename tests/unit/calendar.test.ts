@@ -11,7 +11,7 @@ import {
   weekday,
   type CalDate,
 } from '../../src/core/calendar';
-import { applyStamp, beginWork, drawNext, newGame } from '../../src/core/game';
+import { applyStamp, beginWork, drawNext, finishPrologue, newGame } from '../../src/core/game';
 import { ContentError, loadCalendar, loadContentFiles } from '../../src/core/loader';
 import { loadGame, saveGame } from '../../src/core/save';
 import { clone, MemoryStore, rawContentFiles, realContent } from './helpers';
@@ -173,7 +173,7 @@ describe('Neuladen mit offener Akte (SPEC 9)', () => {
 
   it('eine ungestempelte Akte liegt wieder oben im Eingang, ihre Eingaben sind leer', () => {
     const store = new MemoryStore();
-    let s = drawNext(beginWork(newGame(content)));
+    let s = drawNext(beginWork(finishPrologue(content, newGame(content))));
     const id = s.current!.akteId;
     s = { ...s, current: { akteId: id, answer: { positions: { p1: 'anerkennen' } } } };
     saveGame(store, s);
@@ -185,7 +185,7 @@ describe('Neuladen mit offener Akte (SPEC 9)', () => {
 
   it('eine gestempelte Akte bleibt am Tisch', () => {
     const store = new MemoryStore();
-    const s = applyStamp(content, drawNext(beginWork(newGame(content))), 'bescheid');
+    const s = applyStamp(content, drawNext(beginWork(finishPrologue(content, newGame(content)))), 'bescheid');
     saveGame(store, s);
     expect(loadGame(store, content)).toEqual(s);
   });

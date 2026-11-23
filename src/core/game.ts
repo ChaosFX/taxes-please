@@ -3,10 +3,11 @@ import { EMPTY_BOARD, type BoardState, type ClueRef } from './board';
 import { DEFAULT_CODEX, type CodexProgress } from './codex';
 import { samePair, evaluate } from './evaluate';
 import { getAkte } from './loader';
+import { answersCase, atStart, isDeskEvent, momentOf } from './timeline';
 import type { Answer, CaseResult, Content, Day, Mark, PlayerVerdict, Settings, Stamp, Tool } from './types';
 
-/** `actEnd`: the end screen of an act („Ende von Akt {act}“, SPEC 4.8). */
-export type Phase = 'intro' | 'desk' | 'summary' | 'actEnd';
+/** `prologue`: the screens before the first day of an act (SPEC 4.1a). `actEnd`: the end screen of an act („Ende von Akt {act}“, SPEC 4.8). */
+export type Phase = 'prologue' | 'intro' | 'desk' | 'summary' | 'actEnd';
 
 export interface PendingFollowUp {
   akteId: string;
@@ -35,6 +36,10 @@ export interface GameState {
   codex: CodexProgress;
   /** What the player did at the pinboard (SPEC 9). Saves without it get an empty board. */
   board: BoardState;
+  /** Acts whose prologue has been seen (SPEC 9). */
+  prologueSeen: number[];
+  /** Per day the positions (in `storyEvents`) of the events with `at` already shown (SPEC 9). */
+  eventsShown: Record<number, number[]>;
 }
 
 export const DEFAULT_SETTINGS: Settings = { effects: 'voll', volume: 0.7, music: 0.5 };
@@ -58,24 +63,30 @@ export function nextPlayableDay(content: Content, after: number): number | null 
   return candidates.length ? Math.min(...candidates) : null;
 }
 
-/** Tools unlocked on the days up to and including `day`. */
+/** Tools unlocked before `day` and at the start of `day` (an unlock later that day comes when it is shown). */
 export function toolsUntil(content: Content, day: number): Tool[] {
   const out: Tool[] = [];
   for (const d of [...content.days].sort((a, b) => a.day - b.day)) {
     if (d.day > day) break;
-    for (const e of d.storyEvents) if (e.type === 'unlock' && !out.includes(e.feature)) out.push(e.feature);
+    for (const e of d.storyEvents) if (e.type === 'unlock' && (d.day < day || atStart(e)) && !out.includes(e.feature)) out.push(e.feature);
   }
   return out;
 }
 
+/** The prologue that comes before `day` (the first day of its act), if any (SPEC 4.1a). */
+export function prologueBefore(content: Content, day: number) {
+  return content.prologues?.find((p) => p.firstDay === day) ?? null;
+}
+
 export function startDay(content: Content, state: GameState, day: number): GameState {
   const tools = [...state.tools];
-  for (const e of dayInfo(content, day).storyEvents) if (e.type === 'unlock' && !tools.includes(e.feature)) tools.push(e.feature);
+  for (const e of dayInfo(content, day).storyEvents) if (e.type === 'unlock' && atStart(e) && !tools.includes(e.feature)) tools.push(e.feature);
   const { act: _act, ...rest } = state;
+  const prologue = prologueBefore(content, day);
   return {
     ...rest,
     day,
-    phase: 'intro',
+    phase: prologue && !state.prologueSeen.includes(prologue.act) ? 'prologue' : 'intro',
     queue: planDay(content, day, state.pendingFollowUps),
     current: null,
     pendingFollowUps: state.pendingFollowUps.filter((p) => p.day !== day),
@@ -97,14 +108,60 @@ export function newGame(content: Content, settings: Settings = DEFAULT_SETTINGS)
     settings,
     codex: { ...DEFAULT_CODEX },
     board: EMPTY_BOARD,
+    prologueSeen: [],
+    eventsShown: {},
   };
   return startDay(content, empty, first);
 }
 
+/** The prologue has been seen (or skipped): on to the day card (SPEC 4.1a). */
+export function finishPrologue(content: Content, state: GameState): GameState {
+  if (state.phase !== 'prologue') return state;
+  const act = prologueBefore(content, state.day)?.act;
+  return { ...state, phase: 'intro', prologueSeen: act === undefined || state.prologueSeen.includes(act) ? state.prologueSeen : [...state.prologueSeen, act] };
+}
+
+/** The desk with its stack done: the events at the end come first, then the summary (SPEC 4.5). */
+const afterStack = (content: Content, state: GameState): GameState['phase'] =>
+  state.queue.length === 0 && !state.current && dueDeskEvents(content, { ...state, phase: 'desk' }).length === 0 ? 'summary' : 'desk';
+
 /** Leaves the day intro and goes to the desk. */
-export function beginWork(state: GameState): GameState {
+export function beginWork(state: GameState, content?: Content): GameState {
   if (state.phase !== 'intro') return state;
-  return { ...state, phase: state.queue.length === 0 && !state.current ? 'summary' : 'desk' };
+  if (state.queue.length > 0 || state.current) return { ...state, phase: 'desk' };
+  return { ...state, phase: content ? afterStack(content, state) : 'summary' };
+}
+
+/**
+ * Events of today that are due at the desk now and not yet shown, by position in
+ * `storyEvents`, in JSON order (SPEC 4.4a, 4.5): one with `at: { case }` once
+ * that Akte (or its follow-up) of today lies in the outbox; when the stack is
+ * done, those with `at: "end"` and those whose Akte did not come today.
+ */
+export function dueDeskEvents(content: Content, state: GameState): number[] {
+  if (state.phase !== 'desk') return [];
+  const shown = state.eventsShown[state.day] ?? [];
+  const filed = resultsOfDay(state, state.day).map((r) => r.akteId);
+  const done = state.queue.length === 0 && state.current === null;
+  const out: number[] = [];
+  dayInfo(content, state.day).storyEvents.forEach((e, i) => {
+    if (!isDeskEvent(e) || shown.includes(i)) return;
+    const m = momentOf(e);
+    if (done || (typeof m === 'object' && filed.some((id) => answersCase(id, m.case)))) out.push(i);
+  });
+  return out;
+}
+
+/**
+ * An event at the desk has been shown (closed by the player). An unlock takes
+ * effect only now. Once nothing is due and the stack is done, the summary follows.
+ */
+export function showDeskEvent(content: Content, state: GameState, index: number): GameState {
+  if (!dueDeskEvents(content, state).includes(index)) return state;
+  const e = dayInfo(content, state.day).storyEvents[index]!;
+  const tools = e.type === 'unlock' && !state.tools.includes(e.feature) ? [...state.tools, e.feature] : state.tools;
+  const next: GameState = { ...state, tools, eventsShown: { ...state.eventsShown, [state.day]: [...(state.eventsShown[state.day] ?? []), index] } };
+  return { ...next, phase: afterStack(content, next) };
 }
 
 /** Takes the next Akte from the stack. Only possible when the desk is empty. */
@@ -242,13 +299,8 @@ export function fileCurrent(content: Content, state: GameState): GameState {
     pendingFollowUps = [...pendingFollowUps, { akteId: `${source.id}/folge`, day: source.followUp.arrivesOnDay }];
   }
 
-  return {
-    ...state,
-    current: null,
-    results: [...state.results, result],
-    pendingFollowUps,
-    phase: state.queue.length === 0 ? 'summary' : 'desk',
-  };
+  const next: GameState = { ...state, current: null, results: [...state.results, result], pendingFollowUps, phase: 'desk' };
+  return { ...next, phase: afterStack(content, next) };
 }
 
 /** Act whose end screen follows the summary of `day`, if any. */

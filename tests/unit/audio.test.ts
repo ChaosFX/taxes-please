@@ -58,7 +58,7 @@ describe('Einstellungen und alte Spielstände (SPEC 9)', () => {
     // A game in progress: day 1, first Akte drawn, decided and stamped (an Akte without
     // stamp goes back to the inbox on loading, SPEC 9).
     const content = realContent();
-    let state = core.beginWork(core.newGame(content, { ...full }));
+    let state = core.beginWork(core.finishPrologue(content, core.newGame(content, { ...full })));
     state = core.drawNext(state);
     state = core.decidePosition(state, 'p1', 'anerkennen');
     state = core.applyStamp(content, state, 'bescheid');

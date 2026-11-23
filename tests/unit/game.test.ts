@@ -4,6 +4,7 @@ import {
   advanceDay,
   applyStamp,
   beginWork,
+  finishPrologue,
   chooseOption,
   clearMarks,
   continueAfterAct,
@@ -26,7 +27,7 @@ import {
 import { getAkte } from '../../src/core/loader';
 import { loadGame, saveGame } from '../../src/core/save';
 import type { Answer } from '../../src/core/types';
-import { MemoryStore, realContent } from './helpers';
+import { MemoryStore, begin, realContent, settle } from './helpers';
 
 const content = realContent();
 
@@ -40,11 +41,11 @@ function play(state: GameState, answer: (akteId: string) => Answer): GameState {
   for (const [id, v] of Object.entries(a.amounts ?? {})) s = enterAmount(s, id, v);
   for (const m of a.marks ?? []) s = addMark(content, s, m);
   if (a.stamp) s = applyStamp(content, s, a.stamp, a.inquiry);
-  return fileCurrent(content, s);
+  return settle(content, fileCurrent(content, s));
 }
 
 function playDay(state: GameState, answer: (akteId: string) => Answer, store?: MemoryStore): GameState {
-  let s = beginWork(state);
+  let s = begin(content, state);
   while (s.phase === 'desk') {
     s = play(s, answer);
     if (store) {
@@ -130,7 +131,7 @@ describe('Tagesablauf Akt I', () => {
     expect(advanceDay(content, s)).toBe(s);
   });
 
-  it('Werkzeuge: Kalender ab Tag 4, Markieren ab Tag 5, Pinnwand ab 7, Rechner ab 8, Lade ab 10, und sie bleiben', () => {
+  it('Werkzeuge: Kalender ab Tag 4, Markieren ab Tag 5, Pinnwand ab 7, Rechner ab 8, Lade am Ende von Tag 10, und sie bleiben', () => {
     let s = newGame(content);
     const tools: Record<number, string[]> = {};
     while (s.phase !== 'actEnd') {
@@ -142,7 +143,9 @@ describe('Tagesablauf Akt I', () => {
     expect(tools[5]).toEqual(['calendar', 'marking']);
     expect(tools[7]).toEqual(['calendar', 'marking', 'pinboard']);
     expect(tools[8]).toEqual(['calendar', 'marking', 'pinboard', 'calculator']);
-    expect(tools[10]).toEqual(['calendar', 'marking', 'pinboard', 'calculator', 'drawer']);
+    // The drawer opens only at the end of day 10 (akt1 0.4.0, `at: "end"`).
+    expect(tools[10]).toEqual(['calendar', 'marking', 'pinboard', 'calculator']);
+    expect(s.tools).toEqual(['calendar', 'marking', 'pinboard', 'calculator', 'drawer']);
   });
 
   it('Ermahnung ab drei Fehlern', () => {
@@ -165,15 +168,15 @@ describe('Tagesablauf Akt I', () => {
 describe('Aktionen am Schreibtisch', () => {
   /** State with Akte `id` on the desk (the day's stack is replaced). */
   const onDesk = (id: string, day = Number(id.split('-')[0])): GameState =>
-    drawNext({ ...beginWork(newGame(content)), day, phase: 'desk', queue: [id] });
+    drawNext({ ...beginWork(finishPrologue(content, newGame(content))), day, phase: 'desk', queue: [id] });
 
   it('nicht verfügbare Stempel werden ignoriert', () => {
-    const s = applyStamp(content, drawNext(beginWork(newGame(content))), 'ergaenzung');
+    const s = applyStamp(content, drawNext(beginWork(finishPrologue(content, newGame(content)))), 'ergaenzung');
     expect(s.current!.answer.stamp).toBeUndefined();
   });
 
   it('nächste Akte erst nach Ablage in den Ausgangskorb', () => {
-    let s = drawNext(beginWork(newGame(content)));
+    let s = drawNext(beginWork(finishPrologue(content, newGame(content))));
     const first = s.current!.akteId;
     s = drawNext(s);
     expect(s.current!.akteId).toBe(first);

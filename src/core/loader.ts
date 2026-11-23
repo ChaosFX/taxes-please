@@ -1,3 +1,4 @@
+import { momentOf, momentRank } from './timeline';
 import { toCents } from './amount';
 import { CalendarSchema, ContentSchema, OFFEN, type CalendarContent } from './schema';
 import {
@@ -60,6 +61,10 @@ export function loadContent(raw: unknown, versions: string[] = []): Content {
     );
   }
   const content = parsed.data;
+  // A single act file brings its `prologue`; it belongs to the act of the file and starts with its first day.
+  if (content.prologue && !content.prologues) {
+    content.prologues = [{ act: content.meta.akt, firstDay: Math.min(...content.days.map((d) => d.day)), screens: content.prologue }];
+  }
   const problems = crossCheck(content);
   if (problems.length > 0) throw new ContentError(problems, versions);
   return content;
@@ -252,31 +257,46 @@ function crossCheck(c: Content): string[] {
   // Story events: ids of event cards, notes kept in the drawer (SPEC 3).
   const eventIds: string[] = [];
   const days = [...c.days].sort((a, b) => a.day - b.day);
-  /** Day and index of the first unlock of a tool, to check what comes before it. */
-  const unlockedAt = (tool: string): { day: number; index: number } | null => {
+  /** Day, moment and index of the first unlock of a tool, to check what comes before it. */
+  const unlockedAt = (tool: string): { day: number; rank: number; index: number } | null => {
     for (const d of days) {
       const i = d.storyEvents.findIndex((e) => e.type === 'unlock' && e.feature === tool);
-      if (i >= 0) return { day: d.day, index: i };
+      if (i >= 0) return { day: d.day, rank: momentRank(momentOf(d.storyEvents[i]!)), index: i };
     }
     return null;
   };
-  const drawer = unlockedAt('drawer');
+  /** True if the tool is on the desk by `day` at `rank`, before the event at `index` (same moment: JSON order). */
+  const unlockedBy = (tool: string, day: number, rank = 0, index = Infinity): boolean => {
+    const u = unlockedAt(tool);
+    if (!u) return false;
+    if (u.day !== day) return u.day < day;
+    return u.rank < rank || (u.rank === rank && u.index < index);
+  };
+  const followUpsOn = (day: number) => c.cases.filter((k) => k.followUp?.arrivesOnDay === day).map((k) => k.id);
   for (const day of days) {
     day.storyEvents.forEach((e, i) => {
+      const where = `Tag ${day.day}, storyEvents.${i}`;
       if (e.type === 'event') eventIds.push(e.id);
-      if (e.type === 'note' && e.keep === 'drawer' && (!drawer || drawer.day > day.day || (drawer.day === day.day && drawer.index > i))) {
-        problems.push(`Tag ${day.day}, storyEvents.${i}: Zettel mit keep „drawer“, aber die Lade ist noch nicht freigeschaltet`);
+      const m = momentOf(e);
+      // `at.case`: an Akte of this day's stack, or a case whose follow-up can come that day.
+      if (typeof m === 'object' && !day.cases.includes(m.case) && !followUpsOn(day.day).includes(m.case)) {
+        problems.push(`${where}: at.case „${m.case}“ liegt an diesem Tag nicht im Stapel und kommt nicht als Folgeakte`);
+      }
+      if (e.type === 'newspaper' && e.clipping?.note !== undefined && e.clipping.noteFrom === undefined) {
+        problems.push(`${where}: Randnotiz ohne noteFrom`);
+      }
+      if (e.type === 'note' && e.keep === 'drawer' && !unlockedBy('drawer', day.day, momentRank(m), i)) {
+        problems.push(`${where}: Zettel mit keep „drawer“, aber die Lade ist noch nicht freigeschaltet`);
       }
     });
   }
   for (const d of duplicates(eventIds)) problems.push(`Ereignis-ID doppelt: ${d}`);
-  problems.push(...checkQuestions(c, scheduled, unlockedAt('pinboard')?.day ?? null));
+  problems.push(...checkQuestions(c, scheduled, (day) => unlockedBy('pinboard', day)));
   // Marking (SPEC 7, Freischaltung der Werkzeuge): unlocked by the first day with an Akte that has discrepancies.
-  const marking = unlockedAt('marking')?.day ?? null;
   for (const day of days) {
     for (const id of day.cases) {
       const k = c.cases.find((x) => x.id === id);
-      if (k?.type === 'entscheidungen' && (k.discrepancies?.length ?? 0) > 0 && (marking === null || marking > day.day)) {
+      if (k?.type === 'entscheidungen' && (k.discrepancies?.length ?? 0) > 0 && !unlockedBy('marking', day.day)) {
         problems.push(`Tag ${day.day}, Akte ${id}: hat Widersprüche, aber „marking“ ist an diesem Tag noch nicht freigeschaltet`);
       }
     }
@@ -286,7 +306,7 @@ function crossCheck(c: Content): string[] {
 }
 
 /** Questions for the pinboard (SPEC 3, Fragen): clues, `given`, `after` and the unlock of the pinboard. */
-function checkQuestions(c: Content, scheduled: Map<string, number>, pinboardDay: number | null): string[] {
+function checkQuestions(c: Content, scheduled: Map<string, number>, pinboardBy: (day: number) => boolean): string[] {
   const problems: string[] = [];
   const all = c.days.flatMap((d) => (d.questions ?? []).map((q) => ({ q, day: d.day })));
   for (const d of duplicates(all.map((x) => x.q.id))) problems.push(`Frage-ID doppelt: ${d}`);
@@ -294,7 +314,7 @@ function checkQuestions(c: Content, scheduled: Map<string, number>, pinboardDay:
 
   for (const { q, day } of all) {
     const at = `Tag ${day}, Frage ${q.id}`;
-    if (pinboardDay === null || pinboardDay > day) problems.push(`${at}: die Pinnwand ist an diesem Tag noch nicht freigeschaltet`);
+    if (!pinboardBy(day)) problems.push(`${at}: die Pinnwand ist an diesem Tag noch nicht freigeschaltet`);
     if (q.clues.every((k) => k.given)) problems.push(`${at}: mindestens ein Hinweis darf nicht „given“ sein`);
     for (const d of duplicates(q.clues.map(clueRefKey))) problems.push(`${at}: Hinweis doppelt: ${d}`);
     q.clues.forEach((clue, i) => {
@@ -482,6 +502,13 @@ export function loadContentFiles(files: ContentFile[]): Content {
     rules: files.flatMap((f, i) => list(objects[i]!, 'rules', f.name)),
     days: files.flatMap((f, i) => list(objects[i]!, 'days', f.name)),
     cases: files.flatMap((f, i) => list(objects[i]!, 'cases', f.name)),
+    // The prologue of each file belongs to its act and comes before the first day of that file (SPEC 3).
+    prologues: objects.flatMap((o, i) => {
+      if (o.prologue === undefined) return [];
+      const days = list(o, 'days', files[i]!.name).flatMap((d) => (isObject(d) && typeof d.day === 'number' ? [d.day] : []));
+      const act = isObject(o.meta) && typeof o.meta.akt === 'number' ? o.meta.akt : 0;
+      return [{ act, firstDay: days.length ? Math.min(...days) : 0, screens: o.prologue }];
+    }),
   };
   if (problems.length > 0) throw new ContentError(problems, versions);
   return loadContent(merged, versions);

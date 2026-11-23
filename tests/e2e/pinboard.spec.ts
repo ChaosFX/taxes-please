@@ -55,11 +55,18 @@ test('q1 an Tag 7: 7-3 ablegen, Hinweis auf q1 ziehen, q2 taucht auf', SMOKE, as
   await expect(key(page, 'pinboard')).toBeFocused();
 });
 
-test('Lade an Tag 10: Zettel liegen drin, auch nach Neuladen', SMOKE, async ({ page }) => {
+test('Lade an Tag 10: klemmt bis zum Tagesende, danach liegen die Zettel drin, auch nach Neuladen', SMOKE, async ({ page }) => {
+  const day10 = raw.days.find((d: { day: number }) => d.day === 10).storyEvents as { type: string; at?: unknown; keep?: string; feature?: string }[];
+  // In the morning the drawer is still stuck (Auftrag 07: it opens at the end of the day).
   await startAtDay(page, 10, { queue: ['10-1'] });
-  await expect(page.locator('.drawer-unlock')).toBeVisible();
+  await expect(page.locator('.drawer-unlock')).toHaveCount(0);
   await key(page, 'begin').click();
-  await expect(message(page)).toHaveText('Der Zettel kommt in die Lade.');
+  await key(page, 'drawer').click();
+  await expect(message(page)).toHaveText('Die Lade klemmt.');
+  // After the unlock and the notes at the end of day 10 have been shown.
+  const shown = day10.flatMap((e, i) => ((e.type === 'unlock' && e.feature === 'drawer') || e.keep === 'drawer' ? [i] : []));
+  await startAtDay(page, 10, { queue: ['10-1'], eventsShown: { 10: shown } });
+  await key(page, 'begin').click();
   await key(page, 'drawer').click();
   const drawer = page.locator('dialog.drawer-dialog');
   await expect(drawer.locator('.drawer-note')).toHaveCount(2);
@@ -187,7 +194,8 @@ for (const size of [
 ]) {
   test(`Pinnwand und Lade passen bei ${size.width} × ${size.height}`, async ({ page }) => {
     await page.setViewportSize(size);
-    await startAtDay(page, 10, { filed: true, queue: ['10-1'], board: { placed: { q1: [ES118] }, pinned: [], seenClues: [], seenAnswers: [], misses: 0 } });
+    // eventsShown: the drawer has opened at the end of day 10 (Auftrag 07).
+    await startAtDay(page, 10, { filed: true, queue: ['10-1'], eventsShown: { 10: [2, 3, 4] }, board: { placed: { q1: [ES118] }, pinned: [], seenClues: [], seenAnswers: [], misses: 0 } });
     await key(page, 'begin').click();
     for (const k of ['pinboard', 'drawer']) await expect(key(page, k)).toBeInViewport({ ratio: 0.99 });
     await key(page, 'pinboard').click();

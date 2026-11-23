@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { correctAnswer } from '../../src/core/evaluate';
 import { formatEuro } from '../../src/core/format';
-import { advanceDay, beginWork, drawNext, fileCurrent, applyStamp, decidePosition, newGame, toolsUntil, type GameState } from '../../src/core/game';
+import { advanceDay, drawNext, fileCurrent, applyStamp, decidePosition, newGame, toolsUntil, type GameState } from '../../src/core/game';
 import { getAkte } from '../../src/core/loader';
 import { clearSave, hasSave, loadGame, SAVE_KEY, saveGame } from '../../src/core/save';
-import { MemoryStore, realContent } from './helpers';
+import { MemoryStore, begin, realContent } from './helpers';
 
 const content = realContent();
 
@@ -74,7 +74,7 @@ describe('Spielstände aus 0.2 (SPEC 9)', () => {
   function throughDay3(stamp34: 'ergaenzung' | 'bescheid'): GameState {
     let s = newGame(content);
     for (let d = 1; d <= 3; d++) {
-      s = beginWork(s);
+      s = begin(content, s);
       while (s.phase === 'desk') {
         s = drawNext(s);
         const a = correctAnswer(getAkte(content, s.current!.akteId));

@@ -10,7 +10,8 @@ import { z } from 'zod';
  */
 const KEYS = {
   title: ['heading', 'year', 'newGame', 'continue', 'confirmOverwrite'],
-  intro: ['day', 'noteFrom', 'speaker', 'begin', 'newspaper', 'call', 'unlockCalculator', 'unlockCalendar', 'unlockPinboard', 'unlockDrawer', 'unlockMarking'],
+  intro: ['day', 'noteFrom', 'speaker', 'begin', 'newspaper', 'call', 'unlockCalculator', 'unlockCalendar', 'unlockPinboard', 'unlockDrawer', 'unlockMarking', 'clipping', 'marginNote', 'continue'],
+  prologue: ['next', 'skip', 'start'],
   desk: ['day', 'stack', 'pruefvermerk', 'akte', 'followUpId', 'colPosition', 'colAmount', 'colDecision', 'emptyDesk', 'stamps', 'outbox', 'outboxButton', 'stampFirst', 'amountLabel', 'amountPlaceholder', 'inquiryHeading', 'inquiryRequired', 'markHint', 'markHeading', 'markOptional', 'markCount', 'markClear', 'akteNoJob', 'markPair', 'markSide', 'markRemove', 'closeAkte', 'pocket', 'stampField', 'oneAkteOnly', 'closeFirst', 'stampTaken', 'alreadyStamped', 'noOpenAkte', 'putBack'],
   verdict: ['anerkennen', 'streichen', 'offen'],
   codex: ['open', 'close', 'day', 'locked', 'new', 'simplified', 'sourceSeparator', 'searchPlaceholder', 'hits', 'hint', 'coverTitle', 'coverSubtitle', 'coverStand', 'runningHeadLeft', 'runningHeadRight', 'deliveryHeading', 'register', 'tabRegister', 'lockedSheet', 'nextPage', 'prevPage', 'noHits', 'searchClear', 'readMode'],
@@ -22,7 +23,7 @@ const KEYS = {
   drawer: ['label', 'stuck', 'title', 'empty', 'close', 'stored'],
   settings: ['heading', 'effects', 'effectsAus', 'effectsReduziert', 'effectsVoll', 'sound', 'volume', 'music', 'percent'],
   error: ['heading'],
-  aria: ['codex', 'codexSearch', 'bookmarks', 'lockedPage', 'paper', 'officeStamp', 'pruefvermerk', 'worksurface', 'tools', 'calculator', 'amountInput', 'markableLine', 'calcDisplay', 'calcAdd', 'calcSubtract', 'calcMultiply', 'calcDivide', 'calcDecimal', 'calcClear', 'calcEquals', 'calcBackspace', 'markRemove', 'codexPage', 'codexBook', 'calendar', 'calendarDay', 'calendarHoliday', 'inbox', 'folder', 'folderStamped', 'pinboard', 'pinCard', 'pinnableLine', 'pinnableStamp', 'drawer', 'copy', 'question', 'questionAnswered', 'hand'],
+  aria: ['prologue', 'deskEvent', 'codex', 'codexSearch', 'bookmarks', 'lockedPage', 'paper', 'officeStamp', 'pruefvermerk', 'worksurface', 'tools', 'calculator', 'amountInput', 'markableLine', 'calcDisplay', 'calcAdd', 'calcSubtract', 'calcMultiply', 'calcDivide', 'calcDecimal', 'calcClear', 'calcEquals', 'calcBackspace', 'markRemove', 'codexPage', 'codexBook', 'calendar', 'calendarDay', 'calendarHoliday', 'inbox', 'folder', 'folderStamped', 'pinboard', 'pinCard', 'pinnableLine', 'pinnableStamp', 'drawer', 'copy', 'question', 'questionAnswered', 'hand'],
 } as const;
 
 type Keys = typeof KEYS;

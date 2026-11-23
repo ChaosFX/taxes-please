@@ -33,7 +33,7 @@ export function saveGame(store: KeyValueStore | null, state: GameState): boolean
 }
 
 /** Shape shared by both save versions. */
-interface StoredState extends Omit<GameState, 'version' | 'phase' | 'tools' | 'codex' | 'board'> {
+interface StoredState extends Omit<GameState, 'version' | 'phase' | 'tools' | 'codex' | 'board' | 'prologueSeen' | 'eventsShown'> {
   version: 1 | typeof STATE_VERSION;
   phase: string;
   tools?: GameState['tools'];
@@ -41,6 +41,26 @@ interface StoredState extends Omit<GameState, 'version' | 'phase' | 'tools' | 'c
   codex?: unknown;
   /** Missing in saves before SPEC 0.5.0. */
   board?: unknown;
+  /** Missing in saves before SPEC 0.6.0. */
+  prologueSeen?: unknown;
+  eventsShown?: unknown;
+}
+
+/**
+ * Prologue and events of a save (SPEC 9). Without them: no event shown yet, and
+ * the prologue of every act that has begun counts as seen (a save after its first day).
+ */
+export function timelineFromSave(content: Content, saved: Pick<StoredState, 'day' | 'prologueSeen' | 'eventsShown'>): Pick<GameState, 'prologueSeen' | 'eventsShown'> {
+  const prologueSeen = Array.isArray(saved.prologueSeen)
+    ? saved.prologueSeen.filter((a): a is number => typeof a === 'number')
+    : (content.prologues ?? []).filter((p) => p.firstDay <= saved.day).map((p) => p.act);
+  const eventsShown: Record<number, number[]> = {};
+  if (typeof saved.eventsShown === 'object' && saved.eventsShown !== null) {
+    for (const [d, list] of Object.entries(saved.eventsShown)) {
+      if (Array.isArray(list)) eventsShown[Number(d)] = list.filter((i): i is number => typeof i === 'number');
+    }
+  }
+  return { prologueSeen, eventsShown };
 }
 
 function isStoredState(v: unknown): v is StoredState {
@@ -77,6 +97,7 @@ export function migrateV1(content: Content, old: StoredState): GameState {
     tools: toolsUntil(content, old.day),
     codex: codexProgress(old.codex),
     board: boardFromSave(content, old.board),
+    ...timelineFromSave(content, old),
   };
   if (old.day < PROTOTYPE_LAST_DAY && old.phase !== 'finished') return base;
 
@@ -130,7 +151,7 @@ export function loadGame(store: KeyValueStore | null, content: Content): GameSta
   try {
     if (saved.version === 1) return shelveUnstamped(migrateV1(content, saved));
     // A save without `codex` (before SPEC 0.3.2) or `board` (before 0.5.0) keeps everything else (SPEC 9).
-    const loaded = { ...(saved as Omit<GameState, 'codex' | 'board'>), codex: codexProgress(saved.codex), board: boardFromSave(content, saved.board) } as GameState;
+    const loaded = { ...(saved as Omit<GameState, 'codex' | 'board'>), codex: codexProgress(saved.codex), board: boardFromSave(content, saved.board), ...timelineFromSave(content, saved) } as GameState;
     return shelveUnstamped({ ...loaded, tools: withEarlierUnlocks(content, loaded) });
   } catch {
     return null;

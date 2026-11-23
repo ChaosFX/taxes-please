@@ -4,14 +4,24 @@ import { t } from './text';
 
 type Newspaper = Extract<StoryEvent, { type: 'newspaper' }>;
 
-/** A narrow newspaper page: masthead `from`, big headline, text in columns (SPEC 7). */
+/**
+ * A narrow newspaper page: masthead `from`, big headline, text in columns (SPEC 7).
+ * With `clipping` a cut-out article from a folder instead: date above the
+ * headline and a margin note in pencil, read out with its author (SPEC 7.8).
+ */
 export function newspaperSheet(e: Newspaper, attrs: Record<string, string | number> = {}): HTMLElement {
+  const c = e.clipping;
+  const cls = `${attrs.class ?? 'newspaper'}${c ? ' clipping' : ''}`;
   return h(
     'article',
-    { class: 'newspaper', ...attrs, 'aria-label': e.headline, 'aria-roledescription': t('intro.newspaper') },
+    { ...attrs, class: cls, 'aria-label': e.headline, 'aria-roledescription': c ? t('intro.clipping', { date: c.date }) : t('intro.newspaper') },
     h('header', { class: 'masthead' }, e.from),
+    c ? h('p', { class: 'clip-date' }, t('intro.clipping', { date: c.date })) : null,
     h('h3', { class: 'headline' }, e.headline),
     h('p', { class: 'columns' }, e.text),
+    c?.note
+      ? h('aside', { class: 'margin-note' }, h('span', { class: 'sr-only' }, t('intro.marginNote', { from: c.noteFrom ?? '' })), h('span', { class: 'hand' }, c.note))
+      : null,
   );
 }
 

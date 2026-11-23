@@ -15,6 +15,7 @@ import {
   type Mark,
   type PlayerVerdict,
   type Stamp,
+  type StoryEvent,
 } from '../core/types';
 import { closedCalendar, openCalendar, type CalendarActions, type CalendarView } from './calendar';
 import { renderCalculator } from './calculator';
@@ -24,7 +25,7 @@ import { akteHeading, akteLabel, choiceLabel, optionLabel, pairText, playerVerdi
 import { paperRotation } from './paper-interaction';
 import { makePinnable, type PinPlace } from './pin-lines';
 import { LEFT_RAIL, PAD, RIGHT_RAIL, SLOTS, STAGE_H, STAGE_W, objTransform, type Spot } from './stage';
-import { newspaperSheet } from './story';
+import { newspaperSheet, storyEvent } from './story';
 import { t } from './text';
 
 /*
@@ -747,11 +748,39 @@ function openTool(tool: ToolId, at: Placed, env: ToolEnv): HTMLElement | null {
 
 // ---------- The stage ----------
 
+/** An event shown at the desk during the day or at its end (SPEC 4.4a, 4.5, 7.8). */
+export interface DeskEvent {
+  event: StoryEvent;
+  /** Its position in `storyEvents` of the day. */
+  index: number;
+  /** Closes it (`ui.intro.continue`, Escape). */
+  close(): void;
+}
+
+/**
+ * The event as an overlay over the desk, which stays visible but cannot be
+ * touched meanwhile (it is `inert`). Same look as at the start of the day.
+ */
+function deskEventOverlay(ev: DeskEvent): HTMLElement {
+  return h(
+    'div',
+    { class: 'desk-event', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('aria.deskEvent'), 'data-event': ev.index },
+    h(
+      'section',
+      { class: 'desk-event-card sheet' },
+      storyEvent(ev.event),
+      h('button', { class: 'primary', 'data-key': 'event-continue', onclick: ev.close }, t('intro.continue')),
+    ),
+  );
+}
+
 export interface DeskEnv extends ToolEnv {
   /** Live region for short messages (kept across renders). */
   live: HTMLElement;
   /** The carried stamp following the pointer (kept across renders). */
   ghost: HTMLElement;
+  /** An event due at the desk, or null. */
+  deskEvent?: DeskEvent | null;
 }
 
 export function deskView(env: DeskEnv): HTMLElement {
@@ -810,7 +839,7 @@ export function deskView(env: DeskEnv): HTMLElement {
 
   const stage = h(
     'div',
-    { class: 'stage', style: `width:${STAGE_W}px;height:${STAGE_H}px` },
+    { class: 'stage', style: `width:${STAGE_W}px;height:${STAGE_H}px`, inert: env.deskEvent ? true : null },
     h('div', { class: 'rail left', style: slotStyle(LEFT_RAIL) }),
     h('div', { class: 'rail right', style: slotStyle(RIGHT_RAIL), role: 'region', 'aria-label': t('aria.tools') }),
     h(
@@ -829,7 +858,8 @@ export function deskView(env: DeskEnv): HTMLElement {
     objects,
     rack(content, state, ui, akte, a),
     env.ghost,
-    env.live,
+    // Under an event the stage is inert; the live region stays outside then, so its messages are still read.
+    env.deskEvent ? null : env.live,
   );
-  return h('main', { class: 'screen desk' }, stage);
+  return h('main', { class: 'screen desk' }, stage, env.deskEvent ? [env.live, deskEventOverlay(env.deskEvent)] : null);
 }

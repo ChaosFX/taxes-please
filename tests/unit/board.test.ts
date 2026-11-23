@@ -23,7 +23,6 @@ import { correctAnswer } from '../../src/core/evaluate';
 import {
   advanceDay,
   applyStamp,
-  beginWork,
   discardClue,
   drawNext,
   errorsOfDay,
@@ -38,7 +37,7 @@ import {
 } from '../../src/core/game';
 import { getAkte, loadContent } from '../../src/core/loader';
 import { loadGame, saveGame } from '../../src/core/save';
-import { MemoryStore, clone, rawContentFiles, realContent } from './helpers';
+import { MemoryStore, begin, clone, rawContentFiles, realContent, settle } from './helpers';
 
 /*
  * Pinboard and drawer (SPEC 3 „Fragen“, 4, 7.6, 7.7, 9, 11 „Pinnwand mit Fragen und Lade“).
@@ -309,11 +308,17 @@ describe('Durchschläge', () => {
 });
 
 describe('Lade', () => {
-  it('Zettel mit keep: drawer ab ihrem Tag', () => {
-    expect(drawerNotes(content, 9)).toEqual([]);
-    const notes = drawerNotes(content, 10);
+  it('Zettel mit keep: drawer erst, wenn sie gezeigt sind (an Tag 10 am Tagesende)', () => {
+    expect(drawerNotes(content, { day: 9 })).toEqual([]);
+    expect(drawerNotes(content, { day: 10 })).toEqual([]);
+    const events = content.days.find((d) => d.day === 10)!.storyEvents;
+    const kept = events.flatMap((e, i) => (e.type === 'note' && e.keep === 'drawer' ? [i] : []));
+    expect(drawerNotes(content, { day: 10, eventsShown: { 10: [kept[0]!] } })).toHaveLength(1);
+    const notes = drawerNotes(content, { day: 10, eventsShown: { 10: kept } });
     expect(notes).toHaveLength(2);
     expect(notes.every((n) => n.day === 10 && n.keep === 'drawer')).toBe(true);
+    // Next day they are there anyway.
+    expect(drawerNotes(content, { day: 11 })).toHaveLength(2);
   });
 });
 
@@ -357,12 +362,12 @@ describe('ganzer Akt mit Pinnwand', () => {
     let s = newGame(content);
     const seen: string[][] = [];
     while (s.phase !== 'actEnd') {
-      s = beginWork(s);
+      s = begin(content, s);
       while (s.phase === 'desk') {
         s = drawNext(s);
         const a = correctAnswer(getAkte(content, s.current!.akteId));
         s = { ...s, current: { ...s.current!, answer: { ...a, stamp: undefined } } };
-        s = fileCurrent(content, applyStamp(content, s, a.stamp!, a.inquiry));
+        s = settle(content, fileCurrent(content, applyStamp(content, s, a.stamp!, a.inquiry)));
         // Every card goes onto the question it fits.
         for (let n = 0; n < 5; n++) {
           const cards = hand(content, boardContext(s));
@@ -383,8 +388,9 @@ describe('ganzer Akt mit Pinnwand', () => {
       s = advanceDay(content, s);
     }
     expect(seen[6]).toEqual(['q1', 'q2']);
-    expect(seen[9]).toEqual(['q1', 'q2', 'q3']);
-    expect(wall(content, boardContext(s)).flatMap((c) => c.questions.map((q) => q.answered))).toEqual([true, true, true]);
+    // Akt I 0.4.0: q4 follows q3 on day 10.
+    expect(seen[9]).toEqual(['q1', 'q2', 'q3', 'q4']);
+    expect(wall(content, boardContext(s)).flatMap((c) => c.questions.map((q) => q.answered))).toEqual([true, true, true, true]);
   });
 });
 

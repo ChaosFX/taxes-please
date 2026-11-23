@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { fileAkte, freshStart, key, stampAkte } from './helpers';
+import { fileAkte, freshStart, key, stampAkte, newGame } from './helpers';
 
 /** Auftrag 01, Punkt 6: Stempel, Papierrascheln, Büro-Ambiente, Lautstärke-Regler. */
 
@@ -34,6 +34,7 @@ const played = (page: Page) => page.evaluate(() => window.__played);
 test('Stempel und Papier sind zu hören, Ambiente startet nach dem ersten Klick', async ({ page }) => {
   await key(page, 'new-game').click();
   await expect.poll(() => page.evaluate(() => window.__ambient)).toContainEqual(expect.stringContaining('audio/buero.mp3'));
+  await key(page, 'prologue-skip').click();
   await key(page, 'begin').click();
   await key(page, 'stack').click();
   // Paper rustle (> 1 s) when the Akte is drawn.
@@ -62,7 +63,7 @@ test('Lautstärke 0 schaltet den Ton ab und wird gespeichert', async ({ page }) 
   await expect(key(page, 'volume')).toHaveValue('0');
   await page.locator('.settings summary').click();
 
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await key(page, 'stack').click();
   await stampAkte(page, 'bescheid');
@@ -145,7 +146,7 @@ test('Musik-Regler 0: Musik wird weder geladen noch abgespielt; Umschalten blend
   await page.reload();
   const music = () => page.evaluate(() => (window as unknown as { __music: { fetched: number; starts: number[]; stops: number; clock: number[] } }).__music);
 
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await page.waitForTimeout(500);
   expect(await music()).toEqual({ fetched: 0, starts: [], stops: 0, clock: [] });

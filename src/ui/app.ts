@@ -3,7 +3,7 @@ import * as core from '../core';
 import type { CalendarContent, Content, EffectsLevel, GameState, Settings } from '../core';
 import * as atmosphere from './atmosphere';
 import { CodexBook, loadBookFonts, type BookEnv } from './codex';
-import { deskView, markOpen, type DeskActions, type DeskUi } from './desk';
+import { deskView, markOpen, type DeskActions, type DeskEvent, type DeskUi } from './desk';
 import { PencilMarks } from './pencil';
 import { PinboardView, openDrawer } from './pinboard';
 import { h } from './dom';
@@ -12,7 +12,7 @@ import { fitPaperLines } from './paper-interaction';
 import { fitStage, stageScale } from './stage';
 import { Table } from './table';
 import { t, type UiKey } from './text';
-import { actEndView, introView, startView, summaryView, type ScreenActions } from './views';
+import { actEndView, introView, prologueView, startView, summaryView, type ScreenActions } from './views';
 
 type Screen = 'start' | 'game';
 
@@ -36,6 +36,10 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
   let focusNext: string | null = null;
   /** Day whose phone call has rung, so re-renders of the intro do not ring again. */
   let rungFor: number | null = null;
+  /** Event at the desk whose call has rung (`day-index`). */
+  let rungEvent: string | null = null;
+  /** Screen of the prologue shown (not saved: a reload starts the prologue again). */
+  let prologueStep = 0;
   const book = new CodexBook('reader');
   /** The small open codex on the desk (SPEC 6.1a); kept across renders while it lies there. */
   const deskBook = new CodexBook('desk');
@@ -108,7 +112,22 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
         return;
       }
       screen = 'game';
+      prologueStep = 0;
       update(core.newGame(content, settings));
+    },
+    prologueNext: () => {
+      if (!state || state.phase !== 'prologue') return;
+      const count = core.prologueBefore(content, state.day)?.screens.length ?? 0;
+      if (prologueStep + 1 < count) {
+        prologueStep++;
+        focusNext = 'prologue-next';
+        render();
+      } else screenActions.prologueSkip();
+    },
+    prologueSkip: () => {
+      if (!state) return;
+      prologueStep = 0;
+      update(core.finishPrologue(content, state));
     },
     continueGame() {
       const saved = loadSavedGame(store, content);
@@ -118,9 +137,9 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     },
     beginWork: () => {
       if (!state) return;
-      update(core.beginWork(state));
-      // Notes kept in the drawer have gone there (SPEC 7.7).
-      if (state.phase === 'desk' && core.dayInfo(content, state.day).storyEvents.some((e) => e.type === 'note' && e.keep === 'drawer')) table.say('drawer.stored');
+      update(core.beginWork(state, content));
+      // Notes kept in the drawer from the start of the day have gone there (SPEC 7.7).
+      if (state.phase === 'desk' && core.dayInfo(content, state.day).storyEvents.some((e) => e.type === 'note' && e.keep === 'drawer' && core.atStart(e))) table.say('drawer.stored');
     },
     readRule: (ruleId) => openCodexAt(ruleId),
     advanceDay: () => {
@@ -276,7 +295,7 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
         return;
       }
       putStampBack();
-      openDrawer(core.drawerNotes(content, state.day), boardHost);
+      openDrawer(core.drawerNotes(content, state), boardHost);
     },
   };
 
@@ -377,6 +396,21 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     });
   }
 
+  // Escape closes an event at the desk and skips the prologue (SPEC 7.8).
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || screen !== 'game' || !state || document.querySelector('dialog[open]')) return;
+    if (state.phase === 'prologue') {
+      e.preventDefault();
+      screenActions.prologueSkip();
+      return;
+    }
+    const open = root.querySelector<HTMLElement>('.desk-event[data-event]');
+    if (state.phase === 'desk' && open) {
+      e.preventDefault();
+      closeDeskEvent(Number(open.dataset.event));
+    }
+  });
+
   // Taste K opens the codex, P the pinboard on the desk, unless a text field has focus (SPEC 6.1, 7.6). Open dialogs handle their keys themselves.
   window.addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase();
@@ -384,7 +418,7 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     if (book.isOpen || screen !== 'game' || state?.phase !== 'desk') return;
     const target = e.target as HTMLElement | null;
     if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return;
-    if (document.querySelector('dialog[open]')) return;
+    if (document.querySelector('dialog[open], .desk-event')) return;
     if (k === 'p' && !core.hasPinboard(state)) return;
     e.preventDefault();
     if (k === 'k') openCodex();
@@ -399,7 +433,7 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
    */
   window.addEventListener('keydown', (e) => {
     if (screen !== 'game' || state?.phase !== 'desk' || !table.ui.tools.calculator) return;
-    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || book.isOpen || document.querySelector('dialog[open]')) return;
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || book.isOpen || document.querySelector('dialog[open], .desk-event')) return;
     const target = e.target as HTMLElement;
     if (target.closest('input, textarea, select, [contenteditable="true"]')) return;
     const key = core.calcKeyFor(e.key, e.code);
@@ -473,12 +507,14 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
   function view(): HTMLElement {
     if (screen === 'start' || !state) return startView(content, core.hasSave(store), screenActions);
     switch (state.phase) {
+      case 'prologue':
+        return prologueView(content, state, prologueStep, screenActions);
       case 'intro':
         deskUi.calc = core.CALC_INITIAL;
         return introView(content, state, screenActions);
       case 'desk':
         syncDeskUi(state);
-        return deskView({ content, calendar, state, ui: deskUi, table: table.ui, a: deskActions, hooks: table, deskBook: deskBook.element, live: table.live, ghost: table.ghost });
+        return deskView({ content, calendar, state, ui: deskUi, table: table.ui, a: deskActions, hooks: table, deskBook: deskBook.element, live: table.live, ghost: table.ghost, deskEvent: dueEvent() });
       case 'summary':
         return summaryView(content, state, screenActions);
       case 'actEnd':
@@ -513,10 +549,47 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     }
   }
 
+  /** The first event due at the desk, as the view shows it (SPEC 4.4a, 4.5, 7.8). */
+  function dueEvent(): DeskEvent | null {
+    if (!state) return null;
+    const index = core.dueDeskEvents(content, state)[0];
+    if (index === undefined) return null;
+    const event = core.dayInfo(content, state.day).storyEvents[index]!;
+    // Nothing in the hand while an event is open (called while rendering: no render of its own).
+    if (deskUi.carrying) {
+      deskUi.carrying = null;
+      deskUi.inquiryOpen = false;
+      deskUi.inquiryChoice = null;
+      table.carry(null);
+    }
+    return { event, index, close: () => closeDeskEvent(index) };
+  }
+
+  /** Closes an event at the desk: an unlock takes effect now, a kept note goes into the drawer. */
+  function closeDeskEvent(index: number): void {
+    if (!state) return;
+    const e = core.dayInfo(content, state.day).storyEvents[index];
+    const next = core.showDeskEvent(content, state, index);
+    if (next === state) return;
+    focusNext = core.dueDeskEvents(content, next).length ? 'event-continue' : 'stack';
+    update(next);
+    if (e?.type === 'note' && e.keep === 'drawer') table.say('drawer.stored');
+  }
+
+  /** A call at the desk rings once when it appears. */
+  function ringAtDesk(): void {
+    const el = root.querySelector<HTMLElement>('.desk-event[data-event]');
+    if (!el || !state || !el.querySelector('.call')) return;
+    const key = `${state.day}-${el.dataset.event}`;
+    if (rungEvent === key) return;
+    rungEvent = key;
+    sound.play('phone');
+  }
+
   /** A call rings once when its day begins (SPEC 7). */
   function ringIfCalled(): void {
     if (screen !== 'game' || state?.phase !== 'intro' || rungFor === state.day) return;
-    if (!core.dayInfo(content, state.day).storyEvents.some((e) => e.type === 'call')) return;
+    if (!core.dayInfo(content, state.day).storyEvents.some((e) => e.type === 'call' && core.atStart(e))) return;
     rungFor = state.day;
     sound.play('phone');
   }
@@ -543,11 +616,15 @@ export function startApp(root: HTMLElement, content: Content, calendar: Calendar
     let target = key ? root.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`) : null;
     if (target && (target as HTMLButtonElement).disabled) target = null;
     target ??= root.querySelector<HTMLElement>('main button.primary:not([disabled]), main h1');
+    // An event over the desk takes the focus (SPEC 7.8).
+    const overlay = root.querySelector<HTMLElement>('.desk-event');
+    if (overlay && !(target && overlay.contains(target))) target = overlay.querySelector<HTMLElement>('[data-key="event-continue"]');
     target?.focus({ preventScroll: true });
     // Inside the Prüfvermerk, which scrolls in itself, the focused control comes into view.
     if (target) revealInPruefvermerk(target);
     playStampFx();
     ringIfCalled();
+    ringAtDesk();
   }
 
   // Web fonts change the size of papers (the newspaper): keep everything on the pad once they are there.

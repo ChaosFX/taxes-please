@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
-import { LONG, SMOKE, drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, stampAkte, startAtDay, zoomNewspaper } from './helpers';
+import { LONG, SMOKE, drawUntil, enter, fileAkte, freshStart, inboxCount, key, longTest, markKey, openAkte, playDay, pullOut, raw, solutionFor, solveNext, stampAkte, startAtDay, zoomNewspaper, newGame } from './helpers';
 
 const FOLLOW_UP_DAYS: Record<number, string> = { 4: '3-4/folge', 5: '4-1/folge', 6: '5-3/folge', 7: '6-3/folge', 8: '7-3/folge', 10: '9-2/folge' };
-const eventsOf = (day: number): { type: string; feature?: string }[] => raw.days.find((d: { day: number }) => d.day === day).storyEvents;
+/** Events on the card of the day: those without `at` (later ones appear at the desk, Auftrag 07). */
+const eventsOf = (day: number): { type: string; feature?: string; at?: unknown }[] => raw.days.find((d: { day: number }) => d.day === day).storyEvents.filter((e: { at?: unknown }) => e.at === undefined);
 
 /**
  * Akt I all the way through (SPEC 11): once with the mouse by dragging (Akte onto the
@@ -12,7 +13,7 @@ for (const way of ['drag', 'keys'] as const) {
 test(`Akt I richtig durchspielen (${way === 'drag' ? 'Maus mit Ziehen' : 'nur Tastatur'}) mit Neuladen: null Fehler an allen zehn Tagen, dann „Ende von Akt I“`, LONG, async ({ page }) => {
   longTest(300_000);
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   for (let day = 1; day <= 10; day++) {
     await expect(page.locator('.day-card h1')).toHaveText(`Tag ${day}`);
     // Story events of the day appear as in the JSON.
@@ -252,7 +253,8 @@ test('Betragsfeld: verschiedene Schreibweisen, Format nach dem Verlassen', async
 });
 
 test('Morgenzeitung und Anruf an den Tagen laut JSON, Zeitung liegt am Tisch', SMOKE, async ({ page }) => {
-  await startAtDay(page, 4);
+  // Day 6: a morning paper (day 4 brings a clipping, Auftrag 07).
+  await startAtDay(page, 6);
   await expect(page.locator('.day-card .newspaper .masthead')).toHaveText('Donau-Kurier');
   await expect(page.locator('.day-card .call')).toHaveCount(0);
   await key(page, 'begin').click();
@@ -307,7 +309,7 @@ test('Tischrechner ab Tag 8: Maus und Tastatur, Fehler bei Division durch null',
 
 test('Ermahnung ab drei Fehlern, Auswertung zeigt Lösung und Fundstelle', async ({ page }) => {
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   const flip = (id: string) => {
     const s = solutionFor(id);
@@ -339,6 +341,7 @@ test('eine Akte vollständig mit der Tastatur', SMOKE, async ({ page }) => {
     throw new Error(`${k} nicht per Tastatur erreichbar`);
   };
   await press('new-game');
+  await press('prologue-skip');
   await press('begin');
   await press('stack');
   // Focus goes to the Prüfvermerk of the open folder.
@@ -363,7 +366,7 @@ test('eine Akte vollständig mit der Tastatur', SMOKE, async ({ page }) => {
 
 test('Neues Spiel fragt vor dem Überschreiben', async ({ page }) => {
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await page.reload();
   await expect(key(page, 'continue')).toBeEnabled();

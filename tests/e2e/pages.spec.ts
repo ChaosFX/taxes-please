@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { BASE_PATH } from './base-path';
-import { SMOKE, fileAkte, freshStart, key, openAkte, solveNext, stampAkte } from './helpers';
+import { SMOKE, fileAkte, freshStart, key, openAkte, solveNext, stampAkte, newGame } from './helpers';
 
 /**
  * Auftrag 02, Aufgabe 5: The build works under the GitHub Pages sub-path.
@@ -17,7 +17,7 @@ test('Unterpfad: alle Dateien gefunden, Schrift und Ton geladen, Neuladen am Sch
 
   await freshStart(page);
   expect(new URL(page.url()).pathname).toBe(BASE_PATH);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await key(page, 'stack').click();
 

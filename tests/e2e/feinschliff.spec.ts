@@ -25,7 +25,7 @@ test('Werkzeuge je Tag 1 bis 10 wie in der Tabelle: höchstens eines neu, vorher
   for (let day = 1; day <= 10; day++) {
     const d = dayOf(day);
     await startAtDay(page, day, { queue: [d.cases[0]!], effects: 'aus' });
-    await expect(page.locator('.day-card .call')).toHaveCount(d.storyEvents.filter((e) => e.type === 'call').length);
+    await expect(page.locator('.day-card .call')).toHaveCount(d.storyEvents.filter((e) => e.type === 'call' && !('at' in e)).length);
     await key(page, 'begin').click();
     // Always there: inbox, codex, stamp „Bescheid“, phone and the handle of the drawer (stuck before day 10).
     for (const k of ['stack', 'codex-book', 'stamp-bescheid', 'drawer']) await expect(key(page, k), `Tag ${day}: ${k}`).toBeVisible();
@@ -34,7 +34,7 @@ test('Werkzeuge je Tag 1 bis 10 wie in der Tabelle: höchstens eines neu, vorher
     await expect(key(page, 'calendar-tool'), `Tag ${day}`).toHaveCount(day >= FROM.calendar ? 1 : 0);
     await expect(key(page, 'pinboard'), `Tag ${day}`).toHaveCount(day >= FROM.pinboard ? 1 : 0);
     await expect(key(page, 'calc-tool'), `Tag ${day}`).toHaveCount(day >= FROM.calculator ? 1 : 0);
-    await expect(page.locator('.stage [data-key^="newspaper-"]'), `Tag ${day}`).toHaveCount(d.storyEvents.filter((e) => e.type === 'newspaper').length);
+    await expect(page.locator('.stage [data-key^="newspaper-"]'), `Tag ${day}`).toHaveCount(d.storyEvents.filter((e) => e.type === 'newspaper' && !('at' in e)).length);
     // No switch for marking at any day; the Gegenüberstellung only with the stamp from day 5 on.
     await openAkte(page);
     await expect(page.locator('[data-key="mark-mode"], .mark-toggle, .mark-area')).toHaveCount(0);

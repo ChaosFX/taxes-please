@@ -10,3 +10,4 @@ export * from './amount';
 export * from './calculator';
 export * from './calendar';
 export * from './board';
+export * from './timeline';

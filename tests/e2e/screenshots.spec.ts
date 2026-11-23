@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { dragTo, drawUntil, enter, freshStart, key, markKey, openAkte, playDay, pullOut, solutionFor, startAtDay, stampAkte, zoomNewspaper } from './helpers';
+import { dragTo, raw, drawUntil, enter, freshStart, key, markKey, openAkte, playDay, pullOut, solutionFor, startAtDay, stampAkte, zoomNewspaper, newGame } from './helpers';
 
 /** Screenshots of the main views (SPEC section 10.3). Output: screenshots/. */
 const shot = (name: string) => `screenshots/${name}.png`;
@@ -88,7 +88,7 @@ test('Screenshots Arbeitstisch', async ({ page }) => {
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 1280, height: 720 });
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await calm(page);
   await page.screenshot({ path: shot('tisch-01-leer-tag1') });
@@ -150,7 +150,7 @@ test('Screenshots Arbeitstisch', async ({ page }) => {
 test('Screenshots Effekte und Einstellungen', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await openAkte(page);
   await key(page, 'pos-p1-anerkennen').click();
@@ -170,7 +170,7 @@ test('Screenshots Kodex als Buch', async ({ page }) => {
 
   // 1. Closed in the tool rail, day 1 and day 10 (thickness).
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await page.screenshot({ path: shot('kodex-01-zu-tag1') });
   await page.locator('.tool-codex').screenshot({ path: shot('kodex-01a-zu-tag1-detail') });
@@ -280,7 +280,8 @@ test('Screenshots Pinnwand und Lade (Auftrag 06)', async ({ page }) => {
   await page.keyboard.press('Escape');
 
   // Day 10: all three answered, the drawer (no carbon copies in Akt I, SPEC 7.6).
-  await startAtDay(page, 10, { filed: true, queue: ['10-4', '10-1'], board: { placed: { q1: [ES118], q2: [WOLF] }, pinned: [], seenClues: [], seenAnswers: ['q1', 'q2'], misses: 0 } });
+  // Evening events shown already, so the drawer is open (Auftrag 07).
+  await startAtDay(page, 10, { filed: true, queue: ['10-4', '10-1'], eventsShown: { 10: [2, 3, 4] }, board: { placed: { q1: [ES118], q2: [WOLF] }, pinned: [], seenClues: [], seenAnswers: ['q1', 'q2'], misses: 0 } });
   await key(page, 'begin').click();
   await calm(page);
   await page.screenshot({ path: shot('45-tag10-tisch-lade') });
@@ -306,4 +307,55 @@ test('Screenshots Pinnwand und Lade (Auftrag 06)', async ({ page }) => {
   await page.locator('.rule-jump').first().click();
   await calm(page);
   await page.screenshot({ path: shot('50-auswertung-sprung-kodex') });
+});
+
+test('Screenshots Vorspann und Tagesablauf (Auftrag 07)', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await freshStart(page);
+  await key(page, 'new-game').click();
+  for (let i = 1; i <= 3; i++) {
+    await calm(page);
+    await page.screenshot({ path: shot(`60-vorspann-${i}`) });
+    await key(page, 'prologue-next').click();
+  }
+
+  // Clipping on day 5: on the card, on the desk and enlarged.
+  await startAtDay(page, 5, { queue: ['5-1'] });
+  await calm(page);
+  await page.screenshot({ path: shot('61-tag5-ausschnitt-karte'), fullPage: true });
+  await key(page, 'begin').click();
+  await calm(page);
+  await page.screenshot({ path: shot('62-tag5-ausschnitt-tisch') });
+  await zoomNewspaper(page);
+  await calm(page);
+  await page.screenshot({ path: shot('63-tag5-ausschnitt-zoom') });
+  await page.keyboard.press('Escape');
+
+  // Day 10: Gerri at the desk after 9-2, the evening, the drawer afterwards.
+  await startAtDay(page, 10, { queue: ['9-2/folge', '10-1'] });
+  await key(page, 'begin').click();
+  let id = await openAkte(page);
+  await enter(page, id, solutionFor(id), 'click', { keepEvents: true });
+  await calm(page);
+  await page.screenshot({ path: shot('64-tag10-gerri-am-tisch') });
+  await key(page, 'event-continue').click();
+  id = await openAkte(page);
+  await enter(page, id, solutionFor(id), 'click', { keepEvents: true });
+  let n = 0;
+  while (await page.locator('.desk-event').isVisible()) {
+    const last = !(await page.locator('.desk-event').getAttribute('data-event').then((i) => raw.days[9].storyEvents.slice(Number(i) + 1).some((e: { at?: unknown }) => e.at === 'end')));
+    if (n === 0 || last) {
+      await calm(page);
+      await page.screenshot({ path: shot(last ? '66-tag10-johanna-abend' : '65-tag10-lade-geht-auf') });
+    }
+    await key(page, 'event-continue').click();
+    n++;
+  }
+  // The drawer after the evening (state as after the events; the summary follows at once in the game).
+  await startAtDay(page, 10, { queue: ['10-1'], eventsShown: { 10: [1, 2, 3, 4, 5, 6, 7] } });
+  await key(page, 'begin').click();
+  await key(page, 'drawer').click();
+  await calm(page);
+  await page.screenshot({ path: shot('67-tag10-lade-offen') });
 });

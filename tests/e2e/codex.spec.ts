@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { SMOKE, freshStart, key, openAkte, raw, startAtDay, stampAkte } from './helpers';
+import { SMOKE, freshStart, key, openAkte, raw, startAtDay, stampAkte, newGame } from './helpers';
 
 /**
  * Auftrag 04: der Kodex als Buch (SPEC 6). Most tests run with „Effekte aus“,
@@ -77,7 +77,7 @@ const everything = (page: Page) =>
 
 test('Tag 1: Titel, Text und Fundstelle von R54 stehen nirgends im DOM, Reiter Tag 10 ist gesperrt', async ({ page }) => {
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   const r54 = ruleById('R54');
   expect(r54.day).toBe(10);
@@ -401,7 +401,7 @@ test('Kodex mit Screenreader-Struktur: Dialog, Seiten als Regionen, Griffregiste
 
 test('Titel bleibt auf dem Buchdeckel, Kodex-Klassen stören den Stempelabdruck nicht', async ({ page }) => {
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await page.evaluate(() => document.fonts.ready);
   const inside = await page.locator('.cover-title').evaluate((el) => {

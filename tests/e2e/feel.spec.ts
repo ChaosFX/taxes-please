@@ -1,11 +1,11 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { SMOKE, freshStart, key, openAkte, pullOut, stampAkte } from './helpers';
+import { SMOKE, freshStart, key, openAkte, pullOut, stampAkte, newGame } from './helpers';
 
 /** Auftrag 01: Ziehen, Zoom, Stempel-Effekt, Einstellungen; auf dem Arbeitstisch aus Auftrag 05. */
 
 /** Akte 1-1 open, its three papers taken out of the pocket. */
 async function toDeskWithAkte(page: Page) {
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await openAkte(page);
   for (const i of [0, 1, 2]) await pullOut(page, i);

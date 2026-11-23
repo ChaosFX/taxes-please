@@ -153,10 +153,11 @@ export async function stampAkte(page: Page, stamp: string, inquiry?: string) {
 }
 
 /** Closes the open folder (papers fly back) and puts it into the outbox with the button on its cover. */
-export async function fileAkte(page: Page) {
+export async function fileAkte(page: Page, keepEvents = false) {
   await key(page, 'close-akte').click();
   await expect(page.locator('.folder.on-desk')).toBeVisible();
   await key(page, 'folder-outbox').click();
+  if (!keepEvents) await closeDeskEvents(page);
 }
 
 /**
@@ -214,7 +215,7 @@ async function pullOutWith(page: Page, way: Way, doc: number) {
 }
 
 /** Enters a solution for the Akte on the desk, stamps and files it. */
-export async function enter(page: Page, id: string, s: Solution, way: Way = 'click') {
+export async function enter(page: Page, id: string, s: Solution, way: Way = 'click', opts: { keepEvents?: boolean } = {}) {
   const act = (k: string) => (way === 'keys' ? press(page, k) : key(page, k).click());
   for (const [pid, v] of Object.entries(s.positions)) await act(`pos-${pid}-${v}`);
   if (s.option) await act(`opt-${s.option}`);
@@ -249,7 +250,7 @@ export async function enter(page: Page, id: string, s: Solution, way: Way = 'cli
     await page.keyboard.press('Enter');
   } else {
     await stampAkte(page, s.stamp, inquiry);
-    if (way === 'click') await fileAkte(page);
+    if (way === 'click') await fileAkte(page, opts.keepEvents);
     else {
       await key(page, 'close-akte').click();
       const folder = page.locator('.desk-folder');
@@ -262,6 +263,28 @@ export async function enter(page: Page, id: string, s: Solution, way: Way = 'cli
     }
   }
   await expect(page.locator('.folder.open, .desk-folder')).toHaveCount(0);
+  if (!opts.keepEvents) await closeDeskEvents(page, way === 'keys' ? 'keys' : 'click');
+}
+
+/**
+ * Closes the events that appear at the desk after filing an Akte or at the end
+ * of the day (SPEC 7.8), one after the other. Returns their texts.
+ */
+export async function closeDeskEvents(page: Page, way: 'click' | 'keys' = 'click'): Promise<string[]> {
+  const seen: string[] = [];
+  const overlay = page.locator('.desk-event');
+  // An event comes right after the render that files the Akte.
+  await page.waitForTimeout(30);
+  while (await overlay.isVisible()) {
+    const index = await overlay.getAttribute('data-event');
+    seen.push((await overlay.locator('.desk-event-card').innerText()).trim());
+    if (way === 'keys') {
+      await expect(key(page, 'event-continue')).toBeFocused();
+      await page.keyboard.press('Enter');
+    } else await key(page, 'event-continue').click();
+    await expect(page.locator(`.desk-event[data-event="${index}"]`)).toHaveCount(0);
+  }
+  return seen;
 }
 
 /** Draws the next Akte and solves it. Returns its id. */
@@ -299,13 +322,19 @@ export interface StartOpts {
   queue?: string[];
   /** Pinboard state of the save (SPEC 9). */
   board?: object;
+  /** Events with `at` already shown, per day (SPEC 9); their unlocks count as done. */
+  eventsShown?: Record<number, number[]>;
 }
 
 export async function startAtDay(page: Page, day: number, opts: StartOpts = {}) {
   const tools: string[] = [];
   for (const d of raw.days) {
     if (d.day > day) continue;
-    for (const e of d.storyEvents) if (e.type === 'unlock' && !tools.includes(e.feature)) tools.push(e.feature);
+    d.storyEvents.forEach((e: { type: string; feature: string; at?: unknown }, i: number) => {
+      // Unlocks later in the day count only once shown (Auftrag 07).
+      const shown = d.day < day || e.at === undefined || e.at === 'start' || (opts.eventsShown?.[d.day] ?? []).includes(i);
+      if (e.type === 'unlock' && shown && !tools.includes(e.feature)) tools.push(e.feature);
+    });
   }
   const followUps = raw.cases
     .filter((c: { followUp?: { arrivesOnDay: number } }) => c.followUp?.arrivesOnDay === day)
@@ -320,6 +349,7 @@ export async function startAtDay(page: Page, day: number, opts: StartOpts = {}) 
     current: null,
     results,
     ...(opts.board ? { board: opts.board } : {}),
+    ...(opts.eventsShown ? { eventsShown: opts.eventsShown } : {}),
     pendingFollowUps: [],
     tools,
     settings: { effects: opts.effects ?? 'voll', volume: 0.7, music: 0.5 },
@@ -358,4 +388,11 @@ export async function drawUntil(page: Page, id: string) {
     if (current === id) return;
     await enter(page, current, solutionFor(current));
   }
+}
+
+/** „Neues Spiel“ and past the prologue (SPEC 4.1a) to the card of day 1. */
+export async function newGame(page: Page) {
+  await key(page, 'new-game').click();
+  await key(page, 'prologue-skip').click();
+  await expect(page.locator('.day-card h1')).toHaveText('Tag 1');
 }

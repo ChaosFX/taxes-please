@@ -357,6 +357,70 @@ describe('loadContent: Querprüfungen', () => {
     });
   });
 
+  describe('Vorspann, Zeitpunkt at und Zeitungsausschnitt (SPEC 3, ab 0.6.0)', () => {
+    const idx = (c: any, n: number, pred: (e: any) => boolean) => day(c, n).storyEvents.findIndex(pred);
+    it('Akt I hat einen Vorspann mit drei Bildschirmen vor Tag 1', () => {
+      const c = loadContent(raw());
+      expect(c.prologues).toEqual([{ act: 1, firstDay: 1, screens: raw().prologue }]);
+      expect(c.prologues![0]!.screens).toHaveLength(3);
+    });
+    it('meldet einen leeren Vorspann und Bildschirme ohne Text', () => {
+      const c = raw();
+      c.prologue = [];
+      expect(problems(() => loadContent(c)).some((x) => x.startsWith('prologue'))).toBe(true);
+      const d = raw();
+      d.prologue = [{ title: 'Nur Titel' }];
+      expect(problems(() => loadContent(d)).some((x) => x.startsWith('prologue.0'))).toBe(true);
+    });
+    it('meldet at mit einem unbekannten Wert', () => {
+      for (const bad of ['mittags', { case: '' }, { day: 3 }, 7]) {
+        const c = raw();
+        day(c, 6).storyEvents[0].at = bad;
+        expect(problems(() => loadContent(c)).some((x) => x.startsWith('Tag 6, storyEvents.0.at'))).toBe(true);
+      }
+    });
+    it('nimmt at "start" und "end" an', () => {
+      const c = raw();
+      day(c, 6).storyEvents[0].at = 'start';
+      day(c, 6).storyEvents[2].at = 'end';
+      expect(() => loadContent(c)).not.toThrow();
+    });
+    it('meldet at.case mit einer Akte, die an diesem Tag weder im Stapel liegt noch als Folgeakte kommt', () => {
+      const c = raw();
+      const i = idx(c, 10, (e) => typeof e.at === 'object');
+      day(c, 10).storyEvents[i].at = { case: '8-1' };
+      expect(problems(() => loadContent(c))).toContain(`Tag 10, storyEvents.${i}: at.case „8-1“ liegt an diesem Tag nicht im Stapel und kommt nicht als Folgeakte`);
+      // An Akte of the day itself is fine, so is a follow-up arriving that day (9-2 on day 10).
+      day(c, 10).storyEvents[i].at = { case: '10-3' };
+      expect(() => loadContent(c)).not.toThrow();
+    });
+    it('meldet at an actSummary', () => {
+      const c = raw();
+      const i = idx(c, 10, (e) => e.type === 'actSummary');
+      day(c, 10).storyEvents[i].at = 'end';
+      expect(problems(() => loadContent(c)).some((x) => x.startsWith(`Tag 10, storyEvents.${i}`))).toBe(true);
+    });
+    it('meldet clipping ohne date und Randnotiz ohne noteFrom', () => {
+      const c = raw();
+      const i = idx(c, 5, (e) => e.type === 'newspaper');
+      delete day(c, 5).storyEvents[i].clipping.date;
+      expect(problems(() => loadContent(c)).some((x) => x.startsWith(`Tag 5, storyEvents.${i}.clipping`))).toBe(true);
+      const d = raw();
+      delete day(d, 5).storyEvents[i].clipping.noteFrom;
+      expect(problems(() => loadContent(d))).toContain(`Tag 5, storyEvents.${i}: Randnotiz ohne noteFrom`);
+    });
+    it('meldet einen Zettel mit keep, der über at vor dem unlock: drawer erscheint', () => {
+      const c = raw();
+      const i = idx(c, 10, (e) => e.keep === 'drawer');
+      day(c, 10).storyEvents[i].at = 'start';
+      expect(problems(() => loadContent(c))).toContain(`Tag 10, storyEvents.${i}: Zettel mit keep „drawer“, aber die Lade ist noch nicht freigeschaltet`);
+      // After the Akte 10-1 is before the end, too.
+      const d = raw();
+      day(d, 10).storyEvents[i].at = { case: '10-1' };
+      expect(problems(() => loadContent(d))).toContain(`Tag 10, storyEvents.${i}: Zettel mit keep „drawer“, aber die Lade ist noch nicht freigeschaltet`);
+    });
+  });
+
   describe('Freischaltung „marking“ (SPEC 7)', () => {
     it('meldet eine Akte mit Widersprüchen vor unlock: marking, mit Akte und Tag', () => {
       const c = raw();

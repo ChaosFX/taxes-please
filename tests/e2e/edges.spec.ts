@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { freshStart, key, openAkte, pullOut } from './helpers';
+import { freshStart, key, openAkte, pullOut, newGame } from './helpers';
 
 /**
  * Auftrag 02, Aufgabe 3, und SPEC 7.1: Ein Papier lässt sich nie so ablegen, dass
@@ -19,7 +19,7 @@ const DIRECTIONS = {
 
 async function toDesk(page: Page) {
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await openAkte(page);
   await pullOut(page, 1);
@@ -128,7 +128,7 @@ test('Mobil: Papier bleibt beim Ziehen an den Rand vollständig sichtbar', async
   await page.setViewportSize({ width: 390, height: 844 });
   // The whole desk is scaled down to the window (SPEC 7.1); the paper comes out by keyboard.
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await openAkte(page);
   await key(page, 'paper-1').focus();

@@ -31,16 +31,27 @@ export const EventEffectsSchema = z.strictObject({
 /** A text that is still a draft (SPEC 3); no effect in the game, listed by `npm run content:report`. */
 const provisional = z.literal(true).optional();
 
+/**
+ * When in the day a story event appears (SPEC 3): at the start (default), right
+ * after an Akte of that day is in the outbox, or at the end before the summary.
+ */
+export const StoryAtSchema = z.union([z.literal('start'), z.literal('end'), z.strictObject({ case: text })]);
+const at = StoryAtSchema.optional();
+
+/** A cut-out article from Sedlak's folder: date and margin note (SPEC 3, 7.8). */
+export const ClippingSchema = z.strictObject({ date: text, note: text.optional(), noteFrom: text.optional() });
+
 export const StoryEventSchema = z.discriminatedUnion('type', [
-  z.strictObject({ type: z.literal('note'), from: text, text, title: text.optional(), keep: z.literal('drawer').optional(), provisional }),
-  z.strictObject({ type: z.literal('dialog'), from: text, text, provisional }),
-  z.strictObject({ type: z.literal('newspaper'), from: text, headline: text, text, provisional }),
-  z.strictObject({ type: z.literal('call'), from: text, text, provisional }),
-  z.strictObject({ type: z.literal('unlock'), feature: ToolSchema, provisional }),
+  z.strictObject({ type: z.literal('note'), from: text, text, title: text.optional(), keep: z.literal('drawer').optional(), at, provisional }),
+  z.strictObject({ type: z.literal('dialog'), from: text, text, at, provisional }),
+  z.strictObject({ type: z.literal('newspaper'), from: text, headline: text, text, clipping: ClippingSchema.optional(), at, provisional }),
+  z.strictObject({ type: z.literal('call'), from: text, text, at, provisional }),
+  z.strictObject({ type: z.literal('unlock'), feature: ToolSchema, at, provisional }),
   z.strictObject({
     type: z.literal('event'),
     id: text,
     text,
+    at,
     provisional,
     options: z
       .array(z.object({ text, effects: EventEffectsSchema, sets: z.array(text) }))
@@ -234,8 +245,18 @@ export const MetaSchema = z.object({
     .optional(),
 });
 
+/** One screen of the prologue of an act (SPEC 3, Vorspann). */
+export const PrologueScreenSchema = z.strictObject({ title: text.optional(), text, provisional });
+
+/** Prologue of an act, with the first day of that act (built by the loader from `prologue` of each file). */
+export const ActPrologueSchema = z.strictObject({ act: z.number().int().positive(), firstDay: z.number().int().positive(), screens: z.array(PrologueScreenSchema).min(1) });
+
 export const ContentSchema = z.object({
   meta: MetaSchema,
+  /** `prologue` of a single act file (SPEC 3). The loader turns it into `prologues`. */
+  prologue: z.array(PrologueScreenSchema).min(1).optional(),
+  /** Prologues of all acts; filled by the loader. */
+  prologues: z.array(ActPrologueSchema).optional(),
   texts: TextsSchema,
   rules: z.array(RuleSchema).min(1),
   days: z.array(DaySchema).min(1),

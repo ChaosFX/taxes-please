@@ -139,7 +139,8 @@ export class Table implements TableHooks {
       this.ui.calendar = { ...core.calendarStart(this.host.content.meta), sel: [] };
       this.ui.newspapers = {};
       core.dayInfo(this.host.content, state.day).storyEvents.forEach((e, i) => {
-        if (e.type === 'newspaper') this.ui.newspapers[`newspaper-${i}`] = { ...NEWSPAPER_SPOT, z: 2 };
+        // Only the morning paper lies on the desk; one later in the day is shown as an event (SPEC 7.8).
+        if (e.type === 'newspaper' && core.atStart(e)) this.ui.newspapers[`newspaper-${i}`] = { ...NEWSPAPER_SPOT, z: 2 };
       });
       this.topZ = 10;
     }

@@ -1,4 +1,5 @@
 import { FOLLOW_UP_SUFFIX, getAkte } from './loader';
+import { atStart } from './timeline';
 import type { Clue, Content, Question, StoryEvent } from './types';
 
 /*
@@ -321,11 +322,17 @@ export function refOnAkte(content: Content, akteId: string, place: { document: s
 export type KeptNote = Extract<StoryEvent, { type: 'note' }> & { day: number };
 
 /** Notes kept in the drawer up to `day`, in the order they came (SPEC 7.7). Needs no save of its own. */
-export function drawerNotes(content: Content, day: number): KeptNote[] {
+export function drawerNotes(content: Content, state: { day: number; eventsShown?: Record<number, number[]> }): KeptNote[] {
   return [...content.days]
     .sort((a, b) => a.day - b.day)
-    .filter((d) => d.day <= day)
-    .flatMap((d) => d.storyEvents.flatMap((e) => (e.type === 'note' && e.keep === 'drawer' ? [{ ...e, day: d.day }] : [])));
+    .filter((d) => d.day <= state.day)
+    .flatMap((d) =>
+      d.storyEvents.flatMap((e, i) => {
+        // A note of today shown later in the day goes in only once it has been shown (SPEC 7.7, 7.8).
+        const there = d.day < state.day || atStart(e) || (state.eventsShown?.[d.day] ?? []).includes(i);
+        return e.type === 'note' && e.keep === 'drawer' && there ? [{ ...e, day: d.day }] : [];
+      }),
+    );
 }
 
 // ---------- Save ----------

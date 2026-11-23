@@ -117,6 +117,11 @@ test('jeder sichtbare und vorgelesene Text stammt aus ui.json oder dem Inhalt', 
   await page.locator('.settings summary').click();
 
   await key(page, 'new-game').click();
+  // Prologue (Auftrag 07): every screen.
+  for (let i = 0; i < content.prologue.length; i++) {
+    await check(page, `Vorspann ${i + 1}`);
+    await key(page, 'prologue-next').click();
+  }
   await check(page, 'Tag 1 Beginn');
   await key(page, 'begin').click();
   await check(page, 'leerer Tisch');

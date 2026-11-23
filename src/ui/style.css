@@ -1200,3 +1200,39 @@ html[data-effects='reduziert'] .controls.pencil-line::after { animation: pencil-
   100% { transform: rotate(-0.7deg) scaleX(1); opacity: 0; }
 }
 @keyframes pencil-underline-fade { 0% { opacity: 0; } 20%, 70% { opacity: 0.75; } 100% { opacity: 0; } }
+
+/* ---------- Auftrag 07: prologue, events at the desk, clippings (SPEC 7.8) ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* Prologue: calm, large, like the start screen; no desk. */
+.prologue { max-width: 720px; margin-top: 10vh; padding: 2.8rem 3rem 2.2rem; cursor: pointer; }
+.prologue-page h1 { font-family: var(--type); font-size: 1.6rem; margin: 0 0 1.2rem; letter-spacing: 0.02em; }
+.prologue-page p { font-family: var(--type); font-size: 1.3rem; line-height: 1.6; margin: 0 0 2rem; }
+.prologue .buttons { justify-content: space-between; flex-direction: row-reverse; }
+.prologue button { cursor: pointer; }
+html[data-effects='voll'] .prologue-page { animation: prologue-in 420ms ease-out; }
+html[data-effects='reduziert'] .prologue-page { animation: prologue-fade 200ms linear; }
+@keyframes prologue-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes prologue-fade { from { opacity: 0; } }
+
+/* Event over the desk: the desk stays visible behind a veil and cannot be touched. */
+.desk-event { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 1rem; background: rgba(14, 8, 4, 0.55); }
+.desk-event-card { width: min(560px, 100%); max-height: calc(100vh - 2rem); overflow: auto; padding: 1.6rem 1.8rem 1.4rem; transform: rotate(-0.4deg); display: flex; flex-direction: column; }
+.desk-event-card > .primary { align-self: flex-end; margin-top: 0.6rem; }
+.desk-event-card .newspaper { margin: 0 auto 0.4rem; }
+html[data-effects='voll'] .desk-event-card { animation: desk-event-in 260ms ease-out; }
+html[data-effects='reduziert'] .desk-event-card { animation: prologue-fade 120ms linear; }
+@keyframes desk-event-in { from { opacity: 0; transform: translateY(14px) rotate(-0.4deg); } }
+
+/* Clipping: a narrow strip cut out of a page, date above the headline, a pencil note beside it. */
+.newspaper.clipping {
+  position: relative; max-width: 300px; padding: 0.9rem 1rem 1.1rem;
+  clip-path: polygon(0 1%, 18% 0, 47% 1.2%, 76% 0.2%, 100% 1.4%, 99.2% 34%, 100% 67%, 99.4% 100%, 63% 98.8%, 31% 100%, 0.6% 99%, 0 62%, 0.8% 30%);
+}
+.newspaper.clipping .masthead { font-size: 0.85rem; border-bottom-width: 1px; border-bottom-style: solid; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.3rem; }
+.newspaper.clipping .clip-date { margin: 0 0 0.35rem; font: italic 0.85rem var(--press); color: #4a443a; }
+.newspaper.clipping .columns { columns: 1; }
+.margin-note { margin: 0.7rem 0 0 auto; width: fit-content; max-width: 85%; transform: rotate(-3deg); }
+.margin-note .hand { font-family: 'Segoe Print', 'Bradley Hand', 'Comic Neue', cursive; font-size: 1.05rem; color: #4b4f5a; line-height: 1.2; }
+.paper.doc.newspaper.clipping { width: 300px; }
+.paper.doc.newspaper.clipping.zoomed { width: auto; max-width: 560px; }

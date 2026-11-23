@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { SMOKE, documentsOf, freshStart, inboxCount, key, openAkte, pullOut, raw, startAtDay, stampAkte } from './helpers';
+import { SMOKE, documentsOf, freshStart, inboxCount, key, openAkte, pullOut, raw, startAtDay, stampAkte, newGame } from './helpers';
 
 /** Auftrag 05, Etappe A: Tischplan, Mappe, Werkzeuge, Kalender (SPEC 7.1 bis 7.5, 11). */
 
@@ -160,7 +160,7 @@ test('Kodex auf die Unterlage ziehen, blättern, verschieben, Lesemodus an derse
 
 test('Tag 1: auch am Tisch keine Inhalte gesperrter Regeln im DOM', async ({ page }) => {
   await freshStart(page);
-  await key(page, 'new-game').click();
+  await newGame(page);
   await key(page, 'begin').click();
   await key(page, 'codex-book').click();
   await expect(page.locator('.desk-book .page.shown')).toHaveCount(2);

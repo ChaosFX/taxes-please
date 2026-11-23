@@ -1,7 +1,8 @@
 import { fromCents } from '../core/amount';
 import { correctAnswer } from '../core/evaluate';
 import { formatEuro, romanNumeral } from '../core/format';
-import { dayInfo, errorsOfDay, errorsPerDay, needsReprimand, resultsOfDay, type GameState } from '../core/game';
+import { atStart } from '../core/timeline';
+import { dayInfo, errorsOfDay, prologueBefore, errorsPerDay, needsReprimand, resultsOfDay, type GameState } from '../core/game';
 import { getAkte } from '../core/loader';
 import { OFFEN } from '../core/schema';
 import { isAmountDecision, type Akte, type Answer, type CaseError, type Content, type EDecision, type PositionVerdict, type Rule, type Stamp } from '../core/types';
@@ -13,6 +14,10 @@ import { t, textsReady } from './text';
 
 export interface ScreenActions {
   newGame(): void;
+  /** Next screen of the prologue, or on to the day after the last one. */
+  prologueNext(): void;
+  /** Skips the rest of the prologue (SPEC 4.1a). */
+  prologueSkip(): void;
   continueGame(): void;
   beginWork(): void;
   advanceDay(): void;
@@ -90,6 +95,33 @@ export function startView(content: Content, canContinue: boolean, a: ScreenActio
   );
 }
 
+// ---------- Prologue ----------
+
+/**
+ * One screen of the prologue (SPEC 4.1a, 7.8): calm, large, like the start
+ * screen. A click on the screen, Enter or Space goes on; the button below skips.
+ */
+export function prologueView(content: Content, state: GameState, step: number, a: ScreenActions): HTMLElement {
+  const screens = prologueBefore(content, state.day)?.screens ?? [];
+  const s = screens[Math.min(step, screens.length - 1)];
+  const last = step >= screens.length - 1;
+  const el = h(
+    'main',
+    { class: 'screen prologue sheet', 'aria-label': t('aria.prologue') },
+    h('section', { class: 'prologue-page', 'data-step': step }, s?.title ? h('h1', {}, s.title) : null, h('p', {}, s?.text ?? '')),
+    h(
+      'div',
+      { class: 'buttons' },
+      h('button', { class: 'primary', 'data-key': 'prologue-next', onclick: a.prologueNext }, t(last ? 'prologue.start' : 'prologue.next')),
+      last ? null : h('button', { 'data-key': 'prologue-skip', 'aria-keyshortcuts': 'Escape', onclick: a.prologueSkip }, t('prologue.skip')),
+    ),
+  );
+  el.addEventListener('click', (e) => {
+    if (!(e.target as HTMLElement).closest('button')) a.prologueNext();
+  });
+  return el;
+}
+
 // ---------- Day intro ----------
 
 export function introView(content: Content, state: GameState, a: ScreenActions): HTMLElement {
@@ -102,7 +134,8 @@ export function introView(content: Content, state: GameState, a: ScreenActions):
       { class: 'day-card sheet' },
       h('h1', {}, t('intro.day', { day: d.day })),
       h('p', {}, d.intro),
-      d.storyEvents.map(storyEvent),
+      // Events later in the day appear at the desk (SPEC 4.4a, 4.5).
+      d.storyEvents.filter(atStart).map(storyEvent),
       // New questions on the pinboard come after the story events (SPEC 4.9).
       state.tools.includes('pinboard') ? newQuestionsOfDay(content, d.day).map(questionNotice) : null,
       h('button', { class: 'primary', 'data-key': 'begin', onclick: a.beginWork }, t('intro.begin')),
