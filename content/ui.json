@@ -16,7 +16,7 @@
     "call": "Anruf von {from}",
     "unlockCalculator": "Neben dem Kodex steht ab heute ein Tischrechner.",
     "unlockCalendar": "Neben dem Kodex liegt ab heute ein Tischkalender.",
-    "unlockPinboard": "Neben dem Telefon hängt ab heute eine Pinnwand. Im Modus „Anheften“ kommt jede Zeile einer Akte als Karte dorthin.",
+    "unlockPinboard": "Neben dem Telefon hängt ab heute eine Pinnwand. Jede Zeile einer Akte lässt sich mit der Nadel dort anheften.",
     "unlockDrawer": "Die unterste Lade geht heute endlich auf."
   },
   "desk": {
@@ -147,8 +147,6 @@
     "new": "neu",
     "open": "Pinnwand ansehen",
     "close": "Zurück zum Tisch",
-    "pinMode": "Anheften",
-    "pinHint": "Wählen Sie eine Zeile oder einen Kanzleistempel, um ihn an die Pinnwand zu heften.",
     "pinned": "Angeheftet: {text}",
     "alreadyPinned": "Diese Stelle hängt schon an der Pinnwand.",
     "full": "Die Pinnwand ist voll. Nehmen Sie zuerst eine Karte ab.",
@@ -169,7 +167,11 @@
     "archiveDay": "Tag {day}",
     "archiveEmpty": "Noch keine erledigten Akten.",
     "copy": "Durchschlag",
-    "copyClose": "Durchschlag schließen"
+    "copyClose": "Durchschlag schließen",
+    "seedFrom": "Karte von {from}",
+    "seedPinned": "von {from} angeheftet",
+    "seedNotice": "An der Pinnwand hängt eine Karte von {from}:",
+    "seedJoined": "Der Faden von {from} reicht genau bis hierher."
   },
   "drawer": {
     "label": "Lade",

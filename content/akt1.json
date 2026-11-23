@@ -680,6 +680,12 @@
               "line": "Rechnungsnummer"
             }
           ],
+          "seed": {
+            "from": "Sedlak",
+            "text": "Eventservice GmbH. Rechnung ES-2025-117 an Brandl, 15. Dezember. Wer hat die 118 bekommen?",
+            "links": [0],
+            "provisional": true
+          },
           "reward": {
             "type": "note",
             "from": "Sedlak",
@@ -831,6 +837,12 @@
               "field": "representative"
             }
           ],
+          "seed": {
+            "from": "Sedlak",
+            "text": "Pernold & Partner. Bei der Wolf, beim Edlinger. Wer noch?",
+            "links": [0, 1],
+            "provisional": true
+          },
           "reward": {
             "type": "note",
             "from": "Sedlak",
