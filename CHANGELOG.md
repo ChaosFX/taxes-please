@@ -4,6 +4,8 @@ Gemeinsame Dateien (`SPEC.md`, `content/*.json`) werden im Claude-Projekt und in
 
 ## 23.11.2026
 
+- `content/akt1.json` 0.3.6: Story-Überarbeitung Akt I, erster Schritt (nur vorhandene Felder). Intros aller zehn Tage aus Daniels Sicht, Tag 10 verrät die Lade nicht mehr. Tag 3: Gerri zeigt das Foto von Berni (`provisional`). Ensemble-Zeilen: Elif Yilmaz arbeitet im Goldenen Hirschen (2-2), Lucia Moretti im Wellnesshotel Seeblick (3-2), Karin Moser bei Pernold & Partner (4-2), Klara Berger fotografiert für die Eventservice GmbH (5-4), Nora Lehner gestaltet Edlingers Tourneeplakat (7-1, 7-3), Grubers Weinpakete kommen vom Weingut Rosenhang (7-4), Jonas Reisinger arbeitet für Edlingers Tournee (9-6), Weingut Mold liegt am Rosenhang (10-6). Absender der Eventservice GmbH auf beiden Rechnungen (5-3, 7-3). 9-2: Auszahlung bar aus der Kassa, Lukas Hable im Dienstplan. 7-3 Folgeakte: Terminliste der abgesagten Konzerte, Begründung „nach den vorgelegten Unterlagen“. 10-5: Wolfs Antrag mit Kürzel MW. Keine Änderung an Regeln, Lösungen oder Fragen.
+- `SPEC.md` 0.5.2: Kopf nennt `akt1.json` 0.3.6, Inhaltsbericht mit fünf vorläufigen Texten.
 - `SPEC.md` 0.5.1: `given` nur an Fragen mit `from`, der Loader meldet `given` ohne `from` als Fehler (Abschnitt 3, Test in `tests/unit/loader.test.ts`). Inhaltsbericht: Akt I hat vier vorläufige Texte (q1 bis q3, `e-tag9-gerri`). Kopf nennt `akt1.json` 0.3.5 und `ui.json` 0.5.1.
 - `content/akt1.json` 0.3.5: Tag 7 `intro` erklärt die Pinnwand mit Fragen statt mit Fäden.
 - `content/ui.json` 0.5.1 (Auftrag 06, Claude Code): neu `pinboard.progress` („{have} von {total} Hinweisen“) für den Fortschritt einer Frage an der Wand (SPEC 7.6). Kein Schlüssel entfernt.

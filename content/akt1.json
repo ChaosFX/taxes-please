@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "0.3.5",
+    "version": "0.3.6",
     "akt": 1,
     "veranlagungsjahr": 2025,
     "kalenderStart": "2026-04",
@@ -514,7 +514,7 @@
   "days": [
     {
       "day": 1,
-      "intro": "Ihr erster Tag. Der Schreibtisch hat bis letzte Woche Amtsrat Sedlak gehört. Die Lade klemmt.",
+      "intro": "Sedlaks Sessel ist auf einen größeren Mann eingestellt, und die unterste Lade klemmt. Links liegen seine offenen Akten. Heute sind es nur Arbeitnehmer, die Werbungskosten geltend machen. Was dazu zählt, steht im Kodex.",
       "stamps": ["bescheid"],
       "cases": ["1-1", "1-2", "1-3"],
       "storyEvents": [
@@ -533,7 +533,7 @@
     },
     {
       "day": 2,
-      "intro": "In der Lade ist ein Spalt aufgegangen. Ein Zettel ist herausgerutscht.",
+      "intro": "Über Nacht ist die Lade einen Spalt aufgegangen. Herausgerutscht ist ein Zettel in einer kleinen, schrägen Schrift. Sedlaks Schrift, nehme ich an.",
       "stamps": ["bescheid"],
       "cases": ["2-1", "2-2", "2-3", "2-4"],
       "storyEvents": [
@@ -546,10 +546,16 @@
     },
     {
       "day": 3,
-      "intro": "Ab heute dürfen Sie Ergänzungsersuchen verschicken. Gerri bringt Kaffee.",
+      "intro": "Wallner sagt, ab heute darf ich Ergänzungsersuchen schicken, wenn in einer Akte etwas fehlt. Gerri vom Nachbartisch bringt Kaffee, ohne zu fragen, wie ich ihn trinke.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["3-1", "3-2", "3-3", "3-4"],
       "storyEvents": [
+        {
+          "type": "dialog",
+          "from": "Gerri",
+          "provisional": true,
+          "text": "Schau, mein Bub, der Berni. Das Foto ist von seinem ersten Tag in der Kanzlei. Den Anzug hat er sich selber gekauft, vom ersten Gehalt. Steuerberater will er werden, seit er zwölf ist."
+        },
         {
           "type": "dialog",
           "from": "Gerri",
@@ -565,7 +571,7 @@
     },
     {
       "day": 4,
-      "intro": "Die Post ist da. Obenauf liegt, falls Sie gestern richtig entschieden haben, die Kursbestätigung von Frau Lang. Daneben liegt zum ersten Mal die Morgenzeitung.",
+      "intro": "Die Post ist da. Wenn ich gestern richtig entschieden habe, liegt die Kursbestätigung von Frau Lang obenauf. Auf dem Tisch stehen jetzt ein Kalender und der Donau-Kurier.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["4-1", "4-2", "4-3", "4-4", "4-5"],
       "storyEvents": [
@@ -588,7 +594,7 @@
     },
     {
       "day": 5,
-      "intro": "Heute liegt zum ersten Mal ein Betrieb auf dem Tisch. Zu jeder Erklärung gehören Belege. Legen Sie sie nebeneinander und prüfen Sie, ob sie zusammenpassen.",
+      "intro": "Heute kommen die ersten Betriebe, darunter der Goldene Hirsch, ein Wirtshaus mit Stammtisch. Zu jeder Erklärung gehören Belege. Ich lege sie nebeneinander und schaue, ob sie zusammenpassen.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["5-1", "5-2", "5-3", "5-4"],
       "storyEvents": [
@@ -613,7 +619,7 @@
     },
     {
       "day": 6,
-      "intro": "Heute geht es um das Vermögen im Betrieb: Was gehört dazu, was bleibt privat? Brandl liegt wieder auf dem Tisch. Bei Akten mit Lücken dürfen Sie diesmal wählen, was Sie nachfragen.",
+      "intro": "Brandl ist wieder da. Heute geht es darum, was zum Betrieb gehört und was privat bleibt. Wo etwas fehlt, suche ich mir diesmal selbst aus, was ich nachfrage.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["6-1", "6-2", "6-3", "6-4", "6-5"],
       "storyEvents": [
@@ -638,7 +644,7 @@
     },
     {
       "day": 7,
-      "intro": "Heute geht es um Ausgaben, die der Betrieb zahlt, die aber nicht oder nur teilweise abzugsfähig sind. An der Wand neben Ihrem Tisch hängt seit heute eine Pinnwand. Dort hängen Fragen. Was Sie in Ihren Akten dazu finden, sammelt sich unten an der Pinnwand. Ordnen Sie es der passenden Frage zu.",
+      "intro": "Neben meinem Tisch hängt seit heute eine Pinnwand, und Sedlak hat Fragen daran gelassen. Was ich in den Akten dazu finde, sammelt sich unten an der Wand, ich ordne es der passenden Frage zu. In den Akten geht es um Ausgaben, die der Betrieb zahlt, die aber nicht oder nur teilweise abzugsfähig sind.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["7-1", "7-2", "7-3", "7-4", "7-5"],
       "storyEvents": [
@@ -710,7 +716,7 @@
     },
     {
       "day": 8,
-      "intro": "Ab heute rechnen Sie selbst. Neben dem Kodex liegt ein Tischrechner. Wo eine Akte einen Betrag verlangt, tragen Sie ihn ein, bevor Sie stempeln.",
+      "intro": "Wallner hat mir einen Rechner hingestellt. Sedlak hatte keinen, er hat alles am Rand nachgerechnet, man sieht es an seinen Akten. Ab heute trage ich Beträge selbst ein, bevor ich stemple.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["8-1", "8-2", "8-3", "8-4", "8-5"],
       "storyEvents": [
@@ -738,7 +744,7 @@
     },
     {
       "day": 9,
-      "intro": "Heute rechnen Sie zum ersten Mal eine Einkommensteuer ganz durch. Und Sie werden wieder mit Familien zu tun haben, auf dem Papier und am Telefon.",
+      "intro": "Heute rechne ich zum ersten Mal eine Einkommensteuer ganz durch. Brandl liegt wieder obenauf, diesmal geht es um seine Frau. Und der Kindergarten sperrt um halb fünf.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["9-1", "9-2", "9-3", "9-4", "9-5", "9-6"],
       "storyEvents": [
@@ -790,7 +796,7 @@
     },
     {
       "day": 10,
-      "intro": "Der letzte Tag Ihres ersten Akts. Auf dem Tisch liegen Verluste, ein Weingut und ein Stapel Post von derselben Kanzlei. Und die Lade klemmt heute nicht mehr.",
+      "intro": "Zwei Wochen an Sedlaks Tisch. Brandl hat geantwortet. Dazu liegen Verluste da, ein Weingut und ein Stapel Post von derselben Kanzlei.",
       "stamps": ["bescheid", "ergaenzung"],
       "cases": ["10-1", "10-2", "10-3", "10-4", "10-5", "10-6", "10-7"],
       "storyEvents": [
@@ -1052,7 +1058,7 @@
         {
           "kind": "erklaerung",
           "title": "Arbeitnehmerveranlagung 2025",
-          "lines": [["Name", "Elif Yilmaz"], ["Beruf", "Köchin"], ["Arbeitskleidung", "120,00 €"], ["Fachliteratur", "360,00 €"]]
+          "lines": [["Name", "Elif Yilmaz"], ["Beruf", "Köchin"], ["Arbeitgeber", "Gasthaus Goldener Hirsch"], ["Arbeitskleidung", "120,00 €"], ["Fachliteratur", "360,00 €"]]
         },
         {
           "kind": "beleg",
@@ -1226,7 +1232,7 @@
         {
           "kind": "beleg",
           "title": "Dienstvertrag",
-          "lines": [["Arbeitgeber", "Hotel Alpenblick, Tirol"], ["Beschäftigung", "1. Mai bis 30. November 2025"], ["Unterkunft", "Personalzimmer im Hotel"]]
+          "lines": [["Arbeitgeber", "Wellnesshotel Seeblick"], ["Beschäftigung", "1. Mai bis 30. November 2025"], ["Unterkunft", "Personalzimmer im Hotel"]]
         }
       ],
       "decision": {
@@ -1406,7 +1412,7 @@
         {
           "kind": "beleg",
           "title": "Lohnzettel",
-          "lines": [["Arbeitgeber", "Reisebüro Sonnenwind"], ["Bruttobezüge 2025", "31.800,00 €"]]
+          "lines": [["Arbeitgeber", "Pernold & Partner Steuerberatung"], ["Bruttobezüge 2025", "31.800,00 €"]]
         },
         {
           "kind": "beleg",
@@ -1818,7 +1824,7 @@
         {
           "kind": "beleg",
           "title": "Rechnung Eventservice GmbH",
-          "lines": [["Rechnungsnummer", "ES-2025-117"], ["Rechnungsdatum", "15.12.2025"], ["Leistung", "Dekoration und Servicepersonal Winterfest im Goldenen Hirschen am 14.12.2025"], ["Betrag", "7.500,00 €"], ["Bezahlt", "bar am 15.12.2025"]]
+          "lines": [["Absender", "Eventservice GmbH, c/o Büroservice Donaukanal, Wien 3"], ["Rechnungsnummer", "ES-2025-117"], ["Rechnungsdatum", "15.12.2025"], ["Leistung", "Dekoration und Servicepersonal Winterfest im Goldenen Hirschen am 14.12.2025"], ["Betrag", "7.500,00 €"], ["Bezahlt", "bar am 15.12.2025"]]
         },
         {
           "kind": "beleg",
@@ -1922,7 +1928,7 @@
         {
           "kind": "erklaerung",
           "title": "Einkommensteuererklärung 2025",
-          "lines": [["Name", "Klara Berger"], ["Einkunftsart", "selbständige Arbeit"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Pflichtbeiträge SVS", "4.900,00 €"], ["Seminar Lichtsetzung", "380,00 €"], ["Miete Fotostudio", "6.000,00 €"], ["Streamingabo für zuhause", "156,00 €"]]
+          "lines": [["Name", "Klara Berger"], ["Einkunftsart", "selbständige Arbeit"], ["Gewinnermittlung", "Einnahmen-Ausgaben-Rechnung"], ["Pflichtbeiträge SVS", "4.900,00 €"], ["Seminar Lichtsetzung", "380,00 €"], ["Miete Fotostudio", "6.000,00 €"], ["Streamingabo für zuhause", "156,00 €"], ["Größte Auftraggeberin 2025", "Eventservice GmbH, Fotos von Firmenfeiern"]]
         },
         {
           "kind": "beleg",
@@ -2375,7 +2381,7 @@
         {
           "kind": "beleg",
           "title": "Beschreibung der Tätigkeit",
-          "lines": [["Arbeitsort", "ausschließlich im Arbeitszimmer der Wohnung"], ["Kundentermine", "per Videocall, keine Besuche"], ["Weitere Tätigkeiten", "keine"]]
+          "lines": [["Arbeitsort", "ausschließlich im Arbeitszimmer der Wohnung"], ["Kundentermine", "per Videocall, keine Besuche"], ["Weitere Tätigkeiten", "keine"], ["Größter Auftrag 2025", "Tourneeplakat für Toni Edlinger"]]
         },
         {
           "kind": "beleg",
@@ -2517,12 +2523,12 @@
         {
           "kind": "beleg",
           "title": "Rechnung Eventservice GmbH",
-          "lines": [["Rechnungsnummer", "ES-2025-118"], ["Rechnungsdatum", "16.12.2025"], ["Leistung", "Tourneelogistik für 12 Konzerte, Herbsttournee 2025"], ["Betrag", "28.000,00 €"]]
+          "lines": [["Absender", "Eventservice GmbH, c/o Büroservice Donaukanal, Wien 3"], ["Rechnungsnummer", "ES-2025-118"], ["Rechnungsdatum", "16.12.2025"], ["Leistung", "Tourneelogistik für 12 Konzerte, Herbsttournee 2025"], ["Betrag", "28.000,00 €"]]
         },
         {
           "kind": "beleg",
           "title": "Tourneeplan Herbst 2025",
-          "lines": [["Konzerte", "Linz, Graz, Salzburg, Innsbruck, Klagenfurt, St. Pölten, Wels, Bregenz"], ["Anzahl", "8 Konzerte"]]
+          "lines": [["Konzerte", "Linz, Graz, Salzburg, Innsbruck, Klagenfurt, St. Pölten, Wels, Bregenz"], ["Anzahl", "8 Konzerte"], ["Plakat", "Gestaltung Studio Nora Lehner"]]
         }
       ],
       "decisions": [
@@ -2605,6 +2611,11 @@
             "kind": "beleg",
             "title": "Vertrag Eventservice GmbH, Auszug",
             "lines": [["Punkt 7", "Bei Absage durch den Künstler sind die vereinbarten Leistungen in voller Höhe zu entgelten."], ["Unterschrift für die Eventservice GmbH", "Geschäftsführung"]]
+          },
+          {
+            "kind": "beleg",
+            "title": "Terminliste Herbsttournee 2025",
+            "lines": [["Gespielt", "Linz, Graz, Salzburg, Innsbruck, Klagenfurt, St. Pölten, Wels, Bregenz"], ["Abgesagt durch den Künstler", "Dornbirn, Leoben, Villach, Steyr"], ["Absage mitgeteilt", "15.9.2025"]]
           }
         ],
         "decisions": [
@@ -2615,7 +2626,7 @@
             "options": ["ba", "keineBa"],
             "correct": "ba",
             "rules": ["R19"],
-            "explanation": "Der Vertrag erklärt den Unterschied. Auch das Entgelt für abgesagte Termine ist betrieblich veranlasst."
+            "explanation": "Nach den vorgelegten Unterlagen erklärt Punkt 7 des Vertrags den Unterschied: Auch für die vier abgesagten Termine war das Entgelt zu bezahlen. Damit ist es betrieblich veranlasst."
           }
         ],
         "correctStamp": "bescheid"
@@ -2646,7 +2657,7 @@
         },
         {
           "kind": "beleg",
-          "title": "Rechnung Weinhandel",
+          "title": "Rechnung Weingut Rosenhang",
           "lines": [["Zehn Weinpakete, Weihnachtsgeschenk für Kunden", "350,00 €"]]
         },
         {
@@ -3148,12 +3159,12 @@
         {
           "kind": "beleg",
           "title": "Dienstvertrag Renate Brandl",
-          "lines": [["Form", "schriftlich"], ["Tätigkeit", "Service im Gastraum, 25 Stunden pro Woche"], ["Entgelt", "1.500,00 € monatlich, zwölfmal"], ["Anmeldung Sozialversicherung", "ja"]]
+          "lines": [["Form", "schriftlich"], ["Tätigkeit", "Service im Gastraum, 25 Stunden pro Woche"], ["Entgelt", "1.500,00 € monatlich, zwölfmal"], ["Auszahlung", "bar aus der Kassa, jeweils am Monatsende"], ["Anmeldung Sozialversicherung", "ja"]]
         },
         {
           "kind": "beleg",
           "title": "Dienstplan Goldener Hirsch, Oktober bis Dezember 2025",
-          "lines": [["Servicekräfte", "Huber, Lechner, Novak, Steindl"], ["Renate Brandl", "nicht eingetragen"]]
+          "lines": [["Servicekräfte", "Lechner, Novak, Steindl, Wurzer, dazu Lukas Hable als Aushilfe am Wochenende"], ["Renate Brandl", "nicht eingetragen"]]
         },
         {
           "kind": "beleg",
@@ -3366,7 +3377,7 @@
         {
           "kind": "erklaerung",
           "title": "Einkommensteuererklärung 2025",
-          "lines": [["Name", "Jonas Reisinger"], ["Einkunftsart", "Gewerbebetrieb, einzige Einkunftsquelle"], ["Gewinn vor Gewinnfreibetrag", "26.000,00 €"], ["Investitionen 2025", "keine"], ["Sonderausgaben, außergewöhnliche Belastungen", "keine"]]
+          "lines": [["Name", "Jonas Reisinger"], ["Einkunftsart", "Gewerbebetrieb, einzige Einkunftsquelle"], ["Größter Auftraggeber 2025", "Tournee Toni Edlinger, Herbst 2025"], ["Gewinn vor Gewinnfreibetrag", "26.000,00 €"], ["Investitionen 2025", "keine"], ["Sonderausgaben, außergewöhnliche Belastungen", "keine"]]
         }
       ],
       "decisions": [
@@ -3614,7 +3625,7 @@
         {
           "kind": "erklaerung",
           "title": "Eingangsliste",
-          "lines": [["A", "Antrag auf Fristverlängerung für Toni Edlinger, von Dr. Viktor Pernold, Steuerberater, mit dem Vermerk „namens und auftrags meines Mandanten“, keine Vollmachtsurkunde beigelegt"], ["B", "Antrag auf Fristverlängerung für Ferdinand Brandl, eingebracht von Martina Wolf, Eventservice GmbH, keine Vollmacht und kein Hinweis auf eine Bevollmächtigung"], ["C", "Einkommensteuererklärung 2025 von Dr. Lorenz Maier, auf Papier, nicht unterschrieben"], ["D", "Antrag von Ing. Gustav Pree, Mangel festgestellt, Mängelbehebungsauftrag mit Frist von zwei Wochen, die Frist ist abgelaufen, keine Antwort eingelangt"]]
+          "lines": [["A", "Antrag auf Fristverlängerung für Toni Edlinger, von Dr. Viktor Pernold, Steuerberater, mit dem Vermerk „namens und auftrags meines Mandanten“, keine Vollmachtsurkunde beigelegt"], ["B", "Antrag auf Fristverlängerung für Ferdinand Brandl, eingebracht von Martina Wolf, Eventservice GmbH, auf Briefpapier der Firma mit dem Kürzel MW, keine Vollmacht und kein Hinweis auf eine Bevollmächtigung"], ["C", "Einkommensteuererklärung 2025 von Dr. Lorenz Maier, auf Papier, nicht unterschrieben"], ["D", "Antrag von Ing. Gustav Pree, Mangel festgestellt, Mängelbehebungsauftrag mit Frist von zwei Wochen, die Frist ist abgelaufen, keine Antwort eingelangt"]]
         }
       ],
       "decisions": [
@@ -3670,7 +3681,7 @@
         {
           "kind": "beleg",
           "title": "Betriebsbeschreibung Weingut Mold",
-          "lines": [["Betrieb seit", "Juni 2024, übernommene Rebflächen neu bepflanzt"], ["Preise", "12,00 € je Flasche, wie in der Region üblich"], ["Planrechnung", "Gewinne ab 2028 erwartet"]]
+          "lines": [["Betrieb seit", "Juni 2024, übernommene Rebflächen am Rosenhang neu bepflanzt"], ["Preise", "12,00 € je Flasche, wie in der Region üblich"], ["Planrechnung", "Gewinne ab 2028 erwartet"]]
         }
       ],
       "decisions": [

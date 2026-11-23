@@ -1,10 +1,14 @@
 # Taxes Please – Spezifikation Akt I (Tag 1 bis 10)
 
-Stand: 23.11.2026 · Version 0.5.1 · passt zu `content/akt1.json` Version 0.3.5, `content/ui.json` Version 0.5.1 und `content/kalender.json` Version 0.1.0
+Stand: 23.11.2026 · Version 0.5.2 · passt zu `content/akt1.json` Version 0.3.6, `content/ui.json` Version 0.5.1 und `content/kalender.json` Version 0.1.0
 
 Ein Lernspiel im Stil von Papers Please: Der Spieler sitzt als Sachbearbeiter Daniel Winkler in einem fiktiven Wiener Finanzamt, prüft Papierakten nach einem Steuerrechts-Kodex, der täglich wächst, und stempelt Entscheidungen. Ziel ist, österreichisches Steuerrecht für die Dienstprüfung zu lernen und anderen zu vermitteln.
 
 Diese Version umfasst den ganzen Akt I: zehn Spieltage mit 48 Akten, 6 Folgeakten und 54 Kodexregeln (davon 5 Hinweise ohne eigenen Fall). Inhalt und Lösungen stehen in `content/akt1.json`, einer Datei für den ganzen Akt. Spätere Akte bekommen je eine eigene Datei (`akt2.json` usw.).
+
+Änderungen gegenüber 0.5.1:
+- Nur Inhalt: `akt1.json` 0.3.6 (Intros aus Daniels Sicht, Ensemble-Zeilen in den Akten, ein neuer vorläufiger Dialog an Tag 3). Am Datenmodell ändert sich nichts.
+- Inhaltsbericht: Akt I hat fünf vorläufige Texte (Gerris Dialog an Tag 3, q1 bis q3, `e-tag9-gerri`).
 
 Änderungen gegenüber 0.5.0:
 - `given` nur an Fragen mit `from`, der Loader meldet `given` ohne `from` als Fehler (Abschnitt 3).
@@ -465,7 +469,7 @@ Vorbild ist das Case Board aus Alan Wake 2: offene Fragen an der Wand, Hinweise 
 - [ ] An Tag 7 stehen keine Inhalte von Akten oder Fragen im DOM, die erst später kommen.
 - [ ] Bei 1280 × 720, 1920 × 1080 und 1024 × 768 passen Pinnwand-Platz und Lade-Griff auf den Tisch, und Pinnwand-Ansicht (Wand und Hand) und Lade-Ansicht sind vollständig sichtbar.
 - [ ] Bei „Effekte aus“ gibt es beim Zuordnen, beim Wackeln, beim Erscheinen der Antwort und beim Öffnen der Lade keine Animation.
-- [ ] `npm run content:report` listet die vier vorläufigen Texte von Akt I (q1, q2, q3 und `e-tag9-gerri`).
+- [ ] `npm run content:report` listet die fünf vorläufigen Texte von Akt I (Gerris Dialog an Tag 3, q1, q2, q3 und `e-tag9-gerri`).
 
 ## 12. Nicht Teil dieser Version
 
