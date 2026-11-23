@@ -41,7 +41,7 @@ Bewertung, Folgeakten und Tagesablauf ändern sich nicht. Pinnwand und Spuren er
 
 ### 3. Pinnwand-Ansicht (SPEC 7.6)
 
-- Dialog wie der Lesemodus: links die erledigten Akten nach Tag, daneben die Korkwand. Durchschlag öffnet sich neben der Wand, im Anheftmodus mit anheftbaren Zeilen.
+- Dialog wie der Lesemodus: links die erledigten Akten nach Tag, daneben die Korkwand. Durchschlag öffnet sich neben der Wand, seine Zeilen haben Nadeln wie am Tisch.
 - Karten ziehen (Pointer Events, Listener am `window` wie am Tisch), mit Pfeiltasten verschieben, nicht über den Rand. Eine Karte auf eine andere ziehen spannt einen Faden. Fäden als SVG-Linie von Nadel zu Nadel, sie folgen beim Ziehen.
 - Vorarbeit: Karte der Figur mit losem Faden, eine Zeile je Spur an der Wand.
 - Faden starten, Ziel wählen, halten oder herunterfallen. Fäden lösen, Karte abnehmen.
@@ -56,7 +56,7 @@ Bewertung, Folgeakten und Tagesablauf ändern sich nicht. Pinnwand und Spuren er
 - Unit- und Loader-Tests nach SPEC 11.
 - e2e kurz halten (SPEC 2). Jeder neue Test startet mit einem vorbereiteten Spielstand am passenden Tag, nicht mit einem Durchspiel. `@smoke` bekommt: Spur t1 an Tag 7 mit einem Klick lösen, Lade an Tag 10, Sprung in den Kodex. Der Tastaturweg für Anheften und Faden und das freie Verbinden ohne Vorarbeit dürfen eigene Tests ohne `@smoke` sein.
 - Die beiden Durchspieltests (`@long`) bleiben, wie sie sind. Sie dürfen die Pinnwand ignorieren.
-- Screenshots: Tisch an Tag 7 mit Pinnwand-Platz, Tisch an Tag 10 mit Lade-Griff, Pinnwand-Ansicht mit offenem Durchschlag im Anheftmodus, Pinnwand mit gelöster Spur t1 und herunterfallendem Faden (Standbild), Spur t2 mit drei Karten, Lade-Ansicht an Tag 10, Tagesauswertung mit Kodex im Lesemodus nach dem Sprung.
+- Screenshots: Tisch an Tag 7 mit Pinnwand-Platz, Tisch an Tag 10 mit Lade-Griff, Pinnwand-Ansicht mit offenem Durchschlag und sichtbarer Nadel, Tag 7 mit Sedlaks Vorarbeit vor dem Lösen, Pinnwand mit gelöster Spur t1 und herunterfallendem Faden (Standbild), Spur t2 mit drei Karten, Lade-Ansicht an Tag 10, Tagesauswertung mit Kodex im Lesemodus nach dem Sprung.
 
 ## Oberflächentexte
 
